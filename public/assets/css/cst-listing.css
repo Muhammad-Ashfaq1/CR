@@ -1,0 +1,131 @@
+/*
+ * cst-listing.css — Glass listing chrome for Construction Ready tables.
+ * Mirrors pos-listing.css pattern.
+ */
+
+.cst-listing {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.cst-listing-panel {
+    position: relative;
+    padding: 0;
+    overflow: visible;
+}
+
+.cst-listing-toolbar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem 1rem;
+    width: 100%;
+    padding: 1rem 1.25rem 0.9rem;
+    border-bottom: 1px solid var(--cst-border-color, rgba(0,0,0,0.08));
+}
+
+.cst-listing-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--bs-heading-color);
+    white-space: nowrap;
+}
+
+.cst-listing-search-slot {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1 1 12rem;
+    max-width: 22rem;
+}
+
+.cst-listing-search-slot .form-control {
+    background-color: rgba(255,255,255,0.72);
+    border-color: rgba(var(--cst-primary-rgb,245,158,11), 0.22);
+}
+.cst-listing-search-slot .form-control:focus {
+    border-color: rgba(var(--cst-primary-rgb,245,158,11), 0.55);
+    box-shadow: 0 0 0 0.15rem rgba(var(--cst-primary-rgb,245,158,11), 0.12);
+}
+
+[data-bs-theme="dark"] .cst-listing-search-slot .form-control {
+    background-color: rgba(255,255,255,0.06);
+}
+
+.cst-listing-toolbar-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-inline-start: auto;
+}
+
+.cst-listing-table {
+    padding: 0 0.5rem 0.5rem;
+    overflow-x: auto;
+}
+
+.cst-listing-table .table {
+    background: transparent;
+    margin-bottom: 0;
+}
+
+.cst-listing-table .table th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    border-top: none;
+    white-space: nowrap;
+    padding: 0.85rem 1rem;
+}
+
+.cst-listing-table .table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    border-color: var(--cst-border-color, rgba(0,0,0,0.06));
+    font-size: 0.9rem;
+}
+
+.cst-listing-table .table tbody tr:hover {
+    background-color: rgba(var(--cst-primary-rgb,245,158,11), 0.03);
+}
+
+/* Row actions */
+.cst-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.cst-row-actions .btn {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.8rem;
+    border-radius: 0.4rem;
+}
+
+/* DataTables overrides */
+.dataTables_wrapper .dataTables_filter { display: none !important; } /* We use our own search slot */
+.dataTables_wrapper .dataTables_length label { margin-bottom: 0; }
+.dataTables_wrapper .dataTables_info { font-size: 0.8rem; color: var(--bs-secondary-color); }
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 0.35rem !important;
+    font-size: 0.85rem;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: rgba(var(--cst-primary-rgb,245,158,11),0.15) !important;
+    border-color: rgba(var(--cst-primary-rgb,245,158,11),0.25) !important;
+    color: rgb(var(--cst-primary-rgb,245,158,11)) !important;
+}
+
+@media (max-width: 767.98px) {
+    .cst-listing-toolbar { padding: 0.85rem 1rem 0.75rem; }
+    .cst-listing-search-slot { max-width: 100%; }
+    .cst-listing-toolbar-tools { margin-inline-start: 0; }
+}

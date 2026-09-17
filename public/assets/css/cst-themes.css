@@ -1,0 +1,113 @@
+/*
+ * cst-themes.css — Construction Ready theme palette
+ * Amber/orange construction accent on a clean dark slate.
+ * Inspired by the pos-themes.css pattern from POS/AWT-Phone kit.
+ */
+
+/* ── Global text contrast (light mode) ──────────────────────────────── */
+:root {
+    --bs-body-color: #2f2b3d;
+    --bs-body-color-rgb: 47, 43, 61;
+    --bs-secondary-color: #5d5a6f;
+    --bs-secondary-color-rgb: 93, 90, 111;
+    --bs-heading-color: #1f1c2c;
+
+    /* Construction brand amber */
+    --cst-primary: #f59e0b;
+    --cst-primary-rgb: 245, 158, 11;
+    --cst-primary-dark: #d97706;
+    --cst-sidebar-bg: #1a1d2e;
+    --cst-sidebar-fg: #a0aec0;
+    --cst-sidebar-fg-muted: rgba(160, 174, 192, 0.55);
+    --cst-sidebar-active-bg: rgba(245, 158, 11, 0.18);
+    --cst-sidebar-active-fg: #f59e0b;
+    --cst-sidebar-hover-bg: rgba(245, 158, 11, 0.10);
+    --cst-sidebar-border: rgba(255,255,255,0.07);
+    --cst-navbar-bg: #ffffff;
+    --cst-navbar-shadow: 0 1px 0 rgba(0,0,0,0.08);
+    --cst-content-bg: #f4f5fa;
+    --cst-card-bg: #ffffff;
+    --cst-border-color: rgba(0,0,0,0.09);
+}
+
+:root:not([data-bs-theme="dark"]) .text-muted,
+:root:not([data-bs-theme="dark"]) small.text-muted {
+    color: var(--bs-secondary-color) !important;
+}
+
+/* ── Primary = amber ─────────────────────────────────────────────────── */
+html.cst-theme-amber {
+    --bs-primary: #f59e0b;
+    --bs-primary-rgb: 245, 158, 11;
+    --bs-primary-dark: #d97706;
+}
+
+html.cst-theme-amber .btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #fff;
+}
+html.cst-theme-amber .btn-primary:hover {
+    background-color: var(--bs-primary-dark);
+    border-color: var(--bs-primary-dark);
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────────── */
+[data-bs-theme="dark"] {
+    --bs-body-bg: #0f1117;
+    --bs-body-color: #e2e8f0;
+    --bs-secondary-bg: #1a1d2e;
+    --bs-tertiary-bg: #111320;
+    --bs-border-color: rgba(148, 163, 184, 0.12);
+    --bs-heading-color: #f1f5f9;
+    --cst-sidebar-bg: #0a0d1a;
+    --cst-navbar-bg: #111320;
+    --cst-content-bg: #0f1117;
+    --cst-card-bg: #1a1d2e;
+}
+
+/* ── Bootstrap overrides for primary ────────────────────────────────── */
+.btn-primary {
+    background-color: var(--cst-primary);
+    border-color: var(--cst-primary);
+    color: #fff;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: var(--cst-primary-dark);
+    border-color: var(--cst-primary-dark);
+    color: #fff;
+}
+.text-primary { color: var(--cst-primary) !important; }
+.bg-primary    { background-color: var(--cst-primary) !important; }
+.border-primary{ border-color: var(--cst-primary) !important; }
+
+.btn-outline-primary {
+    border-color: var(--cst-primary);
+    color: var(--cst-primary);
+}
+.btn-outline-primary:hover {
+    background-color: var(--cst-primary);
+    border-color: var(--cst-primary);
+    color: #fff;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: rgba(var(--cst-primary-rgb), 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(var(--cst-primary-rgb), 0.15);
+}
+
+/* Badge label variants */
+.bg-label-primary   { background-color: rgba(245,158,11,0.15) !important; color: #92400e !important; }
+.bg-label-success   { background-color: rgba(22,163,74,0.15)  !important; color: #166534 !important; }
+.bg-label-warning   { background-color: rgba(234,179,8,0.15)  !important; color: #92400e !important; }
+.bg-label-danger    { background-color: rgba(220,38,38,0.15)  !important; color: #991b1b !important; }
+.bg-label-info      { background-color: rgba(14,165,233,0.15) !important; color: #0c4a6e !important; }
+.bg-label-secondary { background-color: rgba(107,114,128,0.15)!important; color: #374151 !important; }
+
+[data-bs-theme="dark"] .bg-label-primary   { color: #fcd34d !important; }
+[data-bs-theme="dark"] .bg-label-success   { color: #86efac !important; }
+[data-bs-theme="dark"] .bg-label-warning   { color: #fde68a !important; }
+[data-bs-theme="dark"] .bg-label-danger    { color: #fca5a5 !important; }
+[data-bs-theme="dark"] .bg-label-info      { color: #7dd3fc !important; }
+[data-bs-theme="dark"] .bg-label-secondary { color: #d1d5db !important; }
