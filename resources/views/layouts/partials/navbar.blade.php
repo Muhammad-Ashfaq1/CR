@@ -17,6 +17,14 @@
         </div>
 
         <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <!-- PWA Install Button (shown when installable) -->
+            <li class="nav-item me-2 d-none pwa-install-btn">
+                <button type="button" class="btn btn-sm pwa-install-badge rounded-pill px-3 d-flex align-items-center gap-1 shadow-sm" onclick="window.triggerPwaInstall()">
+                    <i class="ti ti-download fs-6"></i>
+                    <span class="d-none d-sm-inline">Install App</span>
+                </button>
+            </li>
+
             @include('layouts.partials.theme-switcher')
 
             <li class="nav-item dropdown pos-navbar-account">

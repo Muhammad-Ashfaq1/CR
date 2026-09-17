@@ -14,12 +14,20 @@
       data-template="vertical-menu-template">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <meta name="awt-table-scope" content="{{ \App\Support\TableFragment::scopeToken() }}" />
+    <meta name="theme-color" content="{{ $awtTheme['bs_theme'] === 'dark' ? '#0f172a' : '#f59e0b' }}" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Construction Ready" />
+    <meta name="application-name" content="Construction Ready" />
     <title>@yield('title', 'Construction Ready') | {{ config('app.name', 'Construction Ready') }}</title>
 
-    <!-- Favicon -->
+    <!-- Manifest & App Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="{{ asset('assets/img/pwa/apple-touch-icon.png') }}" />
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
 
     <!-- Fonts -->
@@ -54,8 +62,9 @@
 
     @stack('styles')
 
-    <!-- Responsive Layer (Loaded Last) -->
+    <!-- Responsive Layer & PWA Mobile Polish (Loaded Last) -->
     <link rel="stylesheet" href="{{ asset('assets/css/awt-responsive.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/pwa-mobile.css') }}" />
 
     <!-- Theme Pre-paint Script to eliminate flicker -->
     @include('partials._theme-prepaint')
@@ -117,6 +126,9 @@
         <div class="drag-target"></div>
     </div>
 
+    <!-- Mobile Bottom Navigation for Handheld & Android Devices -->
+    @include('layouts.partials.mobile-nav')
+
     <!-- Core Vendor JS -->
     <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
     <script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script>
@@ -136,6 +148,7 @@
     <script src="{{ asset('assets/js/notifications.js') }}"></script>
     <script src="{{ asset('assets/js/alerts.js') }}"></script>
     <script src="{{ asset('assets/js/awt-table.js') }}"></script>
+    <script src="{{ asset('assets/js/pwa-install.js') }}"></script>
 
     <!-- Pass Laravel Session Flash to JS -->
     <script>

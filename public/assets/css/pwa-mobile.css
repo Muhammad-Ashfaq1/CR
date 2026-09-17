@@ -1,0 +1,127 @@
+/**
+ * Mobile Responsiveness & PWA Native Polish Styles
+ */
+
+/* Safe area support for modern notch & gesture displays */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+/* Mobile viewport adjustments */
+@media (max-width: 991.98px) {
+  body {
+    padding-bottom: calc(65px + var(--safe-area-bottom)) !important;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .content-wrapper {
+    padding-bottom: 2rem !important;
+  }
+
+  /* Table mobile swipe polish */
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Touch-friendly buttons & inputs */
+  .btn, .form-control, .form-select {
+    min-height: 42px;
+  }
+
+  /* Modal touch responsiveness */
+  .modal-dialog {
+    margin: 0.75rem auto;
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .modal-content {
+    border-radius: 1rem !important;
+  }
+}
+
+/* Mobile Bottom Navigation Bar */
+.cr-mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(60px + var(--safe-area-bottom));
+  padding-bottom: var(--safe-area-bottom);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 1040;
+  transition: transform 0.25s ease;
+}
+
+[data-bs-theme="light"] .cr-mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.92);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.cr-mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  min-width: 54px;
+}
+
+.cr-mobile-nav-item i {
+  font-size: 1.25rem;
+  margin-bottom: 2px;
+}
+
+.cr-mobile-nav-item:hover,
+.cr-mobile-nav-item.active {
+  color: #f59e0b;
+  transform: translateY(-2px);
+}
+
+[data-awt-theme="sky"] .cr-mobile-nav-item:hover,
+[data-awt-theme="sky"] .cr-mobile-nav-item.active {
+  color: #0ea5e9;
+}
+
+[data-awt-theme="lake"] .cr-mobile-nav-item:hover,
+[data-awt-theme="lake"] .cr-mobile-nav-item.active {
+  color: #0284c7;
+}
+
+[data-awt-theme="eggplant"] .cr-mobile-nav-item:hover,
+[data-awt-theme="eggplant"] .cr-mobile-nav-item.active {
+  color: #a855f7;
+}
+
+/* Install Banner Toast / Navbar Button */
+.pwa-install-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+  border: none;
+  animation: pulse-glow 2.5s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.92; transform: scale(1.03); }
+}
