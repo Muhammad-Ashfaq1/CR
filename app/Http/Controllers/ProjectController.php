@@ -53,13 +53,9 @@ class ProjectController extends Controller
         return view('projects.index', compact('projects', 'statuses', 'owners', 'contractors'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        $statuses = ProjectStatus::cases();
-        $owners = User::where('role', 'owner')->orWhere('role', 'admin')->get();
-        $contractors = Contractor::where('is_active', true)->get();
-
-        return view('projects.create', compact('statuses', 'owners', 'contractors'));
+        return redirect()->route('projects.index', ['action' => 'create']);
     }
 
     public function store(Request $request): RedirectResponse
@@ -176,14 +172,11 @@ class ProjectController extends Controller
         ));
     }
 
-    public function edit(Project $project): View
+    public function edit(Project $project): RedirectResponse
     {
         $this->authorizeProjectAccess($project);
 
-        $statuses = ProjectStatus::cases();
-        $owners = User::where('role', 'owner')->orWhere('role', 'admin')->get();
-
-        return view('projects.edit', compact('project', 'statuses', 'owners'));
+        return redirect()->route('projects.index', ['edit' => $project->id]);
     }
 
     public function update(Request $request, Project $project): RedirectResponse

@@ -1,14 +1,13 @@
 {
-  "id": "/dashboard",
+  "id": "/",
   "name": "Construction Ready",
   "short_name": "Construction",
-  "description": "Professional Construction Project, Contractor, Workforce Wages & Direct Expense Management Platform",
-  "start_url": "/dashboard?source=pwa",
+  "description": "Construction Project, Contractor & Expense Management Platform",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "display_override": [
     "standalone",
-    "window-controls-overlay",
     "minimal-ui"
   ],
   "orientation": "any",
@@ -39,36 +38,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Projects",
-      "short_name": "Projects",
-      "description": "View active construction sites and projects",
-      "url": "/projects?source=pwa_shortcut",
-      "icons": [{ "src": "/assets/img/pwa/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Daily Attendance",
-      "short_name": "Attendance",
-      "description": "Record daily worker attendance and shifts",
-      "url": "/attendance?source=pwa_shortcut",
-      "icons": [{ "src": "/assets/img/pwa/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Site Expenses",
-      "short_name": "Expenses",
-      "description": "Log site materials and petty expenses",
-      "url": "/expenses?source=pwa_shortcut",
-      "icons": [{ "src": "/assets/img/pwa/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Contractor Payments",
-      "short_name": "Payments",
-      "description": "Manage contractor disbursements and vouchers",
-      "url": "/contractor-payments?source=pwa_shortcut",
-      "icons": [{ "src": "/assets/img/pwa/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

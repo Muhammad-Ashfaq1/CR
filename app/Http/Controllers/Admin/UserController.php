@@ -43,11 +43,9 @@ class UserController extends Controller
         return view('admin.users.index', compact('users', 'roles'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        $roles = UserRole::cases();
-
-        return view('admin.users.create', compact('roles'));
+        return redirect()->route('admin.users.index', ['action' => 'create']);
     }
 
     public function store(Request $request): RedirectResponse
@@ -97,12 +95,9 @@ class UserController extends Controller
             ->with('success', "User {$user->name} created successfully.");
     }
 
-    public function edit(User $user): View
+    public function edit(User $user): RedirectResponse
     {
-        $roles = UserRole::cases();
-        $user->load('contractorProfile');
-
-        return view('admin.users.edit', compact('user', 'roles'));
+        return redirect()->route('admin.users.index', ['edit' => $user->id]);
     }
 
     public function update(Request $request, User $user): RedirectResponse

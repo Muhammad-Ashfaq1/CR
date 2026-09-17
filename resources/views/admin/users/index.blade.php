@@ -255,4 +255,22 @@
     </div>
 </div>
 @endforeach
+
+@push('scripts')
+@if(request('action') === 'create')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const m = document.getElementById('createUserModal');
+        if (m) new bootstrap.Modal(m).show();
+    });
+</script>
+@elseif(request('edit'))
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const m = document.getElementById('editUserModal_{{ request('edit') }}');
+        if (m) new bootstrap.Modal(m).show();
+    });
+</script>
+@endif
+@endpush
 @endsection

@@ -23,9 +23,9 @@ class ExpenseCategoryController extends Controller
         return view('admin.categories.index', compact('categories'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        return view('admin.categories.create');
+        return redirect()->route('admin.expense-categories.index', ['action' => 'create']);
     }
 
     public function store(Request $request): RedirectResponse
@@ -59,9 +59,9 @@ class ExpenseCategoryController extends Controller
             ->with('success', "Expense category '{$category->name}' created.");
     }
 
-    public function edit(ExpenseCategory $expenseCategory): View
+    public function edit(ExpenseCategory $expenseCategory): RedirectResponse
     {
-        return view('admin.categories.edit', compact('expenseCategory'));
+        return redirect()->route('admin.expense-categories.index', ['edit' => $expenseCategory->id]);
     }
 
     public function update(Request $request, ExpenseCategory $expenseCategory): RedirectResponse

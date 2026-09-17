@@ -238,4 +238,15 @@
     </div>
 </div>
 @endif
+
+@push('scripts')
+@if(request('action') === 'create')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const m = document.getElementById('createPaymentModal');
+        if (m) new bootstrap.Modal(m).show();
+    });
+</script>
+@endif
+@endpush
 @endsection

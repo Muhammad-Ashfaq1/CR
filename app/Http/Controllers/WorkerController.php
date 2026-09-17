@@ -66,23 +66,9 @@ class WorkerController extends Controller
         return view('workers.index', compact('workers', 'contractors', 'projects', 'workerTypes'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        $user = auth()->user();
-
-        $contractors = $user->isContractor()
-            ? Contractor::where('id', $user->contractorProfile?->id)->get()
-            : Contractor::where('is_active', true)->get();
-
-        $projects = $user->isOwner()
-            ? Project::where('owner_id', $user->id)->get()
-            : ($user->isContractor()
-                ? $user->contractorProfile?->projects ?? collect()
-                : Project::all());
-
-        $workerTypes = ['Mason', 'Laborer', 'Carpenter', 'Electrician', 'Plumber', 'Steel Fixer', 'Painter', 'Welder', 'Tile Fixer', 'Supervisor', 'Other'];
-
-        return view('workers.create', compact('contractors', 'projects', 'workerTypes'));
+        return redirect()->route('workers.index', ['action' => 'create']);
     }
 
     public function store(Request $request): RedirectResponse
@@ -154,23 +140,9 @@ class WorkerController extends Controller
         return view('workers.show', compact('worker', 'attendanceSummary'));
     }
 
-    public function edit(Worker $worker): View
+    public function edit(Worker $worker): RedirectResponse
     {
-        $user = auth()->user();
-
-        $contractors = $user->isContractor()
-            ? Contractor::where('id', $user->contractorProfile?->id)->get()
-            : Contractor::where('is_active', true)->get();
-
-        $projects = $user->isOwner()
-            ? Project::where('owner_id', $user->id)->get()
-            : ($user->isContractor()
-                ? $user->contractorProfile?->projects ?? collect()
-                : Project::all());
-
-        $workerTypes = ['Mason', 'Laborer', 'Carpenter', 'Electrician', 'Plumber', 'Steel Fixer', 'Painter', 'Welder', 'Tile Fixer', 'Supervisor', 'Other'];
-
-        return view('workers.edit', compact('worker', 'contractors', 'projects', 'workerTypes'));
+        return redirect()->route('workers.index', ['edit' => $worker->id]);
     }
 
     public function update(Request $request, Worker $worker): RedirectResponse

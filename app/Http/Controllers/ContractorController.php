@@ -38,13 +38,9 @@ class ContractorController extends Controller
         return view('contractors.index', compact('contractors', 'users'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        $users = User::where('role', 'contractor')
-            ->whereDoesntHave('contractorProfile')
-            ->get();
-
-        return view('contractors.create', compact('users'));
+        return redirect()->route('contractors.index', ['action' => 'create']);
     }
 
     public function store(Request $request): RedirectResponse
@@ -123,16 +119,9 @@ class ContractorController extends Controller
         ));
     }
 
-    public function edit(Contractor $contractor): View
+    public function edit(Contractor $contractor): RedirectResponse
     {
-        $users = User::where('role', 'contractor')
-            ->where(function ($q) use ($contractor) {
-                $q->whereDoesntHave('contractorProfile')
-                    ->orWhere('id', $contractor->user_id);
-            })
-            ->get();
-
-        return view('contractors.edit', compact('contractor', 'users'));
+        return redirect()->route('contractors.index', ['edit' => $contractor->id]);
     }
 
     public function update(Request $request, Contractor $contractor): RedirectResponse

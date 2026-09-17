@@ -64,20 +64,17 @@ class ContractorPaymentController extends Controller
         return view('payments.index', compact('payments', 'totalPaid', 'projects', 'contractors', 'paymentTypes'));
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): RedirectResponse
     {
-        $user = auth()->user();
-        $selectedProjectId = $request->query('project_id');
-        $selectedContractorId = $request->query('contractor_id');
+        $params = ['action' => 'create'];
+        if ($request->filled('project_id')) {
+            $params['project_id'] = $request->project_id;
+        }
+        if ($request->filled('contractor_id')) {
+            $params['contractor_id'] = $request->contractor_id;
+        }
 
-        $projects = $user->isOwner()
-            ? Project::where('owner_id', $user->id)->with('contractors')->get()
-            : Project::with('contractors')->get();
-
-        $contractors = Contractor::where('is_active', true)->get();
-        $paymentTypes = PaymentType::cases();
-
-        return view('payments.create', compact('projects', 'contractors', 'paymentTypes', 'selectedProjectId', 'selectedContractorId'));
+        return redirect()->route('contractor-payments.index', $params);
     }
 
     public function store(Request $request): RedirectResponse

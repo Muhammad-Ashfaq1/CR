@@ -20,17 +20,41 @@ Route::get('/', function () {
 });
 
 // PWA Manifest and Service Worker routes
+Route::get('/manifest.webmanifest', function () {
+    return response(
+        (string) file_get_contents(public_path('assets/pwa/manifest.json')),
+        200,
+        [
+            'Content-Type' => 'application/manifest+json',
+            'Cache-Control' => 'public, max-age=3600',
+        ]
+    );
+})->name('pwa.manifest');
+
 Route::get('/manifest.json', function () {
-    return response()->file(public_path('manifest.json'), [
-        'Content-Type' => 'application/manifest+json',
-        'Cache-Control' => 'public, max-age=3600',
-    ]);
+    return response(
+        (string) file_get_contents(public_path('assets/pwa/manifest.json')),
+        200,
+        [
+            'Content-Type' => 'application/manifest+json',
+            'Cache-Control' => 'public, max-age=3600',
+        ]
+    );
 });
+
+Route::get('/offline.html', function () {
+    return response(
+        (string) file_get_contents(public_path('offline.html')),
+        200,
+        ['Content-Type' => 'text/html; charset=UTF-8']
+    );
+})->name('pwa.offline');
 
 Route::get('/sw.js', function () {
     return response()->file(public_path('sw.js'), [
         'Content-Type' => 'application/javascript',
-        'Cache-Control' => 'no-cache',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Service-Worker-Allowed' => '/',
     ]);
 });
 

@@ -36,7 +36,7 @@
 
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ old('email', 'owner@construction.test') }}" placeholder="Enter your email" required autofocus />
+                        <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="Enter your email" required autofocus />
                     </div>
 
                     <div class="mb-3 form-password-toggle">
@@ -44,13 +44,13 @@
                             <label class="form-label" for="password">Password</label>
                         </div>
                         <div class="input-group input-group-merge">
-                            <input type="password" id="password" class="form-control" name="password" placeholder="••••••••" value="password" required />
+                            <input type="password" id="password" class="form-control" name="password" placeholder="••••••••" required />
                         </div>
                     </div>
 
                     <div class="my-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="remember-me" name="remember" checked />
+                            <input class="form-check-input" type="checkbox" id="remember-me" name="remember" />
                             <label class="form-check-label" for="remember-me">Remember Me</label>
                         </div>
                     </div>
@@ -58,17 +58,9 @@
                     <div class="mb-3">
                         <button class="btn btn-primary d-grid w-100" type="submit">Sign In</button>
                     </div>
-                </form>
 
-                {{-- Demo Logins Quick Switcher --}}
-                <div class="mt-4 p-3 bg-light rounded border">
-                    <div class="small fw-bold text-dark mb-2">Demo Credentials (Password: <code>password</code>)</div>
-                    <div class="d-flex flex-column gap-1 small text-muted">
-                        <div>&bull; Owner: <code>owner@construction.test</code></div>
-                        <div>&bull; Contractor: <code>contractor@construction.test</code></div>
-                        <div>&bull; Admin: <code>admin@construction.test</code></div>
-                    </div>
-                </div>
+
+                </form>
             </div>
         </div>
     </div>

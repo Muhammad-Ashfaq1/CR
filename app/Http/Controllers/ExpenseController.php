@@ -70,19 +70,14 @@ class ExpenseController extends Controller
         ));
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): RedirectResponse
     {
-        $user = auth()->user();
-        $selectedProjectId = $request->query('project_id');
+        $params = ['action' => 'create'];
+        if ($request->filled('project_id')) {
+            $params['project_id'] = $request->project_id;
+        }
 
-        $projects = $user->isOwner()
-            ? Project::where('owner_id', $user->id)->get()
-            : Project::all();
-
-        $categories = ExpenseCategory::active()->get();
-        $paymentMethods = ['Cash', 'Bank Transfer', 'Cheque', 'Online Payment', 'Other'];
-
-        return view('expenses.create', compact('projects', 'categories', 'paymentMethods', 'selectedProjectId'));
+        return redirect()->route('expenses.index', $params);
     }
 
     public function store(Request $request): RedirectResponse
@@ -142,18 +137,9 @@ class ExpenseController extends Controller
         return view('expenses.show', compact('expense'));
     }
 
-    public function edit(Expense $expense): View
+    public function edit(Expense $expense): RedirectResponse
     {
-        $user = auth()->user();
-
-        $projects = $user->isOwner()
-            ? Project::where('owner_id', $user->id)->get()
-            : Project::all();
-
-        $categories = ExpenseCategory::active()->get();
-        $paymentMethods = ['Cash', 'Bank Transfer', 'Cheque', 'Online Payment', 'Other'];
-
-        return view('expenses.edit', compact('expense', 'projects', 'categories', 'paymentMethods'));
+        return redirect()->route('expenses.index', ['edit' => $expense->id]);
     }
 
     public function update(Request $request, Expense $expense): RedirectResponse
