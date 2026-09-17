@@ -23,6 +23,14 @@
             </div>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
+            @if((auth()->user()->isAdmin() || session()->has('impersonator_id')) && $project->owner && $project->owner->id !== auth()->id())
+                <form id="impOwnerForm_{{ $project->owner->id }}" action="{{ route('impersonate.user', $project->owner) }}" method="POST" class="d-inline-block">
+                    @csrf
+                    <button type="button" class="btn btn-warning text-dark fw-semibold" onclick="confirmImpersonate('{{ addslashes($project->owner->name) }}', 'Project Owner', () => document.getElementById('impOwnerForm_{{ $project->owner->id }}').submit())">
+                        <i class="icon-base ti tabler-user-check me-1"></i> Impersonate Owner
+                    </button>
+                </form>
+            @endif
             <a href="{{ route('attendance.index', ['project_id' => $project->id]) }}" class="btn btn-warning text-dark fw-semibold">
                 <i class="icon-base ti tabler-calendar-check me-1"></i> Attendance
             </a>

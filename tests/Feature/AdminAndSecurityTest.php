@@ -95,4 +95,90 @@ class AdminAndSecurityTest extends TestCase
         $response = $this->actingAs($contractorUser)->get(route('projects.show', $secretProject));
         $response->assertStatus(403);
     }
+
+    public function test_admin_can_impersonate_owner_and_leave(): void
+    {
+        $admin = User::where('role', UserRole::Admin)->first();
+        $owner = User::where('role', UserRole::Owner)->first();
+
+        // 1. Admin impersonates Owner
+        $response = $this->actingAs($admin)->post(route('impersonate.user', $owner));
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('impersonator_id', $admin->id);
+        $this->assertEquals($owner->id, auth()->id());
+
+        // 2. View dashboard and see impersonation banner
+        $dashResponse = $this->get(route('dashboard'));
+        $dashResponse->assertStatus(200);
+        $dashResponse->assertSee('Impersonating');
+        $dashResponse->assertSee($owner->name);
+
+        // 3. Impersonated user cannot access admin area
+        $this->get(route('admin.dashboard'))->assertStatus(403);
+
+        // 4. Leave impersonation
+        $leaveResponse = $this->post(route('impersonate.leave'));
+        $leaveResponse->assertRedirect(route('admin.users.index'));
+        $leaveResponse->assertSessionMissing('impersonator_id');
+        $this->assertEquals($admin->id, auth()->id());
+    }
+
+    public function test_admin_can_impersonate_contractor_user(): void
+    {
+        $admin = User::where('role', UserRole::Admin)->first();
+        $contractorUser = User::where('role', UserRole::Contractor)->first();
+
+        $response = $this->actingAs($admin)->post(route('impersonate.user', $contractorUser));
+        $response->assertRedirect(route('dashboard'));
+        $this->assertEquals($contractorUser->id, auth()->id());
+    }
+
+    public function test_admin_can_impersonate_contractor_profile_directly(): void
+    {
+        $admin = User::where('role', UserRole::Admin)->first();
+
+        // Create standalone contractor with no user
+        $contractor = Contractor::create([
+            'name' => 'Standalone Builder',
+            'phone' => '0300-1122334',
+            'is_active' => true,
+        ]);
+
+        $this->assertNull($contractor->user_id);
+
+        $response = $this->actingAs($admin)->post(route('impersonate.contractor', $contractor));
+        $response->assertRedirect(route('dashboard'));
+
+        $contractor->refresh();
+        $this->assertNotNull($contractor->user_id);
+        $this->assertEquals($contractor->user_id, auth()->id());
+        $this->assertEquals('Standalone Builder', auth()->user()->name);
+        $this->assertTrue(auth()->user()->isContractor());
+    }
+
+    public function test_non_admin_cannot_impersonate(): void
+    {
+        $owner = User::where('role', UserRole::Owner)->first();
+        $contractorUser = User::where('role', UserRole::Contractor)->first();
+
+        $response = $this->actingAs($owner)->post(route('impersonate.user', $contractorUser));
+        $response->assertStatus(403);
+    }
+
+    public function test_admin_cannot_impersonate_another_admin(): void
+    {
+        $admin1 = User::where('role', UserRole::Admin)->first();
+        $admin2 = User::create([
+            'name' => 'Second Admin',
+            'email' => 'admin2@test.com',
+            'password' => 'secret123',
+            'role' => UserRole::Admin,
+            'is_active' => true,
+        ]);
+        $admin2->assignRole(UserRole::Admin->value);
+
+        $response = $this->actingAs($admin1)->post(route('impersonate.user', $admin2));
+        $response->assertSessionHas('error');
+        $this->assertEquals($admin1->id, auth()->id());
+    }
 }

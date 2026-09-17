@@ -87,6 +87,7 @@
             @include('layouts.partials.sidebar')
 
             <div class="layout-page">
+                @include('layouts.partials.impersonation-banner')
                 @include('layouts.partials.navbar')
 
                 <div class="content-wrapper">

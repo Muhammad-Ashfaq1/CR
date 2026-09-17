@@ -122,4 +122,43 @@
             });
         }
     };
+
+    window.confirmImpersonate = function(name, role, onConfirm) {
+        if (typeof onConfirm !== 'function') return;
+        var title = 'Impersonate ' + (role ? role : 'User') + '?';
+        var message = 'You will experience the application as ' + name + ' (' + (role || 'User') + '). You can exit back to your administrator account at any time.';
+
+        if (typeof window.Swal !== 'undefined') {
+            window.Swal.fire({
+                title: title,
+                html: 'You will experience the application as <strong>' + name + '</strong> (' + (role || 'User') + ').<br><br><small class="text-muted">You can exit back to your administrator account at any time.</small>',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="icon-base ti tabler-user-check me-1"></i> Yes, Impersonate',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    confirmButton: 'btn btn-primary me-2',
+                    cancelButton: 'btn btn-outline-secondary'
+                },
+                buttonsStyling: false
+            }).then(function(result) {
+                if (result.isConfirmed === true) {
+                    onConfirm();
+                }
+            });
+        } else if (window.AwtConfirm) {
+            window.AwtConfirm.open({
+                title: title,
+                message: message,
+                confirmText: 'Impersonate',
+                tone: 'primary',
+            }).then(function(confirmed) {
+                if (confirmed) onConfirm();
+            });
+        } else {
+            if (confirm(message)) {
+                onConfirm();
+            }
+        }
+    };
 })();

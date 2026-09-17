@@ -22,6 +22,14 @@
             </div>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
+            @if(auth()->user()->isAdmin() || session()->has('impersonator_id'))
+                <form id="impContrShowForm" action="{{ route('impersonate.contractor', $contractor) }}" method="POST" class="d-inline-block">
+                    @csrf
+                    <button type="button" class="btn btn-warning text-dark fw-semibold" onclick="confirmImpersonate('{{ addslashes($contractor->name) }}', 'Contractor', () => document.getElementById('impContrShowForm').submit())">
+                        <i class="icon-base ti tabler-user-check me-1"></i> Impersonate
+                    </button>
+                </form>
+            @endif
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPaymentModal">
                 <i class="icon-base ti tabler-cash me-1"></i> Make Payment
             </button>

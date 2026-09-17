@@ -103,6 +103,14 @@
                         </td>
                         <td>{{ $u->created_at->format('d M Y') }}</td>
                         <td class="text-end pe-3">
+                            @if($u->id !== auth()->id() && !$u->isAdmin())
+                                <form id="impUsrForm_{{ $u->id }}" action="{{ route('impersonate.user', $u) }}" method="POST" class="d-inline-block">
+                                    @csrf
+                                    <button type="button" class="btn btn-sm btn-icon btn-text-warning rounded-pill" title="Impersonate {{ $u->name }}" onclick="confirmImpersonate('{{ addslashes($u->name) }}', '{{ $u->role->label() }}', () => document.getElementById('impUsrForm_{{ $u->id }}').submit())">
+                                        <i class="icon-base ti tabler-user-check"></i>
+                                    </button>
+                                </form>
+                            @endif
                             <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#editUserModal_{{ $u->id }}" title="Edit User">
                                 <i class="icon-base ti tabler-edit"></i>
                             </button>

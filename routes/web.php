@@ -9,6 +9,7 @@ use App\Http\Controllers\ContractorController;
 use App\Http\Controllers\ContractorPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportController;
@@ -67,6 +68,11 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/theme', [ProfileController::class, 'updateTheme'])->name('theme.update');
+
+    // Impersonation routes
+    Route::post('/impersonate/user/{user}', [ImpersonationController::class, 'impersonate'])->name('impersonate.user');
+    Route::post('/impersonate/contractor/{contractor}', [ImpersonationController::class, 'impersonateContractor'])->name('impersonate.contractor');
+    Route::match(['get', 'post'], '/impersonate/leave', [ImpersonationController::class, 'leave'])->name('impersonate.leave');
 
     // Admin routes
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {

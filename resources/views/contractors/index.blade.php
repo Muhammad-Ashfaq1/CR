@@ -90,6 +90,14 @@
                         </td>
                         <td class="text-end">
                             <div class="d-inline-flex gap-1 align-items-center">
+                                @if(auth()->user()->isAdmin() || session()->has('impersonator_id'))
+                                    <form id="impContrForm_{{ $contractor->id }}" action="{{ route('impersonate.contractor', $contractor) }}" method="POST" class="d-inline-block">
+                                        @csrf
+                                        <button type="button" class="btn btn-sm btn-icon btn-text-warning rounded-pill" title="Impersonate {{ $contractor->name }}" onclick="confirmImpersonate('{{ addslashes($contractor->name) }}', 'Contractor', () => document.getElementById('impContrForm_{{ $contractor->id }}').submit())">
+                                            <i class="icon-base ti tabler-user-check"></i>
+                                        </button>
+                                    </form>
+                                @endif
                                 <a href="{{ route('contractors.show', $contractor) }}" class="btn btn-sm btn-outline-primary">
                                     Ledger & Profile &rarr;
                                 </a>
