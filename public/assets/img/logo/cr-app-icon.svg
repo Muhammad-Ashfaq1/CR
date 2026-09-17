@@ -1,0 +1,63 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="crSlateGrad" x1="50" y1="50" x2="462" y2="462" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1E293B"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="crGoldGrad" x1="100" y1="100" x2="400" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B"/>
+      <stop offset="0.5" stop-color="#D97706"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+    <linearGradient id="crBrightGold" x1="140" y1="120" x2="360" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDE68A"/>
+      <stop offset="0.4" stop-color="#F59E0B"/>
+      <stop offset="1" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="crGlow" x1="256" y1="0" x2="256" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#F59E0B" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="crShadow" x="20" y="20" width="472" height="472" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="42" y="42" width="428" height="428" rx="105" fill="url(#crSlateGrad)" filter="url(#crShadow)"/>
+  <rect x="42" y="42" width="428" height="428" rx="105" stroke="rgba(255,255,255,0.12)" stroke-width="10"/>
+  <rect x="42" y="42" width="428" height="428" rx="105" fill="url(#crGlow)"/>
+
+  <!-- Tower Crane Arm & Cable -->
+  <path d="M128 142H384M213 100L213 142M213 100L327 142M213 100L142 142M341 142L341 192M334 192H348M341 192L341 206" stroke="#FBBF24" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Left Building (Tower 1) -->
+  <path d="M135 384V227L199 185V384H135Z" fill="url(#crBrightGold)"/>
+
+  <!-- Center Skyscraper (Tower 2) -->
+  <path d="M199 384V149L298 114V384H199Z" fill="url(#crGoldGrad)"/>
+
+  <!-- Right Building (Tower 3) -->
+  <path d="M298 384V213L362 256V384H298Z" fill="#B45309"/>
+
+  <!-- Windows on Center Tower -->
+  <rect x="227" y="170" width="18" height="18" rx="3" fill="#0F172A"/>
+  <rect x="259" y="170" width="18" height="18" rx="3" fill="#0F172A"/>
+  <rect x="227" y="213" width="18" height="18" rx="3" fill="#0F172A"/>
+  <rect x="259" y="213" width="18" height="18" rx="3" fill="#0F172A"/>
+  <rect x="227" y="256" width="18" height="18" rx="3" fill="#0F172A"/>
+  <rect x="259" y="256" width="18" height="18" rx="3" fill="#0F172A"/>
+  <rect x="227" y="298" width="18" height="18" rx="3" fill="#0F172A"/>
+  <rect x="259" y="298" width="18" height="18" rx="3" fill="#0F172A"/>
+
+  <!-- Windows on Left Tower -->
+  <rect x="156" y="256" width="14" height="14" rx="3" fill="#0F172A" opacity="0.85"/>
+  <rect x="156" y="298" width="14" height="14" rx="3" fill="#0F172A" opacity="0.85"/>
+
+  <!-- Windows on Right Tower -->
+  <rect x="320" y="270" width="14" height="14" rx="3" fill="#0F172A" opacity="0.7"/>
+  <rect x="320" y="312" width="14" height="14" rx="3" fill="#0F172A" opacity="0.7"/>
+
+  <!-- Heavy Foundation Beam -->
+  <line x1="100" y1="384" x2="412" y2="384" stroke="#F59E0B" stroke-width="21" stroke-linecap="round"/>
+</svg>

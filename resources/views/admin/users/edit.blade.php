@@ -67,7 +67,7 @@
 
                         <div class="col-12" id="contractorFields" style="display: {{ $user->isContractor() ? 'block' : 'none' }};">
                             <div class="p-3 bg-light rounded border">
-                                <h6 class="fw-bold mb-3 text-primary"><i class="ti ti-briefcase me-1"></i> Contractor Profile</h6>
+                                <h6 class="fw-bold mb-3 text-primary"><i class="icon-base ti tabler-briefcase me-1"></i> Contractor Profile</h6>
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Company / Firm Name</label>

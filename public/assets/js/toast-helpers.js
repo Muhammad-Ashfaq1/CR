@@ -104,7 +104,9 @@
                 message: message || 'You will not be able to recover this.',
                 confirmText: 'Delete',
                 tone: 'danger',
-            }).then(callback);
+            }).then(function(confirmed) {
+                callback(confirmed === true);
+            });
         } else if (window.Notification && typeof window.Notification.confirmDelete === 'function') {
             window.Notification.confirmDelete(callback, message || null, title || null);
         } else if (typeof window.Swal !== 'undefined') {
@@ -128,7 +130,18 @@
         var title = 'Impersonate ' + (role ? role : 'User') + '?';
         var message = 'You will experience the application as ' + name + ' (' + (role || 'User') + '). You can exit back to your administrator account at any time.';
 
-        if (typeof window.Swal !== 'undefined') {
+        if (window.AwtConfirm) {
+            window.AwtConfirm.open({
+                title: title,
+                message: message,
+                confirmText: 'Impersonate',
+                tone: 'primary',
+            }).then(function(confirmed) {
+                if (confirmed === true) {
+                    onConfirm();
+                }
+            });
+        } else if (typeof window.Swal !== 'undefined') {
             window.Swal.fire({
                 title: title,
                 html: 'You will experience the application as <strong>' + name + '</strong> (' + (role || 'User') + ').<br><br><small class="text-muted">You can exit back to your administrator account at any time.</small>',
@@ -145,15 +158,6 @@
                 if (result.isConfirmed === true) {
                     onConfirm();
                 }
-            });
-        } else if (window.AwtConfirm) {
-            window.AwtConfirm.open({
-                title: title,
-                message: message,
-                confirmText: 'Impersonate',
-                tone: 'primary',
-            }).then(function(confirmed) {
-                if (confirmed) onConfirm();
             });
         } else {
             if (confirm(message)) {

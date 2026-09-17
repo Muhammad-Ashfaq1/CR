@@ -101,7 +101,7 @@
                     @empty
                         <tr>
                             <td colspan="5" class="text-center py-5 text-muted">
-                                <i class="ti ti-activity-heartbeat fs-1 d-block mb-2 opacity-50"></i>
+                                <i class="icon-base ti tabler-activity-heartbeat fs-1 d-block mb-2 opacity-50"></i>
                                 <p>No activity logs found.</p>
                             </td>
                         </tr>
