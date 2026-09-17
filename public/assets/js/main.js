@@ -176,7 +176,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   getScrollbarWidth();
   window.addEventListener('DOMContentLoaded', () => {
-    window.Helpers.showActiveTheme(window.Helpers.getPreferredTheme());
+    try {
+      if (window.Helpers && typeof window.Helpers.showActiveTheme === 'function') {
+        window.Helpers.showActiveTheme(window.Helpers.getPreferredTheme());
+      }
+    } catch (e) {
+      // Ignored: custom AwtTheme palette handles theme display
+    }
     getScrollbarWidth();
     // Toggle Universal Sidebar
     window.Helpers.initSidebarToggle();

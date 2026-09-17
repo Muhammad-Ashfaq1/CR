@@ -5,11 +5,11 @@
 @endphp
 
 <li class="nav-item dropdown me-2">
-    <a class="nav-link dropdown-toggle hide-arrow" id="nav-theme" href="javascript:void(0);"
+    <a class="nav-link dropdown-toggle hide-arrow" id="awt-nav-theme" href="javascript:void(0);"
        data-bs-toggle="dropdown" aria-label="Theme: {{ $curVariant }}" aria-expanded="false">
         <i class="icon-base ti tabler-palette icon-md"></i>
     </a>
-    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="nav-theme" style="min-width: 220px;">
+    <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="awt-nav-theme" style="min-width: 220px;">
         <li><h6 class="dropdown-header text-uppercase fs-tiny">Theme Palette</h6></li>
         <li>
             <button type="button" class="dropdown-item d-flex align-items-center justify-content-between @if($curVariant === 'lake') active @endif" onclick="setAppTheme('lake', '{{ $curMode }}')">
