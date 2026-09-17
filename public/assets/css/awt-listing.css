@@ -1,0 +1,224 @@
+/*
+ * awt-listing.css — Unified Glass Listing & Table System
+ *
+ * Implements AWT-Phone table and listing standards:
+ * - Glass card container with radial orb and tone wash
+ * - Transparent table canvas (--bs-table-bg: transparent)
+ * - Muted uppercase header typography
+ * - Safe edge inline padding to prevent curved border clipping
+ * - Clean search/filter toolbar
+ * - Rounded icon action buttons and status pill badges
+ * - Aliases for legacy .pos-listing classes
+ */
+
+/* ── Listing Shell ───────────────────────────────────────────────────── */
+
+.awt-listing,
+.pos-listing {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* ── Glass Table Card / Panel ────────────────────────────────────────── */
+
+.awt-table-card,
+.awt-listing-panel,
+.pos-listing-panel {
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.16);
+    border-radius: var(--awt-glass-radius, 1rem);
+    background-color: rgba(255, 255, 255, 0.72);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.08) 0%,
+        rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.02) 42%,
+        rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0) 72%
+    );
+    -webkit-backdrop-filter: var(--awt-glass-blur, blur(8px));
+    backdrop-filter: var(--awt-glass-blur, blur(8px));
+    box-shadow:
+        0 8px 22px -12px rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.25),
+        0 1px 2px rgba(47, 43, 61, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+[data-bs-theme="dark"] .awt-table-card,
+[data-bs-theme="dark"] .awt-listing-panel,
+[data-bs-theme="dark"] .pos-listing-panel {
+    border-color: rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.22);
+    background-color: rgba(255, 255, 255, 0.035);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.14) 0%,
+        rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.04) 45%,
+        rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0) 74%
+    );
+    box-shadow:
+        0 10px 28px -14px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ── Filter / Search Toolbar ─────────────────────────────────────────── */
+
+.awt-listing-toolbar,
+.pos-listing-toolbar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.14);
+}
+
+.awt-listing-filter-strip {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.12);
+    background-color: rgba(var(--bs-primary-rgb), 0.02);
+}
+
+[data-bs-theme="dark"] .awt-listing-filter-strip {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Table Inside Glass Panel ────────────────────────────────────────── */
+
+.awt-table-responsive,
+.awt-listing-table,
+.pos-listing-table,
+.awt-table-card .table-responsive,
+.pos-listing-panel .table-responsive {
+    position: relative;
+    z-index: 1;
+    padding-inline: 1rem;
+}
+
+.awt-table-card .table,
+.pos-listing-panel .table,
+.awt-listing-table .table,
+.awt-team-table .table {
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: transparent;
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+
+.awt-table-card .table > thead th,
+.pos-listing-panel .table > thead th,
+.awt-listing-table .table > thead th {
+    padding-top: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.18);
+    background-color: transparent !important;
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.awt-table-card .table > tbody > tr,
+.pos-listing-panel .table > tbody > tr,
+.awt-listing-table .table > tbody > tr {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.awt-table-card .table > tbody > tr:hover,
+.pos-listing-panel .table > tbody > tr:hover,
+.awt-listing-table .table > tbody > tr:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.04) !important;
+}
+
+[data-bs-theme="dark"] .awt-table-card .table > tbody > tr:hover,
+[data-bs-theme="dark"] .pos-listing-panel .table > tbody > tr:hover,
+[data-bs-theme="dark"] .awt-listing-table .table > tbody > tr:hover {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.awt-table-card .table > tbody tr:last-child td,
+.pos-listing-panel .table > tbody tr:last-child td,
+.awt-listing-table .table > tbody tr:last-child td {
+    border-bottom: 0;
+    padding-bottom: 1rem;
+}
+
+.awt-table-card .table > tbody td,
+.pos-listing-panel .table > tbody td,
+.awt-listing-table .table > tbody td {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.1);
+}
+
+/* ── Action Buttons & Badges ─────────────────────────────────────────── */
+
+.btn-icon.rounded-pill {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50% !important;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-icon.rounded-pill:hover {
+    transform: scale(1.08);
+}
+
+/* Status Pill Badges matching AWT */
+.badge.bg-label-primary   { background-color: rgba(var(--bs-primary-rgb), 0.12) !important; color: rgb(var(--bs-primary-rgb)) !important; }
+.badge.bg-label-success   { background-color: rgba(var(--bs-success-rgb), 0.12) !important; color: rgb(var(--bs-success-rgb)) !important; }
+.badge.bg-label-warning   { background-color: rgba(var(--bs-warning-rgb), 0.12) !important; color: rgb(var(--bs-warning-rgb)) !important; }
+.badge.bg-label-danger    { background-color: rgba(var(--bs-danger-rgb), 0.12) !important; color: rgb(var(--bs-danger-rgb)) !important; }
+.badge.bg-label-info      { background-color: rgba(var(--bs-info-rgb), 0.12) !important; color: rgb(var(--bs-info-rgb)) !important; }
+.badge.bg-label-secondary { background-color: rgba(var(--bs-secondary-rgb), 0.12) !important; color: rgb(var(--bs-secondary-rgb)) !important; }
+
+/* ── Pagination in Glass Panel ───────────────────────────────────────── */
+
+.awt-table-card .card-footer,
+.pos-listing-panel .card-footer {
+    padding: 0.875rem 1.25rem;
+    background: transparent;
+    border-top: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.12);
+}
+
+/* ── Empty State ─────────────────────────────────────────────────────── */
+
+.awt-empty-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.awt-empty-state-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    background: rgba(var(--bs-primary-rgb), 0.1);
+    color: rgb(var(--bs-primary-rgb));
+    font-size: 1.75rem;
+}
+
+.awt-empty-state-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-empty-state-desc {
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+    max-width: 26rem;
+    margin: 0 auto 1.25rem;
+}

@@ -3,15 +3,15 @@
 @section('title', 'Workforce Roster — ' . config('app.name'))
 
 @section('content')
-<div class="pos-glass-intro pos-tone-primary mb-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-            <h4 class="pos-glass-intro-title mb-1">
+<div class="awt-glass-card awt-tone-primary mb-4">
+    <div class="awt-glass-intro">
+        <div class="awt-glass-intro-copy">
+            <h4 class="awt-glass-intro-title mb-1">
                 <i class="icon-base ti tabler-hammer me-2 text-primary"></i> Workforce Directory
             </h4>
-            <div class="pos-glass-intro-sub">Track registered site workers, trade skills, daily wage rates, and contractor links.</div>
+            <p class="awt-glass-intro-subtitle mb-0">Track registered site workers, trade skills, daily wage rates, and contractor links.</p>
         </div>
-        <div>
+        <div class="awt-glass-intro-actions">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
                 <i class="icon-base ti tabler-user-plus me-1"></i> Register Worker
             </button>
@@ -19,58 +19,58 @@
     </div>
 </div>
 
-<div class="pos-listing-panel mb-4">
-    <form method="GET" action="{{ route('workers.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold">Search</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="icon-base ti tabler-search"></i></span>
-                <input type="text" name="search" class="form-control" placeholder="Name or phone..." value="{{ request('search') }}">
+<div class="awt-table-card awt-tone-secondary mb-4">
+    <div class="awt-listing-filter-strip">
+        <form method="GET" action="{{ route('workers.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="icon-base ti tabler-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Name or phone..." value="{{ request('search') }}">
+                </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold">Contractor</label>
-            <select name="contractor_id" class="form-select">
-                <option value="">All Contractors</option>
-                @foreach($contractors as $c)
-                    <option value="{{ $c->id }}" {{ request('contractor_id') == $c->id ? 'selected' : '' }}>
-                        {{ $c->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label small fw-semibold">Trade / Skill</label>
-            <select name="worker_type" class="form-select">
-                <option value="">All Trades</option>
-                @foreach($workerTypes as $type)
-                    <option value="{{ $type }}" {{ request('worker_type') == $type ? 'selected' : '' }}>
-                        {{ $type }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label small fw-semibold">Status</label>
-            <select name="status" class="form-select">
-                <option value="">All Statuses</option>
-                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-            </select>
-        </div>
-        <div class="col-md-2 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="icon-base ti tabler-filter me-1"></i> Filter
-            </button>
-            <a href="{{ route('workers.index') }}" class="btn btn-outline-secondary">Reset</a>
-        </div>
-    </form>
-</div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Contractor</label>
+                <select name="contractor_id" class="form-select">
+                    <option value="">All Contractors</option>
+                    @foreach($contractors as $c)
+                        <option value="{{ $c->id }}" {{ request('contractor_id') == $c->id ? 'selected' : '' }}>
+                            {{ $c->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">Trade / Skill</label>
+                <select name="worker_type" class="form-select">
+                    <option value="">All Trades</option>
+                    @foreach($workerTypes as $type)
+                        <option value="{{ $type }}" {{ request('worker_type') == $type ? 'selected' : '' }}>
+                            {{ $type }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="icon-base ti tabler-filter me-1"></i> Filter
+                </button>
+                <a href="{{ route('workers.index') }}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
 
-<div class="pos-listing">
     <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead class="table-light">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
                 <tr>
                     <th>Worker Name</th>
                     <th>Trade Skill</th>
@@ -99,7 +99,7 @@
                             </a>
                         </td>
                         <td>{{ $worker->project?->name ?? 'General / Any Site' }}</td>
-                        <td class="fw-bold text-dark">
+                        <td class="fw-bold text-heading">
                             PKR {{ number_format($worker->daily_wage, 0) }}/day
                         </td>
                         <td>
@@ -108,11 +108,11 @@
                             </span>
                         </td>
                         <td class="text-end">
-                            <div class="d-inline-flex gap-1">
-                                <a href="{{ route('workers.show', $worker) }}" class="btn btn-sm btn-primary">
-                                    Profile
+                            <div class="d-inline-flex gap-1 align-items-center">
+                                <a href="{{ route('workers.show', $worker) }}" class="btn btn-sm btn-outline-primary">
+                                    Profile &rarr;
                                 </a>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editWorkerModal_{{ $worker->id }}" title="Edit / Revise Wage">
+                                <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#editWorkerModal_{{ $worker->id }}" title="Edit / Revise Wage">
                                     <i class="icon-base ti tabler-edit"></i>
                                 </button>
                             </div>
@@ -120,12 +120,17 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
-                            <i class="icon-base ti tabler-hammer fs-1 d-block mb-2 opacity-50"></i>
-                            <p class="mb-2">No workers found matching the filters.</p>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
-                                Register Worker
-                            </button>
+                        <td colspan="7">
+                            <div class="awt-empty-state">
+                                <span class="awt-empty-state-icon">
+                                    <i class="icon-base ti tabler-hammer"></i>
+                                </span>
+                                <h6 class="awt-empty-state-title">No workers found</h6>
+                                <p class="awt-empty-state-desc">No site worker records matched your search filters.</p>
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
+                                    <i class="icon-base ti tabler-user-plus me-1"></i> Register Worker
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 @endforelse
@@ -134,7 +139,7 @@
     </div>
 
     @if($workers->hasPages())
-        <div class="p-3 border-top">
+        <div class="card-footer">
             {{ $workers->links() }}
         </div>
     @endif
@@ -300,7 +305,7 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Are you sure you want to delete this worker?')) { document.getElementById('delWorkForm_{{ $worker->id }}').submit(); }">
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(() => document.getElementById('delWorkForm_{{ $worker->id }}').submit(), 'Are you sure you want to delete this worker?')">
                         <i class="icon-base ti tabler-trash me-1"></i> Delete
                     </button>
                     <div>

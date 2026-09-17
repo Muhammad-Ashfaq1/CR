@@ -3,15 +3,15 @@
 @section('title', 'Projects — ' . config('app.name'))
 
 @section('content')
-<div class="pos-glass-intro pos-tone-primary mb-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-            <h4 class="pos-glass-intro-title mb-1">
+<div class="awt-glass-card awt-tone-primary mb-4">
+    <div class="awt-glass-intro">
+        <div class="awt-glass-intro-copy">
+            <h4 class="awt-glass-intro-title mb-1">
                 <i class="icon-base ti tabler-building-skyscraper me-2 text-primary"></i> Construction Projects
             </h4>
-            <div class="pos-glass-intro-sub">Track active sites, overall budgets, contractor commitments, workforce, and completion schedules.</div>
+            <p class="awt-glass-intro-subtitle mb-0">Track active sites, overall budgets, contractor commitments, workforce, and completion schedules.</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="awt-glass-intro-actions">
             @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProjectModal">
                     <i class="icon-base ti tabler-plus me-1"></i> New Project
@@ -21,39 +21,40 @@
     </div>
 </div>
 
-<div class="pos-listing-panel mb-4">
-    <form method="GET" action="{{ route('projects.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-5">
-            <label class="form-label small fw-semibold">Search Projects</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="icon-base ti tabler-search"></i></span>
-                <input type="text" name="search" class="form-control" placeholder="Project name, site name, or location..." value="{{ request('search') }}">
+<div class="awt-table-card awt-tone-secondary mb-4">
+    {{-- Search & Filter Toolbar --}}
+    <div class="awt-listing-filter-strip">
+        <form method="GET" action="{{ route('projects.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold">Search Projects</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="icon-base ti tabler-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Project name, site name, or location..." value="{{ request('search') }}">
+                </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label small fw-semibold">Status Filter</label>
-            <select name="status" class="form-select">
-                <option value="">All Statuses</option>
-                @foreach($statuses as $status)
-                    <option value="{{ $status->value }}" {{ request('status') === $status->value ? 'selected' : '' }}>
-                        {{ $status->label() }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="icon-base ti tabler-filter me-1"></i> Filter
-            </button>
-            <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary">Reset</a>
-        </div>
-    </form>
-</div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Status Filter</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    @foreach($statuses as $status)
+                        <option value="{{ $status->value }}" {{ request('status') === $status->value ? 'selected' : '' }}>
+                            {{ $status->label() }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="icon-base ti tabler-filter me-1"></i> Filter
+                </button>
+                <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
 
-<div class="pos-listing">
     <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead class="table-light">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
                 <tr>
                     <th>Project & Site</th>
                     <th>Owner</th>
@@ -106,19 +107,19 @@
                         <td>
                             <span class="badge bg-label-info">{{ $project->contractors->count() }} active</span>
                         </td>
-                        <td class="fw-semibold text-dark">
+                        <td class="fw-semibold text-heading">
                             PKR {{ number_format($project->totalExpenses(), 0) }}
                         </td>
                         <td>
                             <span class="badge bg-label-secondary">{{ $project->workers_count }}</span>
                         </td>
                         <td class="text-end">
-                            <div class="d-inline-flex gap-1">
-                                <a href="{{ route('projects.show', $project) }}" class="btn btn-sm btn-primary">
-                                    Open Hub
+                            <div class="d-inline-flex gap-1 align-items-center">
+                                <a href="{{ route('projects.show', $project) }}" class="btn btn-sm btn-outline-primary">
+                                    Open Hub &rarr;
                                 </a>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isOwner())
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editProjectModal_{{ $project->id }}" title="Edit">
+                                    <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#editProjectModal_{{ $project->id }}" title="Edit Project">
                                         <i class="icon-base ti tabler-edit"></i>
                                     </button>
                                 @endif
@@ -127,14 +128,19 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="icon-base ti tabler-building-factory-2 fs-1 d-block mb-2 opacity-50"></i>
-                            <p class="mb-2">No construction projects matching the filter.</p>
-                            @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
-                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createProjectModal">
-                                    Create New Project
-                                </button>
-                            @endif
+                        <td colspan="8">
+                            <div class="awt-empty-state">
+                                <span class="awt-empty-state-icon">
+                                    <i class="icon-base ti tabler-building-factory-2"></i>
+                                </span>
+                                <h6 class="awt-empty-state-title">No construction projects found</h6>
+                                <p class="awt-empty-state-desc">No projects matching your search criteria were located.</p>
+                                @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
+                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createProjectModal">
+                                        <i class="icon-base ti tabler-plus me-1"></i> Create New Project
+                                    </button>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @endforelse
@@ -143,7 +149,7 @@
     </div>
 
     @if($projects->hasPages())
-        <div class="p-3 border-top">
+        <div class="card-footer">
             {{ $projects->links() }}
         </div>
     @endif
@@ -296,7 +302,7 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Are you sure you want to delete this project?')) { document.getElementById('deleteProjForm_{{ $project->id }}').submit(); }">
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(() => document.getElementById('deleteProjForm_{{ $project->id }}').submit(), 'Are you sure you want to delete this project?')">
                         <i class="icon-base ti tabler-trash me-1"></i> Delete
                     </button>
                     <div>

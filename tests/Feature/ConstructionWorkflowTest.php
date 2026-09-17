@@ -13,6 +13,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Worker;
 use Carbon\Carbon;
+use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,6 +25,7 @@ class ConstructionWorkflowTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+        $this->seed(DemoDataSeeder::class);
     }
 
     public function test_owner_can_view_dashboard(): void

@@ -3,15 +3,15 @@
 @section('title', 'Contractors — ' . config('app.name'))
 
 @section('content')
-<div class="pos-glass-intro pos-tone-primary mb-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-            <h4 class="pos-glass-intro-title mb-1">
+<div class="awt-glass-card awt-tone-primary mb-4">
+    <div class="awt-glass-intro">
+        <div class="awt-glass-intro-copy">
+            <h4 class="awt-glass-intro-title mb-1">
                 <i class="icon-base ti tabler-user-cog me-2 text-primary"></i> Contractors Directory
             </h4>
-            <div class="pos-glass-intro-sub">Manage contractor profiles, site agreements, workforce assignments, and running ledgers.</div>
+            <p class="awt-glass-intro-subtitle mb-0">Manage contractor profiles, site agreements, workforce assignments, and running ledgers.</p>
         </div>
-        <div>
+        <div class="awt-glass-intro-actions">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createContractorModal">
                 <i class="icon-base ti tabler-plus me-1"></i> Add Contractor
             </button>
@@ -19,36 +19,36 @@
     </div>
 </div>
 
-<div class="pos-listing-panel mb-4">
-    <form method="GET" action="{{ route('contractors.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-5">
-            <label class="form-label small fw-semibold">Search Contractors</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="icon-base ti tabler-search"></i></span>
-                <input type="text" name="search" class="form-control" placeholder="Name, firm, phone number, CNIC..." value="{{ request('search') }}">
+<div class="awt-table-card awt-tone-secondary mb-4">
+    <div class="awt-listing-filter-strip">
+        <form method="GET" action="{{ route('contractors.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold">Search Contractors</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="icon-base ti tabler-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Name, firm, phone number, CNIC..." value="{{ request('search') }}">
+                </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label small fw-semibold">Status Filter</label>
-            <select name="status" class="form-select">
-                <option value="">All Statuses</option>
-                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active Only</option>
-                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive Only</option>
-            </select>
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="icon-base ti tabler-filter me-1"></i> Filter
-            </button>
-            <a href="{{ route('contractors.index') }}" class="btn btn-outline-secondary">Reset</a>
-        </div>
-    </form>
-</div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Status Filter</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active Only</option>
+                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive Only</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="icon-base ti tabler-filter me-1"></i> Filter
+                </button>
+                <a href="{{ route('contractors.index') }}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
 
-<div class="pos-listing">
     <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead class="table-light">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
                 <tr>
                     <th>Contractor & Firm</th>
                     <th>Contact</th>
@@ -89,11 +89,11 @@
                             @endif
                         </td>
                         <td class="text-end">
-                            <div class="d-inline-flex gap-1">
-                                <a href="{{ route('contractors.show', $contractor) }}" class="btn btn-sm btn-primary">
-                                    Ledger & Profile
+                            <div class="d-inline-flex gap-1 align-items-center">
+                                <a href="{{ route('contractors.show', $contractor) }}" class="btn btn-sm btn-outline-primary">
+                                    Ledger & Profile &rarr;
                                 </a>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editContractorModal_{{ $contractor->id }}" title="Edit">
+                                <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#editContractorModal_{{ $contractor->id }}" title="Edit Contractor">
                                     <i class="icon-base ti tabler-edit"></i>
                                 </button>
                             </div>
@@ -101,12 +101,17 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
-                            <i class="icon-base ti tabler-user-cog fs-1 d-block mb-2 opacity-50"></i>
-                            <p class="mb-2">No contractors found matching criteria.</p>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createContractorModal">
-                                Add Contractor
-                            </button>
+                        <td colspan="7">
+                            <div class="awt-empty-state">
+                                <span class="awt-empty-state-icon">
+                                    <i class="icon-base ti tabler-user-cog"></i>
+                                </span>
+                                <h6 class="awt-empty-state-title">No contractors found</h6>
+                                <p class="awt-empty-state-desc">No contractor records matched your search filter.</p>
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createContractorModal">
+                                    <i class="icon-base ti tabler-plus me-1"></i> Add Contractor
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 @endforelse
@@ -115,7 +120,7 @@
     </div>
 
     @if($contractors->hasPages())
-        <div class="p-3 border-top">
+        <div class="card-footer">
             {{ $contractors->links() }}
         </div>
     @endif
@@ -234,7 +239,7 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Are you sure you want to delete this contractor profile?')) { document.getElementById('delContForm_{{ $contractor->id }}').submit(); }">
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(() => document.getElementById('delContForm_{{ $contractor->id }}').submit(), 'Are you sure you want to delete this contractor profile?')">
                         <i class="icon-base ti tabler-trash me-1"></i> Delete
                     </button>
                     <div>

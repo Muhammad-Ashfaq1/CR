@@ -3,13 +3,16 @@
 @section('title', 'Expense Categories — Admin — ' . config('app.name'))
 
 @section('content')
-<div class="pos-glass-intro pos-tone-primary mb-4">
+<div class="awt-glass-card awt-tone-primary mb-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-            <h4 class="pos-glass-intro-title mb-1">
-                <i class="icon-base ti tabler-category me-2 text-primary"></i> Expense Categories
-            </h4>
-            <div class="pos-glass-intro-sub">Configure material, labor, equipment, and other expense categories for site accounting.</div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="avatar avatar-lg rounded-3 bg-label-primary d-flex align-items-center justify-content-center">
+                <i class="icon-base ti tabler-category fs-2"></i>
+            </div>
+            <div>
+                <h4 class="awt-dash-title mb-1">Expense Categories</h4>
+                <p class="awt-dash-subtitle mb-0">Configure material, labor, equipment, and other expense categories for site accounting.</p>
+            </div>
         </div>
         <div>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
@@ -19,29 +22,29 @@
     </div>
 </div>
 
-<div class="pos-listing">
+<div class="awt-table-card awt-tone-secondary">
     <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead class="table-light">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="border-bottom">
                 <tr>
-                    <th>Category</th>
-                    <th>Type</th>
-                    <th>Icon</th>
-                    <th>Expenses Recorded</th>
-                    <th>Status</th>
-                    <th>Sort Order</th>
-                    <th class="text-end">Actions</th>
+                    <th class="text-uppercase small fw-semibold text-muted ps-3">Category</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Type</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Icon</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Expenses Recorded</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Status</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Sort Order</th>
+                    <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($categories as $cat)
                     <tr>
-                        <td>
+                        <td class="ps-3">
                             <div class="d-flex align-items-center">
                                 <div class="rounded-3 d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px; background-color: {{ $cat->color }}20; color: {{ $cat->color }};">
                                     <i class="icon-base ti {{ $cat->icon ?? 'tabler-receipt' }}"></i>
                                 </div>
-                                <div class="fw-semibold text-dark">{{ $cat->name }}</div>
+                                <div class="fw-semibold text-body">{{ $cat->name }}</div>
                             </div>
                         </td>
                         <td>
@@ -59,15 +62,23 @@
                             @endif
                         </td>
                         <td>{{ $cat->sort_order }}</td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editCategoryModal_{{ $cat->id }}" title="Edit">
+                        <td class="text-end pe-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#editCategoryModal_{{ $cat->id }}" title="Edit Category">
                                 <i class="icon-base ti tabler-edit"></i>
                             </button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">No categories configured.</td>
+                        <td colspan="7" class="p-0">
+                            <div class="awt-empty-state">
+                                <div class="awt-empty-state-icon text-muted mb-2">
+                                    <i class="icon-base ti tabler-category fs-1"></i>
+                                </div>
+                                <h6 class="fw-semibold mb-1">No categories configured</h6>
+                                <p class="text-muted small mb-0">Add your first expense category using the button above.</p>
+                            </div>
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
@@ -183,7 +194,7 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Delete this category?')) { document.getElementById('delCatForm_{{ $cat->id }}').submit(); }">
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(() => document.getElementById('delCatForm_{{ $cat->id }}').submit(), 'Delete category {{ $cat->name }}? Related expenses may be affected.')">
                         <i class="icon-base ti tabler-trash me-1"></i> Delete
                     </button>
                     <div>

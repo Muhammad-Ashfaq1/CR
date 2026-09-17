@@ -1,36 +1,2379 @@
 /*
- * tenant-dashboard.css — screen layer for the tenant dashboard.
- * Conventions: namespaced .pos-td-*, additive, no !important, reads kit tones.
+ * Tenant dashboard.
+ *
+ * Everything here is scoped under .awt-dashboard so no rule can reach another
+ * page, and every value is taken from the theme's own CSS variables — the
+ * dashboard inherits the purple-blue accent, the card surface and the border
+ * colour rather than restating them, so it follows a theme change for free.
+ *
+ * No !important anywhere: the layout is built from the theme's own grid and
+ * card classes, which means it never has to fight them.
  */
-.pos-td .pos-glass-card .card-body,
-.pos-td .pos-glass-card .card-header {
+
+.awt-dashboard {
+    --awt-dash-radius: 0.5rem;
+    /* Fallback accent, so a glassy surface that forgets its tone class still
+       renders as glass instead of dropping every rgba() that reads the var. */
+    --awt-tone-rgb: var(--bs-secondary-rgb);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+
+/*
+ * A tinted band rather than a white card: white-on-white left the header reading
+ * as page background with some text on it, disconnected from the row of cards
+ * underneath. The radius, border weight and shadow are the KPI cards' own, so it
+ * joins the same family — but the fill is the palest thing on the page, because
+ * four accent-coloured cards sit directly below and the header must not compete
+ * with them.
+ */
+.awt-dashboard .awt-dash-header {
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.16);
+    border-radius: 1rem;
+    background-color: rgba(255, 255, 255, 0.72);
+    background-image: linear-gradient(
+        108deg,
+        rgba(var(--bs-primary-rgb), 0.13) 0%,
+        rgba(var(--bs-info-rgb), 0.09) 46%,
+        rgba(var(--bs-primary-rgb), 0.03) 100%
+    );
+    box-shadow:
+        0 8px 22px -14px rgba(var(--bs-primary-rgb), 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* One row on a laptop, stacked on a phone — and tight either way. The old card
+   body ran to nearly a hundred pixels for two lines of text. */
+.awt-dashboard .awt-dash-header-body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 0.875rem 1.125rem;
+}
+
+.awt-dashboard .awt-dash-header-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+/* The accent rule: enough to anchor the title, not enough to read as a status. */
+.awt-dashboard .awt-dash-header-accent {
+    flex: 0 0 auto;
+    inline-size: 3px;
+    block-size: 2.25rem;
+    border-radius: 999px;
+    background: linear-gradient(
+        180deg,
+        rgb(var(--bs-primary-rgb)),
+        rgb(var(--bs-info-rgb))
+    );
+}
+
+.awt-dashboard .awt-dash-header-title {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--bs-heading-color, var(--bs-body-color));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-dashboard .awt-dash-header-subtitle {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--bs-secondary-color);
+}
+
+/* The range group was the loudest thing in the header; it is a control, not the
+   subject. Smaller type and tighter padding put it back in proportion. */
+.awt-dashboard .awt-dash-ranges .btn {
+    padding-block: 0.25rem;
+    padding-inline: 0.625rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.awt-dashboard .awt-dash-ranges .btn-outline-secondary {
+    border-color: rgba(var(--bs-primary-rgb), 0.22);
+    background-color: rgba(255, 255, 255, 0.7);
+    color: var(--bs-body-color);
+}
+
+.awt-dashboard .awt-dash-ranges .btn-outline-secondary:hover {
+    border-color: rgba(var(--bs-primary-rgb), 0.45);
+    background-color: rgba(255, 255, 255, 0.95);
+    color: var(--bs-body-color);
+}
+
+.awt-dashboard .awt-dash-custom {
+    min-width: 15rem;
+}
+
+.awt-dashboard .awt-dash-header-error {
+    padding: 0.625rem 1.125rem;
+    border-block-start: 1px solid rgba(var(--bs-danger-rgb), 0.28);
+    background-color: rgba(var(--bs-danger-rgb), 0.06);
+    border-end-start-radius: 1rem;
+    border-end-end-radius: 1rem;
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-dash-header {
+    border-color: rgba(var(--bs-primary-rgb), 0.26);
+    background-color: rgba(255, 255, 255, 0.03);
+    background-image: linear-gradient(
+        108deg,
+        rgba(var(--bs-primary-rgb), 0.2) 0%,
+        rgba(var(--bs-info-rgb), 0.12) 46%,
+        rgba(var(--bs-primary-rgb), 0) 100%
+    );
+    box-shadow:
+        0 10px 26px -16px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-dash-ranges .btn-outline-secondary {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-dash-ranges .btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+}
+
+/* On a phone the title takes the full width and the range group sits under it,
+   wrapping onto two rows rather than overflowing. */
+@media (max-width: 575.98px) {
+    .awt-dashboard .awt-dash-header-body {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .awt-dashboard .awt-dash-header-title {
+        white-space: normal;
+    }
+
+    .awt-dashboard .awt-dash-ranges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+    }
+
+    .awt-dashboard .awt-dash-ranges > .btn,
+    .awt-dashboard .awt-dash-ranges > .btn-group {
+        flex: 1 1 auto;
+    }
+
+    /* Flex-wrapping a .btn-group drops the joined-edge look, so give the
+       buttons their own radius back. */
+    .awt-dashboard .awt-dash-ranges > .btn,
+    .awt-dashboard .awt-dash-ranges > .btn-group > .btn {
+        border-radius: var(--awt-dash-radius);
+    }
+}
+
+/* ── System health ──────────────────────────────────────────────────── */
+
+/*
+ * The same glass as the metric tiles, hued by the subsystem's own state colour.
+ * Unlike the KPI cards these ARE links, so the hover state is allowed to be an
+ * affordance: the glass brightens and the accent border firms up.
+ */
+.awt-dashboard .awt-health-chip {
+    position: relative;
+    overflow: hidden;
+    padding: 0.75rem;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.18);
+    border-radius: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.55);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.12) 0%,
+        rgba(var(--awt-tone-rgb), 0.035) 55%,
+        rgba(var(--awt-tone-rgb), 0) 85%
+    );
+    box-shadow:
+        0 4px 12px -8px rgba(var(--awt-tone-rgb), 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.awt-dashboard .awt-health-chip::after {
+    content: "";
+    position: absolute;
+    inset-block-start: -2.25rem;
+    inset-inline-end: -1.5rem;
+    inline-size: 5.5rem;
+    block-size: 5.5rem;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(var(--awt-tone-rgb), 0.16) 0%,
+        rgba(var(--awt-tone-rgb), 0) 70%
+    );
+    pointer-events: none;
+}
+
+.awt-dashboard .awt-health-chip > * {
     position: relative;
     z-index: 1;
-    background: transparent;
-    border: 0;
 }
 
-.pos-td-chart-card {
+.awt-dashboard .awt-health-chip:hover {
+    border-color: rgba(var(--awt-tone-rgb), 0.45);
+    background-color: rgba(255, 255, 255, 0.72);
+    box-shadow:
+        0 8px 18px -10px rgba(var(--awt-tone-rgb), 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-health-chip {
+    border-color: rgba(var(--awt-tone-rgb), 0.24);
+    background-color: rgba(255, 255, 255, 0.04);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.17) 0%,
+        rgba(var(--awt-tone-rgb), 0.05) 55%,
+        rgba(var(--awt-tone-rgb), 0) 85%
+    );
+    box-shadow:
+        0 6px 16px -10px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-health-chip:hover {
+    border-color: rgba(var(--awt-tone-rgb), 0.42);
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+/* The chip carries no tooltip, so the detail must be readable in full — it is
+   the only place the subsystem explains itself. */
+.awt-dashboard .awt-health-detail {
+    text-wrap: pretty;
+}
+
+/* ── Action required ────────────────────────────────────────────────── */
+
+/*
+ * A section whose partial renders nothing must not leave a grid gutter behind.
+ * The wrapper has to stay in the DOM — the range swap writes into it by
+ * data-dash-section — so it collapses on "has no element children" instead.
+ * :empty would not do: Blade leaves whitespace text nodes inside.
+ */
+.awt-dashboard .awt-dash-collapsible:not(:has(*)) {
+    display: none;
+}
+
+/*
+ * One line, not a card. This section carries two or three setup gaps; giving it
+ * a card heading, a subheading, a count badge and a bordered panel per item cost
+ * two hundred pixels at the top of the page to say "six users have no
+ * extension". A strip states the same thing in about fifty.
+ */
+.awt-dashboard .awt-dash-alerts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid rgba(var(--bs-warning-rgb), 0.28);
+    border-inline-start: 3px solid var(--bs-warning);
+    border-radius: 0.75rem;
+    background-color: rgba(var(--bs-warning-rgb), 0.08);
+}
+
+.awt-dashboard .awt-dash-alerts-icon {
+    flex: 0 0 auto;
+    color: var(--bs-warning);
+    font-size: 1.125rem;
+    line-height: 1;
+}
+
+.awt-dashboard .awt-dash-alerts-label {
+    flex: 0 0 auto;
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-warning-text-emphasis, var(--bs-warning));
+}
+
+.awt-dashboard .awt-dash-alerts-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin: 0;
     padding: 0;
+    list-style: none;
 }
 
-.pos-td-chart-card .card-header {
-    padding: 1.1rem 1.25rem 0.25rem;
+/*
+ * Each finding IS its link — the separate "Assign numbers" button was a second
+ * target for the same destination, and dropping it is what let the row become a
+ * row.
+ */
+.awt-dashboard .awt-dash-alerts-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.1875rem 0.5rem;
+    border: 1px solid rgba(var(--bs-warning-rgb), 0.32);
+    border-radius: 1rem;
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    text-decoration: none;
+    transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
-.pos-td-chart-card .card-body {
-    padding: 0.75rem 1.25rem 1.25rem;
+.awt-dashboard .awt-dash-alerts-item > i {
+    font-size: 0.875rem;
+    color: var(--bs-warning);
 }
 
-.pos-td-catalog-link {
-    text-decoration: none !important;
+.awt-dashboard .awt-dash-alerts-item:hover,
+.awt-dashboard .awt-dash-alerts-item:focus-visible {
+    border-color: var(--bs-warning);
+    background-color: rgba(var(--bs-warning-rgb), 0.14);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-dash-alerts {
+    background-color: rgba(var(--bs-warning-rgb), 0.12);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-dash-alerts-item {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* ── KPI cards ──────────────────────────────────────────────────────── */
+
+/*
+ * Frosted glass, iOS style: a translucent surface over a blurred backdrop, an
+ * accent wash running off one corner, a soft light-catch on the top edge and a
+ * shadow tinted by the same accent rather than plain black.
+ *
+ * Each card declares one accent as --awt-tone-rgb and every layer below reads it,
+ * so a new tone is one class, not a new block of rules. The hue is decoration —
+ * it tells the four cards apart. Anything that MEANS something (a warning, an
+ * all-clear, a comparison) keeps its own much stronger colour on top.
+ *
+ * A KPI card is read-only: the help button is the only control on it. The hover
+ * state is deliberately restrained — the glass brightens and the shadow deepens,
+ * but the cursor never changes and nothing moves, because a surface that lifts
+ * under the pointer is a promise that a click does something.
+ */
+/*
+ * The accent palette that every glass rule below reads (--awt-tone-rgb) now
+ * lives in awt-glass.css, which the layout loads first — the Billing page wears
+ * the same look, and one definition beats two that can drift apart. What stays
+ * here is only what is specific to this page's own components.
+ */
+
+.awt-dashboard .awt-kpi-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.15);
+    border-radius: var(--awt-glass-radius, 1rem);
+    background-color: rgba(255, 255, 255, 0.72);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.10) 0%,
+        rgba(var(--awt-tone-rgb), 0.03) 42%,
+        rgba(var(--awt-tone-rgb), 0) 72%
+    );
+    -webkit-backdrop-filter: var(--awt-glass-blur);
+    backdrop-filter: var(--awt-glass-blur);
+    box-shadow:
+        0 8px 22px -12px rgba(var(--awt-tone-rgb), 0.34),
+        0 1px 2px rgba(47, 43, 61, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+/* The soft orb bleeding off the top-right corner. Decorative, so it is a
+   pseudo-element and is hidden from assistive technology by construction. */
+.awt-dashboard .awt-kpi-card::after {
+    content: "";
+    position: absolute;
+    inset-block-start: -3.5rem;
+    inset-inline-end: -2.5rem;
+    inline-size: 10rem;
+    block-size: 10rem;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(var(--awt-tone-rgb), 0.13) 0%,
+        rgba(var(--awt-tone-rgb), 0.045) 45%,
+        rgba(var(--awt-tone-rgb), 0) 70%
+    );
+    pointer-events: none;
+}
+
+.awt-dashboard .awt-kpi-card:hover {
+    border-color: rgba(var(--awt-tone-rgb), 0.3);
+    background-color: rgba(255, 255, 255, 0.76);
+    box-shadow:
+        0 14px 30px -14px rgba(var(--awt-tone-rgb), 0.44),
+        0 1px 2px rgba(47, 43, 61, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+/* Dark glass: the wash carries the tone, a barely-there white film carries the
+   surface, and the light-catch drops to a hairline. */
+[data-bs-theme="dark"] .awt-dashboard .awt-kpi-card {
+    border-color: rgba(var(--awt-tone-rgb), 0.22);
+    background-color: rgba(255, 255, 255, 0.035);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.16) 0%,
+        rgba(var(--awt-tone-rgb), 0.05) 45%,
+        rgba(var(--awt-tone-rgb), 0) 74%
+    );
+    box-shadow:
+        0 10px 28px -14px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-kpi-card:hover {
+    border-color: rgba(var(--awt-tone-rgb), 0.36);
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+/*
+ * One `gap` owns every vertical space inside the body. Prevent nested backdrop
+ * filters on inner stat pills to maintain fluid mobile scroll performance.
+ */
+.awt-dashboard .awt-kpi-body,
+.awt-dashboard .awt-stat-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+}
+
+.awt-dashboard .awt-kpi-note,
+.awt-dashboard .awt-kpi-breakdown,
+.awt-dashboard .awt-stat-desc {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.awt-dashboard .awt-kpi-head,
+.awt-dashboard .awt-stat-head {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-block-size: 2.5rem;
+}
+
+/*
+ * Solid accent tile with a white glyph and a shadow in its own colour.
+ */
+.awt-dashboard .awt-kpi-icon,
+.awt-dashboard .awt-stat-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: 0.75rem;
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 1) 0%,
+        rgba(var(--awt-tone-rgb), 0.82) 100%
+    );
+    color: #fff;
+    box-shadow:
+        0 6px 14px -6px rgba(var(--awt-tone-rgb), 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    font-size: 1.1875rem;
+    line-height: 1;
+}
+
+/* Uppercase label: 0.6875rem (11px) */
+.awt-dashboard .awt-kpi-label,
+.awt-dashboard .awt-stat-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    text-wrap: balance;
+    overflow-wrap: break-word;
+}
+
+.awt-dashboard .awt-kpi-info {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    min-inline-size: 2rem;
+    min-block-size: 2rem;
+    padding: 0;
+    margin-inline-end: -0.25rem;
+}
+
+.awt-dashboard .awt-kpi-info i {
+    font-size: 1rem;
+}
+
+.awt-dashboard .awt-kpi-info:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+.awt-dashboard .awt-kpi-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Prominent counter: 2rem on desktop */
+.awt-dashboard .awt-kpi-value,
+.awt-dashboard .awt-stat-value {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--bs-heading-color, var(--bs-body-color));
+    overflow-wrap: break-word;
+}
+
+/* Micro-capsule breakdown pill */
+.awt-dashboard .awt-kpi-breakdown,
+.awt-dashboard .awt-stat-desc {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*
+ * Each segment is an inline-block, so a short one ("12 awaiting receipt") moves
+ * to the next line whole instead of breaking after "12". A segment too long for
+ * one line still wraps inside itself, which is the right behaviour for the one
+ * breakdown that is a sentence rather than a pair of counts.
+ */
+.awt-dashboard .awt-kpi-part {
+    display: inline-block;
+    /* An inline-block must never be allowed to set the card's width on a phone. */
+    max-inline-size: 100%;
+}
+
+/* The dot travels with the segment that follows it, so it can never be left
+   dangling at the end of a line. */
+.awt-dashboard .awt-kpi-sep {
+    display: inline-block;
+    margin-inline: 0.375rem;
+    color: var(--bs-secondary-color);
+    opacity: 0.55;
+}
+
+/*
+ * Status rows: one shape, three weights. All three are tinted so they read as a
+ * set, and the tint is kept light — a card that has something to say must stay a
+ * card, not turn into an alert.
+ */
+.awt-dashboard .awt-kpi-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin: 0;
+    padding: 0.375rem 0.5625rem;
+    border-radius: var(--awt-dash-radius);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    text-wrap: pretty;
+}
+
+/* Long words in a status row break rather than widening the card. */
+.awt-dashboard .awt-kpi-note > span {
+    min-width: 0;
+    overflow-wrap: break-word;
+}
+
+.awt-dashboard .awt-kpi-note > i {
+    flex: 0 0 auto;
+    font-size: 0.875rem;
+    /* Optical alignment: the glyph's box is taller than the cap height. */
+    margin-block-start: 0.0625rem;
+}
+
+.awt-dashboard .awt-kpi-note-warning {
+    background-color: rgba(var(--bs-warning-rgb), 0.12);
+    color: var(--bs-warning-text-emphasis, var(--bs-warning));
+}
+
+.awt-dashboard .awt-kpi-note-positive {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    color: var(--bs-success-text-emphasis, var(--bs-success));
+}
+
+/* Neither good nor bad: outlined rather than filled, so it does not compete with
+   the comparison badge below it — one grey block per card is enough. */
+.awt-dashboard .awt-kpi-note-info {
+    padding-block: 0.3125rem;
+    border: 1px dashed var(--bs-border-color);
+    color: var(--bs-secondary-color);
+}
+
+/*
+ * The comparison follows the content rather than being pushed to the floor. The
+ * cards are equal height, so bottom-aligning it opened a hole in the middle of
+ * the sparser cards — and a hole reads as a bug, where trailing space at the
+ * bottom of a card just reads as padding.
+ */
+.awt-dashboard .awt-kpi-foot {
+    margin: 0;
+}
+
+.awt-dashboard .awt-kpi-trend {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.25rem;
+    /* The comparison is a sentence, not a label, so it wraps instead of forcing
+       the card wider. */
+    white-space: normal;
+    text-align: left;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.awt-dashboard .awt-kpi-trend > i {
+    flex: 0 0 auto;
+    font-size: 0.875rem;
+    margin-block-start: 0.0625rem;
+}
+
+/*
+ * The four cards go side by side from xl up, which is where a column is at its
+ * narrowest. The padding and the figure give a little there, and only there — on
+ * a wider screen the column has room again and the card goes back to the roomier
+ * default. Below xl the grid drops to two columns, which is wider than this
+ * band, so nothing needs to shrink.
+ */
+@media (min-width: 1200px) and (max-width: 1499.98px) {
+    .awt-dashboard .awt-kpi-body {
+        padding: 1.125rem;
+        gap: 0.625rem;
+    }
+
+    .awt-dashboard .awt-kpi-value {
+        font-size: 1.375rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-dashboard .awt-kpi-card {
+        transition: none;
+    }
+}
+
+/* ── Metric tiles (call performance, team) ──────────────────────────── */
+
+/*
+ * The same glass as a KPI card, at tile scale: a lighter wash, a smaller orb and
+ * a shadow that stays close to the surface, because these sit INSIDE a card and
+ * must not compete with the card they are in. The hue comes from the tone class
+ * the tile already needed for its icon, so nothing new had to be invented to
+ * colour them.
+ */
+.awt-dashboard .awt-metric-tile {
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.18);
+    border-radius: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.55);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.12) 0%,
+        rgba(var(--awt-tone-rgb), 0.035) 55%,
+        rgba(var(--awt-tone-rgb), 0) 85%
+    );
+    box-shadow:
+        0 4px 12px -8px rgba(var(--awt-tone-rgb), 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: border-color 0.2s ease;
+}
+
+.awt-dashboard .awt-metric-tile::after {
+    content: "";
+    position: absolute;
+    inset-block-start: -2.25rem;
+    inset-inline-end: -1.5rem;
+    inline-size: 5.5rem;
+    block-size: 5.5rem;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(var(--awt-tone-rgb), 0.16) 0%,
+        rgba(var(--awt-tone-rgb), 0) 70%
+    );
+    pointer-events: none;
+}
+
+/* The tiles are not interactive either — this is a surface, not a target. */
+.awt-dashboard .awt-metric-tile:hover {
+    border-color: rgba(var(--awt-tone-rgb), 0.3);
+    box-shadow:
+        0 8px 18px -10px rgba(var(--awt-tone-rgb), 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* The label and the number sit above the orb. */
+.awt-dashboard .awt-metric-tile > * {
+    position: relative;
+    z-index: 1;
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-metric-tile {
+    border-color: rgba(var(--awt-tone-rgb), 0.24);
+    background-color: rgba(255, 255, 255, 0.04);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.17) 0%,
+        rgba(var(--awt-tone-rgb), 0.05) 55%,
+        rgba(var(--awt-tone-rgb), 0) 85%
+    );
+    box-shadow:
+        0 6px 16px -10px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-metric-tile:hover {
+    border-color: rgba(var(--awt-tone-rgb), 0.38);
+}
+
+.awt-dashboard .awt-metric-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.awt-dashboard .awt-split-bar {
+    height: 8px;
+}
+
+/* Same glass, flattest setting: this one sits under the tiles and must not
+   out-shout them. */
+.awt-dashboard .awt-insight {
+    padding: 0.75rem;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.16);
+    border-radius: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.5);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.1) 0%,
+        rgba(var(--awt-tone-rgb), 0.03) 60%,
+        rgba(var(--awt-tone-rgb), 0) 90%
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* No insight to give: outlined instead of filled, so the empty state does not
+   look like a finding. */
+.awt-dashboard .awt-insight-muted {
+    border-style: dashed;
+    border-color: var(--bs-border-color);
+    background-color: transparent;
+    background-image: none;
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-insight {
+    border-color: rgba(var(--awt-tone-rgb), 0.22);
+    background-color: rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ── Usage overview ─────────────────────────────────────────────────── */
+
+/*
+ * Compact by design: a headline plus a two-column grid of tiles, so six metered
+ * figures take about half the height a full-width list needed and the panel
+ * stays level with the one beside it.
+ */
+.awt-dashboard .awt-usage-headline {
+    padding: 0.625rem 0.75rem;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.18);
+    border-radius: 0.75rem;
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.12) 0%,
+        rgba(var(--awt-tone-rgb), 0.035) 60%,
+        rgba(var(--awt-tone-rgb), 0) 90%
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.awt-dashboard .awt-usage-headline-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-dashboard .awt-usage-projection {
+    margin-block-start: 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    color: var(--bs-secondary-color);
+}
+
+/*
+ * A tile is an icon, a label with its movement, and the figure — two lines, no
+ * more. The per-metric hint that used to sit under each label is what made the
+ * panel tall; the labels carry their own meaning and the Usage page has the
+ * detail.
+ */
+.awt-dashboard .awt-usage-tile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 100%;
+    padding: 0.5rem 0.625rem;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.16);
+    border-radius: 0.75rem;
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 0.1) 0%,
+        rgba(var(--awt-tone-rgb), 0.03) 60%,
+        rgba(var(--awt-tone-rgb), 0) 90%
+    );
+}
+
+.awt-dashboard .awt-usage-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.875rem;
+    block-size: 1.875rem;
+    border-radius: 0.5rem;
+    background-color: rgba(var(--awt-tone-rgb), 0.16);
+    color: rgb(var(--awt-tone-rgb));
+    font-size: 0.9375rem;
+    line-height: 1;
+}
+
+.awt-dashboard .awt-usage-tile-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.375rem;
+}
+
+.awt-dashboard .awt-usage-tile-label {
+    min-width: 0;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.awt-dashboard .awt-usage-value {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-dashboard .awt-usage-value + small {
+    margin-inline-start: 0.25rem;
+    font-size: 0.6875rem;
+}
+
+/* Movement is context, not a verdict, so it stays muted rather than taking a
+   success/danger colour it has not earned. */
+.awt-dashboard .awt-usage-delta,
+.awt-dashboard .awt-usage-tile-delta {
+    flex: 0 0 auto;
+    color: var(--bs-secondary-color);
+    font-size: 0.6875rem;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.awt-dashboard .awt-usage-delta > i,
+.awt-dashboard .awt-usage-tile-delta > i,
+.awt-dashboard .awt-usage-projection > i {
+    font-size: 0.875rem;
+    vertical-align: -0.125em;
+    margin-inline-end: 0.125rem;
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-usage-headline,
+[data-bs-theme="dark"] .awt-dashboard .awt-usage-tile {
+    border-color: rgba(var(--awt-tone-rgb), 0.24);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-usage-headline {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+/* ── Chart ──────────────────────────────────────────────────────────── */
+
+.awt-dashboard .awt-chart-tabs .nav-link {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+}
+
+.awt-dashboard .awt-chart-skeleton,
+.awt-dashboard .awt-chart-state {
+    min-height: 300px;
+}
+
+.awt-dashboard .awt-skeleton-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    height: 300px;
+    padding: 1rem 0;
+}
+
+.awt-dashboard .awt-skeleton-bar {
+    flex: 1 1 0;
+    border-radius: var(--awt-dash-radius) var(--awt-dash-radius) 0 0;
+    background: linear-gradient(
+        90deg,
+        var(--bs-secondary-bg) 25%,
+        var(--bs-tertiary-bg, var(--bs-body-bg)) 37%,
+        var(--bs-secondary-bg) 63%
+    );
+    background-size: 400% 100%;
+    animation: awt-dash-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Staggered heights so the skeleton reads as a chart, not a loading bar. */
+.awt-dashboard .awt-skeleton-bar:nth-child(3n)   { height: 45%; }
+.awt-dashboard .awt-skeleton-bar:nth-child(3n+1) { height: 70%; }
+.awt-dashboard .awt-skeleton-bar:nth-child(3n+2) { height: 30%; }
+
+@keyframes awt-dash-shimmer {
+    0%   { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+/* ── Section-level loading state ────────────────────────────────────── */
+
+/*
+ * While a range change is in flight the sections stay in place and fade, rather
+ * than collapsing — the page must not jump under the pointer of someone who is
+ * about to click the next range.
+ */
+.awt-dashboard [data-dash-section].is-loading {
+    opacity: 0.45;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-dashboard .awt-skeleton-bar {
+        animation: none;
+    }
+
+    .awt-dashboard [data-dash-section].is-loading {
+        transition: none;
+    }
+}
+
+/* ── Recent activity ────────────────────────────────────────────────── */
+
+/*
+ * The list scrolls inside the card instead of setting the row's height. Bootstrap
+ * already makes .card a flex column, so the header stays put and the body takes
+ * the remaining space — `min-block-size: 0` is what actually lets a flex child
+ * shrink far enough to scroll rather than growing to fit its content.
+ *
+ * The cap keeps the card level with Usage Overview beside it: activity is the
+ * only section on the page whose length is unbounded, so without it twenty rows
+ * would stretch the row and leave the panel opposite floating in white space.
+ * Below xl the two stack, and a capped scroller in a full-width card is still
+ * the right call — it keeps the page's other sections reachable.
+ */
+/* A normal padded .card-body that happens to scroll — the list is inset from
+   the card on all four sides, exactly like every other card's content.
+   Asymmetric on purpose: the top is trimmed because the first row's own
+   0.875rem already sits under the header rule, while the bottom needs a real
+   gap so the last row does not touch the card edge. On a scroll container the
+   block-end padding is counted in the scrollable extent, so it is the resting
+   gap after scrolling to the end as well as the static one. */
+.awt-dashboard .awt-dash-activity-body {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    max-block-size: 24rem;
+    padding-block: 0.5rem 1.25rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bs-border-color) transparent;
+}
+
+.awt-dashboard .awt-dash-activity-body::-webkit-scrollbar {
+    inline-size: 0.375rem;
+}
+
+.awt-dashboard .awt-dash-activity-body::-webkit-scrollbar-thumb {
+    border-radius: 1rem;
+    background-color: var(--bs-border-color);
+}
+
+.awt-dashboard .awt-dash-activity-body::-webkit-scrollbar-thumb:hover {
+    background-color: var(--bs-secondary-color);
+}
+
+/*
+ * The card stays white. Colour arrives in five small places only — the icon
+ * disc, the status dot, the badge, the left edge and the hover surface — because
+ * twenty rows with twenty tinted backgrounds is a noisy card, not a scannable
+ * one.
+ *
+ * Two independent signals drive it. `--awt-act` is the OUTCOME, set by the
+ * .awt-act-* class the service picks: green for a completed call or a delivered
+ * message, coral for an inbound call nobody answered, orange for an outbound one
+ * that rang out, a deeper red for an outright failure. `--awt-act-ch` is the
+ * MEDIUM — blue inbound, purple outbound, teal messaging — and it never touches
+ * the status marks, only the left edge and the hover wash.
+ *
+ * Every value derives from a theme colour: the two the palette has no token for
+ * (the deeper red, the messaging teal) are mixed from ones it does, so a theme
+ * change still carries.
+ */
+.awt-dashboard .awt-act-completed { --awt-act: rgb(var(--bs-success-rgb)); }
+.awt-dashboard .awt-act-missed    { --awt-act: rgb(var(--bs-danger-rgb)); }
+.awt-dashboard .awt-act-no-answer { --awt-act: rgb(var(--bs-warning-rgb)); }
+.awt-dashboard .awt-act-failed    { --awt-act: color-mix(in srgb, var(--bs-danger) 66%, #4a0509); }
+.awt-dashboard .awt-act-neutral   { --awt-act: rgb(var(--bs-secondary-rgb)); }
+
+.awt-dashboard .awt-act-ch-inbound  { --awt-act-ch: rgb(var(--bs-info-rgb)); }
+.awt-dashboard .awt-act-ch-outbound { --awt-act-ch: rgb(var(--bs-primary-rgb)); }
+.awt-dashboard .awt-act-ch-message  { --awt-act-ch: color-mix(in srgb, var(--bs-info) 62%, var(--bs-success)); }
+
+/* Horizontal inset comes from the padded .card-body, so rows only own their own
+   vertical rhythm. The small inline padding is breathing room for the hover
+   surface and the accent edge, not the card gutter. */
+.awt-dashboard .awt-activity-item {
+    position: relative;
+    padding-block: 0.875rem;
+    padding-inline: 0.75rem;
+    transition: background-color 0.15s ease-in-out;
+}
+
+/* The left edge carries the medium, at a weight that reads as an accent rather
+   than as a second status light. It fills in on hover. */
+.awt-dashboard .awt-activity-item::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.375rem;
+    inset-inline-start: 0;
+    inline-size: 3px;
+    border-radius: 3px;
+    background-color: var(--awt-act-ch);
+    opacity: 0.45;
+    transition: opacity 0.15s ease-in-out;
+}
+
+.awt-dashboard .awt-activity-item:hover {
+    background-color: color-mix(in srgb, var(--awt-act-ch) 6%, transparent);
+}
+
+.awt-dashboard .awt-activity-item:hover::before {
+    opacity: 1;
+}
+
+.awt-dashboard .awt-activity-item + .awt-activity-item {
+    border-top: 1px solid var(--bs-border-color);
+}
+
+/* Soft disc, saturated glyph: the outcome at a glance, down the left column. */
+.awt-dashboard .awt-activity-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: 50%;
+    background-color: color-mix(in srgb, var(--awt-act) 14%, transparent);
+    color: var(--awt-act);
+    font-size: 1.35rem;
+    line-height: 1;
+}
+.awt-dashboard .awt-activity-icon i {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.awt-dashboard .awt-activity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 1rem;
+    background-color: color-mix(in srgb, var(--awt-act) 12%, transparent);
+    color: color-mix(in srgb, var(--awt-act) 78%, #000);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.awt-dashboard .awt-activity-dot {
+    flex: 0 0 auto;
+    inline-size: 0.375rem;
+    block-size: 0.375rem;
+    border-radius: 50%;
+    background-color: var(--awt-act);
+}
+
+/* Call attribution — "Missed by Margaret Ortega". On a missed row this is the
+   single most useful fact in the card, so the NAME carries the row's outcome
+   colour while the role word stays quiet. Inherits --awt-act from the row, so
+   a completed call's name is green and a missed one's is red without any
+   per-state rule here. */
+.awt-dashboard .awt-activity-party {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--bs-secondary-color);
+    min-inline-size: 0;
+}
+
+.awt-dashboard .awt-activity-party > i {
+    flex: 0 0 auto;
+    font-size: 0.875rem;
+    opacity: 0.7;
+}
+
+.awt-dashboard .awt-activity-party-role {
+    white-space: nowrap;
+}
+
+.awt-dashboard .awt-activity-party-name {
+    font-weight: 600;
+    color: color-mix(in srgb, var(--awt-act) 78%, #000);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-activity-party-name {
+    color: color-mix(in srgb, var(--awt-act) 70%, #fff);
+}
+
+/* One accent for actions — the theme's own purple — so "call back" and "view
+   all" read as the same kind of thing. */
+.awt-dashboard .awt-activity-action {
+    --bs-btn-color: rgb(var(--bs-primary-rgb));
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-activity-icon,
+[data-bs-theme="dark"] .awt-dashboard .awt-activity-badge {
+    background-color: color-mix(in srgb, var(--awt-act) 20%, transparent);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-activity-badge {
+    color: color-mix(in srgb, var(--awt-act) 70%, #fff);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-activity-item:hover {
+    background-color: color-mix(in srgb, var(--awt-act-ch) 10%, transparent);
+}
+
+/* On a phone the icon-only actions sit under the text rather than squeezing the
+   title into two characters per line. */
+@media (max-width: 767.98px) {
+    .awt-dashboard .awt-activity-actions {
+        padding-left: 3rem;
+    }
+}
+
+/* ── Queue table ────────────────────────────────────────────────────── */
+
+.awt-dashboard .awt-queue-table th,
+.awt-dashboard .awt-queue-table td {
+    white-space: nowrap;
+}
+
+.awt-dashboard .awt-queue-table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-secondary-color);
+}
+
+/* ── Focus visibility ───────────────────────────────────────────────── */
+
+/*
+ * Every interactive element on this page is reachable by keyboard, so every one
+ * of them needs a focus ring that survives the theme's own resets.
+ */
+.awt-dashboard a:focus-visible,
+.awt-dashboard button:focus-visible,
+.awt-dashboard [tabindex]:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+    border-radius: var(--awt-dash-radius);
+}
+
+/* ── Team availability: my status + roster ──────────────────────────── */
+
+/*
+ * Agent status is a widget on this panel rather than a section of its own.
+ * Two pieces: the viewer's own status control in the card header, and the
+ * roster of everyone else below the count tiles.
+ */
+
+.awt-dashboard .awt-dash-mystatus {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.awt-dashboard .awt-dash-mystatus .form-select {
+    inline-size: auto;
+    min-inline-size: 8.5rem;
+}
+
+/*
+ * Fixed height, not max-height: the panel sits beside Call performance in the
+ * same grid row, and a roster that grows with headcount would drag that row
+ * with it. Roughly four rows visible, the rest scrolls.
+ */
+.awt-dashboard .awt-dash-roster {
+    max-block-size: 13.5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-block-start: 1px solid var(--bs-border-color);
+    padding-block-start: 0.5rem;
+    margin-block-start: 0.25rem;
+}
+
+.awt-dashboard .awt-dash-roster-row {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding-block: 0.375rem;
+}
+
+.awt-dashboard .awt-dash-roster-row + .awt-dash-roster-row {
+    border-block-start: 1px solid rgba(var(--bs-emphasis-color-rgb), 0.06);
+}
+
+.awt-dash-roster-who {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    flex: 1 1 auto;
+}
+
+/* Long names truncate rather than wrap — one row per agent keeps the
+   scroller's row count predictable. */
+.awt-dash-roster-name,
+.awt-dash-roster-dept {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-dash-roster-name {
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+.awt-dash-roster-dept {
+    font-size: 0.75rem;
+    line-height: 1.25;
+}
+
+.awt-dash-roster-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.awt-dash-roster-status .ti {
+    font-size: 0.5rem;
+}
+
+@media (max-width: 575.98px) {
+    /* The header stacks on a phone, so the control goes full width rather
+       than squeezing the heading beside it. */
+    .awt-dashboard .awt-dash-mystatus {
+        inline-size: 100%;
+    }
+
+    .awt-dashboard .awt-dash-mystatus .form-select {
+        flex: 1 1 auto;
+    }
+}
+
+/* ─── Ask AI: captured leads ──────────────────────────────────────────────
+ *
+ * Three counts and a table. The wells use --bs-emphasis-color rather than a
+ * fixed grey so the card recesses on a light theme and lifts on a dark one —
+ * the same idiom the rest of this file uses, and the reason nothing here names
+ * a colour except through a theme variable.
+ */
+.awt-dashboard .awt-askai-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    block-size: 100%;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid rgba(var(--bs-emphasis-color-rgb), 0.08);
+    border-radius: var(--bs-border-radius);
+    background-color: rgba(var(--bs-emphasis-color-rgb), 0.03);
+}
+
+.awt-dashboard .awt-askai-stat-value {
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.awt-dashboard .awt-askai-stat-label {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--bs-secondary-color);
+}
+
+/* Contact and intent get the width; the two short columns do not wrap. */
+.awt-dashboard .awt-askai-leads td:first-child {
+    max-inline-size: 16rem;
+}
+
+.awt-dashboard .awt-askai-leads th:nth-child(3),
+.awt-dashboard .awt-askai-leads td:nth-child(3),
+.awt-dashboard .awt-askai-leads th:nth-child(4),
+.awt-dashboard .awt-askai-leads td:nth-child(4) {
+    white-space: nowrap;
+}
+
+/* ── System Health & Carrier Deliverability — one card, two lanes ─────
+ *
+ * REPLACED A SIX-TILE MATRIX AND A SEPARATE STRIP. Both answered "is this
+ * working" — one about our own configuration, one about how the carriers treat
+ * us — in two containers stacked on top of each other. The lanes below are the
+ * same two answers with one frame around them, and one rule between them.
+ *
+ * The old `.awt-dash-deliverability*` rules were deleted with the strip they
+ * styled. `.awt-health-chip` was NOT: lane 1 still wears it, which is what
+ * keeps the tiles identical to the ones that were there before the merge.
+ *
+ * Tone comes from `.awt-tone-*` on the section (awt-glass.css), so the card
+ * takes the colour of the verdict rather than a fixed palette. Nothing here
+ * declares its own blur: `.awt-dashboard .card` already applies the glass, and
+ * nesting a second backdrop-filter inside it is what that block forbids.
+ */
+
+.awt-dashboard .awt-sysrep-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.awt-dashboard .awt-sysrep-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.awt-dashboard .awt-sysrep-lane {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* The rule between the lanes. A hairline in the card's own tone rather than a
+   grey divider: it separates two halves of one card, not two cards. */
+.awt-dashboard .awt-sysrep-lane-rep {
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(var(--awt-tone-rgb), 0.16);
+}
+
+.awt-dashboard .awt-sysrep-eyebrow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-dashboard .awt-sysrep-eyebrow-note {
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--bs-secondary-rgb, 133, 146, 163), 0.28);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    opacity: 0.85;
+}
+
+/* The one gold thing on the page. Gold is reserved for "this is sold" — it
+   appears on the eyebrow and on the lock crest, and nowhere else. */
+.awt-dashboard .awt-sysrep-eyebrow-pro {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-color: rgba(202, 138, 4, 0.45);
+    background: linear-gradient(135deg, rgba(250, 204, 21, 0.22), rgba(202, 138, 4, 0.12));
+    color: #a16207;
+    opacity: 1;
+}
+
+/* Lane 2's header is a row: the heading on the left, the account's overall
+   deliverability verdict and the way through to the Compliance page on the
+   right — the three things the deleted strip carried. */
+.awt-dashboard .awt-sysrep-lane-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+}
+
+.awt-dashboard .awt-sysrep-lane-head .awt-sysrep-eyebrow {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.awt-dashboard .awt-sysrep-detail-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-dashboard .awt-sysrep-detail-link:hover .awt-sysrep-detail-cta {
+    gap: 0.45rem;
+    color: rgb(var(--bs-primary-rgb));
+}
+
+.awt-dashboard .awt-sysrep-detail-count {
+    white-space: nowrap;
+}
+
+.awt-dashboard .awt-sysrep-detail-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: rgb(var(--bs-primary-rgb));
+    transition: gap 0.18s ease;
+}
+
+/* ── Lane 1: the status strip ────────────────────────────────────────── */
+
+/*
+ * A row, not a grid. `flex: 1 1 12rem` lets the five chips share the width
+ * evenly and drop to two rows — then one — as the viewport narrows, without a
+ * breakpoint per column count. The old six-tile grid needed `row-cols-xl-6`
+ * and left an orphan tile on its own row at several widths.
+ */
+.awt-dashboard .awt-sysrep-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.awt-dashboard .awt-sysrep-chip {
+    flex: 1 1 12rem;
+    min-width: 0;
     display: block;
 }
 
-.pos-td-catalog-item {
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+/* The invitation, and only on a chip that needs one. A chip reading
+   "Operational" carries no arrow: there is nothing to go and do. */
+.awt-dashboard .awt-sysrep-chip-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: rgb(var(--awt-tone-rgb));
+    opacity: 0.9;
+    transition: gap 0.18s ease;
 }
 
-.pos-td-catalog-item:hover {
-    transform: translateY(-2px);
+.awt-dashboard .awt-sysrep-chip:hover .awt-sysrep-chip-cta {
+    gap: 0.45rem;
+    opacity: 1;
+}
+
+/* ── Lane 2: the reputation readout ──────────────────────────────────── */
+
+.awt-dashboard .awt-sysrep-rep {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+}
+
+.awt-dashboard .awt-sysrep-meter {
+    flex: 0 1 13rem;
+    min-width: 10rem;
+}
+
+.awt-dashboard .awt-sysrep-meter-figure {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.awt-dashboard .awt-sysrep-meter-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--awt-tone-rgb));
+}
+
+/* No score is a dash, never a zero: an unrated fleet has not been measured,
+   and 0/100 would report it as the worst possible reading. */
+.awt-dashboard .awt-sysrep-meter-none {
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-dashboard .awt-sysrep-meter-max {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-dashboard .awt-sysrep-meter-word {
+    margin-inline-start: auto;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgb(var(--awt-tone-rgb));
+}
+
+.awt-dashboard .awt-sysrep-meter-track {
+    position: relative;
+    height: 0.5rem;
+    margin-top: 0.5rem;
+    border-radius: 999px;
+    overflow: hidden;
+    background-color: rgba(var(--bs-secondary-rgb, 133, 146, 163), 0.18);
+}
+
+.awt-dashboard .awt-sysrep-meter-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background-image: linear-gradient(
+        90deg,
+        rgba(var(--awt-tone-rgb), 0.65) 0%,
+        rgba(var(--awt-tone-rgb), 1) 100%
+    );
+    transition: width 0.4s ease;
+}
+
+/* The locked silhouette's track carries no value, so it carries no fill —
+   a striped ghost instead, which reads as "a bar goes here". */
+.awt-dashboard .awt-sysrep-meter-ghost {
+    width: 62%;
+    background-image: repeating-linear-gradient(
+        135deg,
+        rgba(var(--bs-secondary-rgb, 133, 146, 163), 0.5) 0 6px,
+        rgba(var(--bs-secondary-rgb, 133, 146, 163), 0.22) 6px 12px
+    );
+}
+
+.awt-dashboard .awt-sysrep-meter-caption {
+    margin: 0.4rem 0 0;
+    font-size: 0.72rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-dashboard .awt-sysrep-rep-facts {
+    flex: 1 1 16rem;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.awt-dashboard .awt-sysrep-fleet-pill {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.awt-dashboard .awt-sysrep-fleet-part {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: rgb(var(--awt-tone-rgb));
+}
+
+.awt-dashboard .awt-sysrep-fleet-sep {
+    color: var(--bs-secondary-color, #6c757d);
+    opacity: 0.6;
+}
+
+.awt-dashboard .awt-sysrep-engines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0;
+}
+
+.awt-dashboard .awt-sysrep-engine {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.28);
+    background-color: rgba(var(--awt-tone-rgb), 0.08);
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
+.awt-dashboard .awt-sysrep-engine-dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background-color: rgb(var(--awt-tone-rgb));
+}
+
+.awt-dashboard .awt-sysrep-engine-state {
+    font-weight: 500;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-dashboard .awt-sysrep-checked {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-dashboard .awt-sysrep-rep-cta {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+}
+
+.awt-dashboard .awt-sysrep-btn {
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+/* ── Lane 2, locked ──────────────────────────────────────────────────── */
+
+/*
+ * Both children occupy the SAME grid cell, so the container is as tall as the
+ * taller of them and the offer can never be clipped by the silhouette behind
+ * it. Absolute positioning was tried first and did exactly that at 360px.
+ */
+.awt-dashboard .awt-sysrep-locked {
+    display: grid;
+    border-radius: var(--awt-glass-radius-tile);
+    overflow: hidden;
+}
+
+.awt-dashboard .awt-sysrep-locked > * {
+    grid-area: 1 / 1;
+}
+
+/*
+ * The silhouette wears the unlocked lane's own layout class as well, so the
+ * teaser is the shape of the real readout rather than a decorative smudge in
+ * one corner. Blurred and dimmed, never populated: see the Blade.
+ */
+.awt-dashboard .awt-sysrep-ghost {
+    padding: 1rem 1.25rem;
+    filter: blur(5px);
+    opacity: 0.45;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* The frosted sheet. backdrop-filter over the silhouette rather than a solid
+   panel: the shape has to stay legible as a shape, or the teaser is just a
+   box. */
+.awt-dashboard .awt-sysrep-paywall {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    border: 1px solid var(--awt-glass-edge);
+    border-top-color: var(--awt-glass-specular);
+    border-radius: var(--awt-glass-radius-tile);
+    background-color: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+}
+
+.awt-dashboard .awt-sysrep-lock {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-bottom: 0.25rem;
+    border-radius: 50%;
+    border: 1px solid rgba(202, 138, 4, 0.45);
+    background-image: linear-gradient(135deg, rgba(250, 204, 21, 0.9), rgba(202, 138, 4, 0.75));
+    color: #422006;
+    box-shadow: 0 6px 18px -8px rgba(202, 138, 4, 0.8);
+}
+
+.awt-dashboard .awt-sysrep-paywall-eyebrow {
+    margin: 0;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #a16207;
+}
+
+.awt-dashboard .awt-sysrep-paywall-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.awt-dashboard .awt-sysrep-paywall-pitch {
+    max-width: 34rem;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-dashboard .awt-sysrep-price {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    margin: 0.35rem 0 0.5rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.35);
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.awt-dashboard .awt-sysrep-price-amount {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: rgb(var(--bs-primary-rgb));
+}
+
+.awt-dashboard .awt-sysrep-price-unit {
+    font-size: 0.7rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+/* ── The DID drawer ──────────────────────────────────────────────────────
+ *
+ * Now the ONLY place a number's reputation is shown: the full-width card on
+ * the number's own detail page was retired into this list on 2026-08-26.
+ * Everything that card carried is here — band, carrier warning, four provider
+ * scores, registration, remedy, timestamp — for every number at once.
+ *
+ * WHICH IS WHY THE TYPE IS SMALL. That card had a page to itself and could
+ * afford `fs-4` figures in four `col-md-3` tiles. This is a ~30rem drawer
+ * holding a dozen of them, so the type steps down (0.7–0.8rem), the padding
+ * comes in, and the bars go slim — 4px, the same weight as a divider. The
+ * alternative was showing three numbers per screen, which is not a list.
+ */
+
+.awt-rep-drawer {
+    width: min(30rem, 100vw);
+    display: flex;
+    flex-direction: column;
+}
+
+.awt-rep-drawer-head {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
+}
+
+.awt-rep-drawer-sub {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-rep-drawer-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.awt-rep-drawer-foot {
+    padding: 0.75rem 1.25rem 1.25rem;
+    border-top: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
+}
+
+.awt-rep-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* One row per number, hued by its own band — so "which one is the problem" is
+   answered by scanning rather than by reading. `gap` owns every vertical space
+   inside it, so a row with no warning and no registration is spaced exactly
+   like one carrying both. */
+.awt-rep-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.22);
+    border-inline-start-width: 3px;
+    border-radius: 0.75rem;
+    background-color: rgba(var(--awt-tone-rgb), 0.06);
+}
+
+.awt-rep-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.awt-rep-row-head .badge {
+    flex-shrink: 0;
+}
+
+.awt-rep-number {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    word-break: break-word;
+}
+
+.awt-rep-staff {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--bs-secondary-color, #6c757d);
+    margin-inline-start: 0.35rem;
+}
+
+/* The consequence, before any score. Tinted in the row's own band rather than
+   drawn as a full Bootstrap alert: an .alert in here is a box inside a box
+   inside a drawer, and the third border is the one nobody can read past. */
+.awt-rep-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.5rem;
+    background-color: rgba(var(--awt-tone-rgb), 0.12);
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--bs-body-color);
+}
+
+.awt-rep-warning i {
+    flex: 0 0 auto;
+    margin-top: 0.05rem;
+    font-size: 0.85rem;
+    color: rgb(var(--awt-tone-rgb));
+}
+
+/* ── The four provider scores ────────────────────────────────────────── */
+
+/*
+ * TWO COLUMNS, NOT FOUR. Four across a 30rem drawer leaves each bar about 40px
+ * long, which is too short to read as a proportion — the thing a bar is for.
+ * Two columns give each one roughly 120px and keep the grid to two tidy rows.
+ */
+.awt-rep-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem 0.75rem;
+}
+
+.awt-rep-metric-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem;
+}
+
+.awt-rep-metric-label {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-rep-metric-value {
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    color: rgb(var(--awt-tone-rgb));
+}
+
+/* Not scored. Grey and a dash — never a zero, and never the band's colour,
+   which would read as a reading. */
+.awt-rep-metric-none {
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-rep-metric-max {
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+/* 4px: the same weight as a divider. Anything heavier and four of them per row,
+   twelve rows deep, is the loudest thing in the drawer. */
+.awt-rep-metric-track {
+    display: block;
+    height: 0.25rem;
+    margin-top: 0.2rem;
+    border-radius: 999px;
+    overflow: hidden;
+    background-color: rgba(var(--bs-secondary-rgb, 133, 146, 163), 0.2);
+}
+
+.awt-rep-metric-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background-color: rgb(var(--awt-tone-rgb));
+}
+
+/* ── The rest of the row ─────────────────────────────────────────────── */
+
+.awt-rep-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+.awt-rep-category {
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.4rem;
+    background-color: rgba(var(--bs-secondary-rgb, 133, 146, 163), 0.18);
+}
+
+.awt-rep-registration,
+.awt-rep-advice,
+.awt-rep-checked {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: var(--bs-body-color);
+}
+
+.awt-rep-registration i,
+.awt-rep-advice i,
+.awt-rep-checked i {
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+    font-size: 0.8rem;
+}
+
+.awt-rep-registration i {
+    color: rgb(var(--awt-tone-rgb));
+}
+
+.awt-rep-checked {
+    font-size: 0.66rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
+/* ── Dark, for all six theme variants ────────────────────────────────── */
+
+/*
+ * Both selectors, every time. This app's dark mode is `html.awt-theme-dark`
+ * AND `[data-bs-theme="dark"]`; styling one leaves the other on the light
+ * palette, which is how a panel ends up with white text on white glass.
+ */
+[data-bs-theme="dark"] .awt-dashboard .awt-sysrep-paywall,
+html.awt-theme-dark .awt-dashboard .awt-sysrep-paywall {
+    background-color: rgba(16, 18, 27, 0.55);
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-sysrep-eyebrow-pro,
+html.awt-theme-dark .awt-dashboard .awt-sysrep-eyebrow-pro,
+[data-bs-theme="dark"] .awt-dashboard .awt-sysrep-paywall-eyebrow,
+html.awt-theme-dark .awt-dashboard .awt-sysrep-paywall-eyebrow {
+    color: #fcd34d;
+}
+
+[data-bs-theme="dark"] .awt-dashboard .awt-sysrep-eyebrow-pro,
+html.awt-theme-dark .awt-dashboard .awt-sysrep-eyebrow-pro {
+    border-color: rgba(252, 211, 77, 0.35);
+    background: linear-gradient(135deg, rgba(252, 211, 77, 0.18), rgba(202, 138, 4, 0.1));
+}
+
+/* The silhouette is already faint; in dark mode a 0.5 opacity ghost over a
+   near-black panel disappears entirely, so it is lifted rather than dimmed. */
+[data-bs-theme="dark"] .awt-dashboard .awt-sysrep-ghost,
+html.awt-theme-dark .awt-dashboard .awt-sysrep-ghost {
+    opacity: 0.62;
+}
+
+[data-bs-theme="dark"] .awt-rep-row,
+html.awt-theme-dark .awt-rep-row {
+    background-color: rgba(var(--awt-tone-rgb), 0.1);
+    border-color: rgba(var(--awt-tone-rgb), 0.3);
+}
+
+/* The warning tint and the empty half of a score bar both sit on a near-black
+   panel in dark mode, where the light-theme alphas disappear entirely. */
+[data-bs-theme="dark"] .awt-rep-warning,
+html.awt-theme-dark .awt-rep-warning {
+    background-color: rgba(var(--awt-tone-rgb), 0.16);
+}
+
+[data-bs-theme="dark"] .awt-rep-metric-track,
+html.awt-theme-dark .awt-rep-metric-track {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Narrow ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 767.98px) {
+    /* The button drops under the readout rather than squeezing it: on a phone
+       the meter and the counts are the answer, and the drawer is the follow-up. */
+    .awt-dashboard .awt-sysrep-rep-cta {
+        margin-inline-start: 0;
+        width: 100%;
+    }
+
+    .awt-dashboard .awt-sysrep-btn {
+        width: 100%;
+    }
+}
+
+/*
+ * Ambient motion carries no information here either. The meter still fills —
+ * it just arrives at its width instead of travelling to it.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .awt-dashboard .awt-sysrep-meter-fill,
+    .awt-dashboard .awt-sysrep-chip-cta,
+    .awt-dashboard .awt-sysrep-detail-cta {
+        transition: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * LIQUID GLASS — the iOS-inspired surface, light and dark.
+ *
+ * The brief for this specified Tailwind utilities: `bg-white/60
+ * dark:bg-slate-900/60 backdrop-blur-2xl rounded-3xl`, and `dark:` modifiers
+ * throughout. None of that could work here, and it is worth writing down why
+ * so the next person does not try again:
+ *
+ *   1. TAILWIND IS NOT LOADED ON TENANT PAGES. layouts/tenant.blade.php
+ *      @vite's `resources/js/app.js` only; `resources/css/app.css` — the sole
+ *      `@import 'tailwindcss'` entry — is never included. Every utility above
+ *      would have been an inert class name on a live dashboard.
+ *   2. THIS APP'S DARK MODE IS NOT `dark:`. It is `html.awt-theme-dark` +
+ *      `data-bs-theme="dark"`, and there are SIX variants, not two — default,
+ *      sky, lake, eggplant, dark and high-contrast. A `dark:`-only design
+ *      would have styled two of them and abandoned four.
+ *
+ * So the design is expressed as real CSS against the theme's own variables.
+ * Same result, and it adapts to all six variants instead of two.
+ *
+ * Applied to `.awt-dashboard .card`, which every dashboard panel already
+ * wears — so the whole page picks this up without a single partial being
+ * touched, and no data binding, chart instance or range-swap target moves.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+.awt-dashboard {
+    /* iOS scale. `rounded-3xl` is 1.5rem; panels take it, the smaller tiles
+       inside them take one step down so nested corners stay concentric. */
+    --awt-glass-radius-panel: 1.5rem;
+    --awt-glass-radius-tile: 1rem;
+
+    /* The glass itself. Two numbers per theme — a fill and an edge — and every
+       rule below reads them, so retuning the material is a two-line change
+       rather than a sweep. */
+    --awt-glass-fill: rgba(255, 255, 255, 0.62);
+    --awt-glass-edge: rgba(255, 255, 255, 0.72);
+    /* The specular highlight along the top edge: light catching the lip of a
+       pane of glass. It is what stops a translucent panel reading as a flat
+       tint, and it is why the top border is set separately below. */
+    --awt-glass-specular: rgba(255, 255, 255, 0.92);
+    --awt-glass-shadow: 0 10px 32px -18px rgba(47, 43, 61, 0.4);
+    /* Blur is --awt-glass-blur from awt-glass.css. Do not raise it here:
+       every .card on this page applies it once; nested tiles must not. */
+}
+
+[data-bs-theme="dark"] .awt-dashboard,
+html.awt-theme-dark .awt-dashboard {
+    --awt-glass-fill: rgba(255, 255, 255, 0.045);
+    --awt-glass-edge: rgba(255, 255, 255, 0.1);
+    /* Dimmer than its light counterpart on purpose: a bright specular line on
+       a dark panel reads as a seam, not as a highlight. */
+    --awt-glass-specular: rgba(255, 255, 255, 0.14);
+    /* Depth in dark mode comes from the accent glow below, not from a black
+       shadow nobody can see against a near-black page. */
+    --awt-glass-shadow: 0 12px 34px -20px rgba(0, 0, 0, 0.85);
+}
+
+/* ── The panel ──────────────────────────────────────────────────────── */
+
+.awt-dashboard .card {
+    border: 1px solid var(--awt-glass-edge);
+    border-top-color: var(--awt-glass-specular);
+    border-radius: var(--awt-glass-radius-panel);
+    background-color: var(--awt-glass-fill);
+    -webkit-backdrop-filter: var(--awt-glass-blur);
+    backdrop-filter: var(--awt-glass-blur);
+    box-shadow: var(--awt-glass-shadow);
+    transition: border-color 0.2s ease;
+}
+
+/*
+ * The ambient tint. Each panel already carries an `awt-tone-*` class that sets
+ * --awt-tone-rgb, so the wash is the panel's OWN meaning — emerald where a
+ * metric is healthy, amber where it needs attention — rather than a palette
+ * assigned by position. A panel with no tone falls back to the secondary
+ * accent set at the top of this file, so it is still glass.
+ *
+ * Kept faint. Four tinted cards in a row is a colour scheme; four tinted cards
+ * shouting is a warning about nothing.
+ */
+.awt-dashboard .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image: radial-gradient(
+        120% 100% at 100% 0%,
+        rgba(var(--awt-tone-rgb), 0.14) 0%,
+        rgba(var(--awt-tone-rgb), 0.04) 45%,
+        rgba(var(--awt-tone-rgb), 0) 72%
+    );
+    pointer-events: none;
+}
+
+/* The tint is a pseudo-element, so the card needs a stacking context and its
+   content needs to sit above it. */
+.awt-dashboard .card {
+    position: relative;
+}
+
+.awt-dashboard .card > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Dark mode swaps the drop shadow for a neon bloom in the panel's own accent —
+   the "dark:shadow-emerald-500/10" idea, taken from the tone rather than
+   hard-coded per card. */
+[data-bs-theme="dark"] .awt-dashboard .card,
+html.awt-theme-dark .awt-dashboard .card {
+    box-shadow:
+        var(--awt-glass-shadow),
+        0 0 0 1px rgba(var(--awt-tone-rgb), 0.06),
+        0 8px 40px -24px rgba(var(--awt-tone-rgb), 0.55);
+}
+
+/* Nested tiles take the smaller radius so corners stay concentric. */
+.awt-dashboard .awt-metric-tile,
+.awt-dashboard .awt-usage-tile,
+.awt-dashboard .awt-health-chip,
+.awt-dashboard .awt-askai-stat {
+    border-radius: var(--awt-glass-radius-tile);
+}
+
+/* The header band joins the same family. */
+.awt-dashboard .awt-dash-header {
+    border-radius: var(--awt-glass-radius-panel);
+    border-top-color: var(--awt-glass-specular);
+}
+
+/* ── Live status rings ──────────────────────────────────────────────── */
+
+/*
+ * A slow halo on the health chips' status badge — "this is being watched right
+ * now" rather than "this was true when the page loaded". Only the two states
+ * that are actually live pulse: operational and needs-attention. A draft or a
+ * disabled service is a settled fact and holds still, which is what makes a
+ * pulsing one worth noticing.
+ */
+.awt-dashboard .awt-health-chip .badge {
+    position: relative;
+}
+
+.awt-dashboard .awt-health-chip.awt-tone-success .badge::after,
+.awt-dashboard .awt-health-chip.awt-tone-warning .badge::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(var(--awt-tone-rgb), 0.9);
+    animation: awt-dash-ring 2.4s ease-out infinite;
+    pointer-events: none;
+}
+
+@keyframes awt-dash-ring {
+    0%   { transform: scale(1); opacity: 0.65; }
+    100% { transform: scale(1.35); opacity: 0; }
+}
+
+/*
+ * Ambient motion carries no information here, so under reduced motion it stops
+ * entirely rather than slowing down. The badge keeps its colour, which is what
+ * actually states the status.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .awt-dashboard .awt-health-chip .badge::after {
+        animation: none;
+        opacity: 0;
+    }
+
+    .awt-dashboard .card {
+        transition: none;
+    }
+}
+
+/*
+ * backdrop-filter is the whole material. Where it is unsupported the
+ * translucent fill would let text from the page show through the panel, so the
+ * fill goes opaque and the design degrades to solid cards rather than to an
+ * unreadable one.
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .awt-dashboard {
+        --awt-glass-fill: var(--bs-card-bg, #fff);
+    }
+
+    [data-bs-theme="dark"] .awt-dashboard,
+    html.awt-theme-dark .awt-dashboard {
+        --awt-glass-fill: var(--bs-card-bg, #1e1e2a);
+    }
+}
+
+/* ── Onboarding Checklist Step States (Theme-aware) ───────────────────── */
+
+.awt-onboarding-step {
+    position: relative;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+}
+
+/* Completed Step */
+.awt-onboarding-step-completed {
+    background-color: rgba(var(--bs-success-rgb), 0.08);
+    border: 1px solid rgba(var(--bs-success-rgb), 0.28);
+}
+
+[data-bs-theme="dark"] .awt-onboarding-step-completed {
+    background-color: rgba(var(--bs-success-rgb), 0.12);
+    border-color: rgba(var(--bs-success-rgb), 0.35);
+}
+
+/* Active / Spotlight Step (Next Incomplete Step) */
+.awt-onboarding-step-spotlight {
+    background-color: rgba(var(--bs-primary-rgb), 0.08);
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.5);
+    box-shadow: 0 0 20px rgba(var(--bs-primary-rgb), 0.22);
+}
+
+[data-bs-theme="dark"] .awt-onboarding-step-spotlight {
+    background-color: rgba(var(--bs-primary-rgb), 0.14);
+    border-color: rgba(var(--bs-primary-rgb), 0.6);
+    box-shadow: 0 0 24px rgba(var(--bs-primary-rgb), 0.35);
+}
+
+/* Queued / Upcoming Step */
+.awt-onboarding-step-queued {
+    background-color: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(var(--bs-secondary-rgb), 0.18);
+}
+
+[data-bs-theme="dark"] .awt-onboarding-step-queued {
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.awt-onboarding-step-queued .btn-outline-theme {
+    background: transparent;
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+}
+
+.awt-onboarding-step-queued .btn-outline-theme:hover {
+    background: rgba(var(--bs-primary-rgb), 0.08);
+    border-color: rgba(var(--bs-primary-rgb), 0.4);
+    color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .awt-onboarding-step-queued .btn-outline-theme {
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .awt-onboarding-step-queued .btn-outline-theme:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
 }

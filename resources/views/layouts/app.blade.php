@@ -49,6 +49,8 @@
     <!-- AWT & Glass UI Kit Styles -->
     <link rel="stylesheet" href="{{ asset('assets/css/awt-themes.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/awt-glass.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/tenant-dashboard.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/awt-listing.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/awt-table.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/awt-menu.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/pos-glass.css') }}" />
@@ -90,21 +92,31 @@
                 <div class="content-wrapper">
                     <div class="container-fluid flex-grow-1 container-p-y">
                         @if (session('success'))
-                            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                                <div class="d-flex align-items-center">
-                                    <i class="icon-base ti tabler-check me-2 fs-5"></i>
-                                    <div>{{ session('success') }}</div>
-                                </div>
+                            <div class="alert alert-success alert-dismissible fade show mb-4 d-flex align-items-center shadow-sm" role="alert" style="border-left: 4px solid var(--bs-success); border-radius: 0.75rem;">
+                                <i class="icon-base ti tabler-circle-check fs-4 me-2 text-success"></i>
+                                <div class="flex-grow-1 fw-semibold">{{ session('success') }}</div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         @endif
                         @if (session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-                                <div class="d-flex align-items-center">
-                                    <i class="icon-base ti tabler-alert-circle me-2 fs-5"></i>
-                                    <div>{{ session('error') }}</div>
-                                </div>
+                            <div class="alert alert-danger alert-dismissible fade show mb-4 d-flex align-items-center shadow-sm" role="alert" style="border-left: 4px solid var(--bs-danger); border-radius: 0.75rem;">
+                                <i class="icon-base ti tabler-alert-circle fs-4 me-2 text-danger"></i>
+                                <div class="flex-grow-1 fw-semibold">{{ session('error') }}</div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
+                        @if ($errors->any())
+                            <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-left: 4px solid var(--bs-danger); border-radius: 0.75rem;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="icon-base ti tabler-alert-triangle fs-4 me-2 text-danger"></i>
+                                    <strong class="flex-grow-1">Please correct the following errors:</strong>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                <ul class="mb-0 ps-4 small">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
                             </div>
                         @endif
 
@@ -141,17 +153,28 @@
     <script src="{{ asset('assets/vendor/libs/sweetalert2/sweetalert2.js') }}"></script>
     <script src="{{ asset('assets/js/awt-confirm.js') }}"></script>
     <script src="{{ asset('assets/js/notifications.js') }}"></script>
+    <script src="{{ asset('assets/js/toast-helpers.js') }}"></script>
     <script src="{{ asset('assets/js/alerts.js') }}"></script>
     <script src="{{ asset('assets/js/awt-table.js') }}"></script>
 
-    <!-- Pass Laravel Session Flash to JS -->
+    <!-- Pass Laravel Session Flash to JS & Dispatch Interactive Toasts -->
     <script>
         window.sessionMessages = window.sessionMessages || {};
-        @if(session('success')) window.sessionMessages.success = "{{ session('success') }}"; @endif
-        @if(session('error')) window.sessionMessages.error = "{{ session('error') }}"; @endif
-        @if(session('info')) window.sessionMessages.info = "{{ session('info') }}"; @endif
-        @if(session('warning')) window.sessionMessages.warning = "{{ session('warning') }}"; @endif
-        @if(session('status')) window.sessionMessages.status = "{{ session('status') }}"; @endif
+        @if(session('success')) window.sessionMessages.success = @json(session('success')); @endif
+        @if(session('error')) window.sessionMessages.error = @json(session('error')); @endif
+        @if(session('info')) window.sessionMessages.info = @json(session('info')); @endif
+        @if(session('warning')) window.sessionMessages.warning = @json(session('warning')); @endif
+        @if(session('status')) window.sessionMessages.status = @json(session('status')); @endif
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof window.showSuccess === 'function') {
+                @if(session('success')) window.showSuccess(@json(session('success'))); @endif
+                @if(session('error')) window.showError(@json(session('error'))); @endif
+                @if(session('info')) window.showInfo(@json(session('info'))); @endif
+                @if(session('warning')) window.showWarning(@json(session('warning'))); @endif
+                @if(session('status')) window.showSuccess(@json(session('status'))); @endif
+            }
+        });
     </script>
 
     @stack('scripts')

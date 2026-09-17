@@ -4,15 +4,15 @@
 
 @section('content')
 {{-- Banner Intro --}}
-<div class="pos-glass-intro pos-tone-warning mb-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-            <h4 class="pos-glass-intro-title mb-1">
+<div class="awt-glass-card awt-tone-warning mb-4">
+    <div class="awt-glass-intro">
+        <div class="awt-glass-intro-copy">
+            <h4 class="awt-glass-intro-title mb-1">
                 <i class="icon-base ti tabler-receipt me-2 text-warning"></i> Direct Site Expenses
             </h4>
-            <div class="pos-glass-intro-sub">Track raw building materials (cement, bricks, steel), equipment rentals, fuel, and utility bills.</div>
+            <p class="awt-glass-intro-subtitle mb-0">Track raw building materials (cement, bricks, steel), equipment rentals, fuel, and utility bills.</p>
         </div>
-        <div>
+        <div class="awt-glass-intro-actions">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
                 <i class="icon-base ti tabler-plus me-1"></i> Record Expense
             </button>
@@ -20,73 +20,74 @@
     </div>
 </div>
 
-{{-- Filter Toolbar --}}
-<div class="pos-listing-panel mb-4">
-    <form method="GET" action="{{ route('expenses.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold">Project</label>
-            <select name="project_id" class="form-select">
-                <option value="">All Projects</option>
-                @foreach($projects as $p)
-                    <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>
-                        {{ $p->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold">Category</label>
-            <select name="category_id" class="form-select">
-                <option value="">All Categories</option>
-                @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
-                        {{ $cat->name }} ({{ $cat->type }})
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label small fw-semibold">Payment Method</label>
-            <select name="payment_method" class="form-select">
-                <option value="">All Methods</option>
-                @foreach($paymentMethods as $m)
-                    <option value="{{ $m }}" {{ request('payment_method') == $m ? 'selected' : '' }}>{{ $m }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label small fw-semibold">From Date</label>
-            <input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
-        </div>
-        <div class="col-md-2 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="icon-base ti tabler-filter me-1"></i> Filter
-            </button>
-            <a href="{{ route('expenses.index') }}" class="btn btn-outline-secondary">Reset</a>
-        </div>
-    </form>
-</div>
-
-{{-- Total Banner --}}
-<div class="pos-glass-card pos-tone-primary mb-4">
-    <div class="pos-stat-body d-flex align-items-center justify-content-between p-3">
+{{-- Total Summary Banner --}}
+<div class="card awt-glass-card awt-tone-primary mb-4">
+    <div class="awt-stat-body d-flex flex-wrap align-items-center justify-content-between p-3 gap-3">
         <div class="d-flex align-items-center">
-            <span class="avatar avatar-md bg-label-primary me-3">
-                <i class="icon-base ti tabler-receipt fs-4"></i>
+            <span class="awt-stat-icon me-3" aria-hidden="true">
+                <i class="icon-base ti tabler-receipt"></i>
             </span>
             <div>
-                <div class="small text-muted">Filtered Total Direct Expenses</div>
-                <div class="fs-4 fw-bold text-primary">PKR {{ number_format($totalExpense, 0) }}</div>
+                <div class="small text-muted text-uppercase fw-semibold">Filtered Total Direct Expenses</div>
+                <div class="fs-4 fw-bold text-heading">PKR {{ number_format($totalExpense, 0) }}</div>
             </div>
         </div>
         <span class="badge bg-label-primary fs-6">{{ $expenses->total() }} Records</span>
     </div>
 </div>
 
-<div class="pos-listing">
+{{-- Table Panel --}}
+<div class="awt-table-card awt-tone-secondary mb-4">
+    {{-- Filter Toolbar --}}
+    <div class="awt-listing-filter-strip">
+        <form method="GET" action="{{ route('expenses.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Project</label>
+                <select name="project_id" class="form-select">
+                    <option value="">All Projects</option>
+                    @foreach($projects as $p)
+                        <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>
+                            {{ $p->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Category</label>
+                <select name="category_id" class="form-select">
+                    <option value="">All Categories</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
+                            {{ $cat->name }} ({{ $cat->type }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">Payment Method</label>
+                <select name="payment_method" class="form-select">
+                    <option value="">All Methods</option>
+                    @foreach($paymentMethods as $m)
+                        <option value="{{ $m }}" {{ request('payment_method') == $m ? 'selected' : '' }}>{{ $m }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">From Date</label>
+                <input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="icon-base ti tabler-filter me-1"></i> Filter
+                </button>
+                <a href="{{ route('expenses.index') }}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+
     <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead class="table-light">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
                 <tr>
                     <th>Date</th>
                     <th>Project</th>
@@ -113,44 +114,50 @@
                             </span>
                         </td>
                         <td>
-                            <div class="fw-semibold text-dark">{{ $exp->vendor ?? '—' }}</div>
+                            <div class="fw-semibold text-heading">{{ $exp->vendor ?? '—' }}</div>
                             <div class="small text-muted">{{ Str::limit($exp->description, 40) }}</div>
                         </td>
                         <td><span class="badge bg-label-secondary">{{ $exp->payment_method ?? 'Cash' }}</span></td>
                         <td>
                             @if($exp->receipt_path)
                                 <a href="{{ asset('storage/' . $exp->receipt_path) }}" target="_blank" class="btn btn-xs btn-outline-info">
-                                    <i class="icon-base ti tabler-paperclip"></i> View
+                                    <i class="icon-base ti tabler-paperclip me-1"></i> View
                                 </a>
                             @else
                                 <span class="text-muted small">—</span>
                             @endif
                         </td>
-                        <td class="text-end fw-bold text-dark">
+                        <td class="text-end fw-bold text-heading">
                             PKR {{ number_format($exp->amount, 0) }}
                         </td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editExpenseModal_{{ $exp->id }}" title="Edit">
+                            <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#editExpenseModal_{{ $exp->id }}" title="Edit Expense">
                                 <i class="icon-base ti tabler-edit"></i>
                             </button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="icon-base ti tabler-receipt-off fs-1 d-block mb-2 opacity-50"></i>
-                            <p class="mb-2">No expenses recorded matching your criteria.</p>
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
-                                Record Expense
-                            </button>
+                        <td colspan="8">
+                            <div class="awt-empty-state">
+                                <span class="awt-empty-state-icon">
+                                    <i class="icon-base ti tabler-receipt-off"></i>
+                                </span>
+                                <h6 class="awt-empty-state-title">No expenses recorded</h6>
+                                <p class="awt-empty-state-desc">No expense transactions found matching your criteria.</p>
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
+                                    <i class="icon-base ti tabler-plus me-1"></i> Record Expense
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
     @if($expenses->hasPages())
-        <div class="p-3 border-top">
+        <div class="card-footer">
             {{ $expenses->links() }}
         </div>
     @endif
@@ -294,7 +301,7 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Delete this expense?')) { document.getElementById('delExpForm_{{ $exp->id }}').submit(); }">
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(() => document.getElementById('delExpForm_{{ $exp->id }}').submit(), 'Delete this expense record?')">
                         <i class="icon-base ti tabler-trash me-1"></i> Delete
                     </button>
                     <div>

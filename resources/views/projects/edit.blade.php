@@ -87,7 +87,7 @@
                         </div>
 
                         <div class="col-12 d-flex justify-content-between align-items-center border-top pt-3">
-                            <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Are you sure you want to delete this project? All associated logs, expenses and allocations will be deleted.')) { document.getElementById('deleteProjectForm').submit(); }">
+                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(() => document.getElementById('deleteProjectForm').submit(), 'Are you sure you want to delete this project? All associated logs, expenses and allocations will be deleted.')">
                                 <i class="icon-base ti tabler-trash me-1"></i> Delete Project
                             </button>
                             <button type="submit" class="btn btn-primary">

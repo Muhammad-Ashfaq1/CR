@@ -3,13 +3,16 @@
 @section('title', 'Users — Admin — ' . config('app.name'))
 
 @section('content')
-<div class="pos-glass-intro pos-tone-primary mb-4">
+<div class="awt-glass-card awt-tone-primary mb-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-            <h4 class="pos-glass-intro-title mb-1">
-                <i class="icon-base ti tabler-users me-2 text-primary"></i> User Management
-            </h4>
-            <div class="pos-glass-intro-sub">Manage platform accounts, security credentials, role assignments, and active standing.</div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="avatar avatar-lg rounded-3 bg-label-primary d-flex align-items-center justify-content-center">
+                <i class="icon-base ti tabler-users fs-2"></i>
+            </div>
+            <div>
+                <h4 class="awt-dash-title mb-1">User Management</h4>
+                <p class="awt-dash-subtitle mb-0">Manage platform accounts, security credentials, role assignments, and active standing.</p>
+            </div>
         </div>
         <div>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
@@ -19,17 +22,17 @@
     </div>
 </div>
 
-<div class="pos-listing-panel mb-4">
+<div class="awt-listing-filter-strip awt-tone-secondary mb-4">
     <form method="GET" action="{{ route('admin.users.index') }}" class="row g-3 align-items-end">
         <div class="col-md-4">
-            <label class="form-label small fw-semibold">Search User</label>
+            <label class="form-label small fw-semibold text-muted text-uppercase">Search User</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="icon-base ti tabler-search"></i></span>
                 <input type="text" name="search" class="form-control" placeholder="Name, email, phone..." value="{{ request('search') }}">
             </div>
         </div>
         <div class="col-md-3">
-            <label class="form-label small fw-semibold">Role</label>
+            <label class="form-label small fw-semibold text-muted text-uppercase">Role</label>
             <select name="role" class="form-select">
                 <option value="">All Roles</option>
                 @foreach($roles as $role)
@@ -40,7 +43,7 @@
             </select>
         </div>
         <div class="col-md-3">
-            <label class="form-label small fw-semibold">Status</label>
+            <label class="form-label small fw-semibold text-muted text-uppercase">Status</label>
             <select name="status" class="form-select">
                 <option value="">All Statuses</option>
                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
@@ -56,31 +59,31 @@
     </form>
 </div>
 
-<div class="pos-listing">
+<div class="awt-table-card awt-tone-secondary">
     <div class="table-responsive">
-        <table class="table align-middle mb-0">
-            <thead class="table-light">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="border-bottom">
                 <tr>
-                    <th>User Profile</th>
-                    <th>Role</th>
-                    <th>Phone</th>
-                    <th>Status</th>
-                    <th>Joined</th>
-                    <th class="text-end">Actions</th>
+                    <th class="text-uppercase small fw-semibold text-muted ps-3">User Profile</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Role</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Phone</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Status</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Joined</th>
+                    <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($users as $u)
                     <tr>
-                        <td>
+                        <td class="ps-3">
                             <div class="d-flex align-items-center">
-                                <div class="avatar avatar-online me-3">
-                                    <span class="avatar-initial rounded-circle bg-label-primary">
+                                <div class="avatar avatar-sm me-3">
+                                    <span class="avatar-initial rounded-circle bg-label-primary fw-semibold">
                                         {{ strtoupper(substr($u->name, 0, 1)) }}
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="fw-semibold text-dark">{{ $u->name }}</div>
+                                    <div class="fw-semibold text-body">{{ $u->name }}</div>
                                     <div class="small text-muted">{{ $u->email }}</div>
                                 </div>
                             </div>
@@ -99,15 +102,23 @@
                             @endif
                         </td>
                         <td>{{ $u->created_at->format('d M Y') }}</td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editUserModal_{{ $u->id }}" title="Edit">
+                        <td class="text-end pe-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#editUserModal_{{ $u->id }}" title="Edit User">
                                 <i class="icon-base ti tabler-edit"></i>
                             </button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-muted">No users found.</td>
+                        <td colspan="6" class="p-0">
+                            <div class="awt-empty-state">
+                                <div class="awt-empty-state-icon text-muted mb-2">
+                                    <i class="icon-base ti tabler-user-off fs-1"></i>
+                                </div>
+                                <h6 class="fw-semibold mb-1">No users found</h6>
+                                <p class="text-muted small mb-0">Try changing your search keywords or role filters.</p>
+                            </div>
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
@@ -233,7 +244,7 @@
                 </div>
                 <div class="modal-footer bg-light d-flex justify-content-between">
                     @if($u->id !== auth()->id())
-                        <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Delete user {{ $u->name }}?')) { document.getElementById('delUsrForm_{{ $u->id }}').submit(); }">
+                        <button type="button" class="btn btn-outline-danger" onclick="confirmDelete(() => document.getElementById('delUsrForm_{{ $u->id }}').submit(), 'Delete user {{ $u->name }}? This will revoke system access.')">
                             <i class="icon-base ti tabler-trash me-1"></i> Delete
                         </button>
                     @else

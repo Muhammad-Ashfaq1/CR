@@ -4,17 +4,22 @@
 
 @section('content')
 {{-- Intro Banner --}}
-<div class="pos-glass-intro pos-tone-primary mb-4">
+<div class="awt-glass-card awt-tone-primary mb-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <h4 class="pos-glass-intro-title mb-0">{{ $project->name }}</h4>
-                <span class="badge {{ $project->status->badgeClass() }}">{{ $project->status->label() }}</span>
+        <div class="d-flex align-items-center gap-3">
+            <div class="avatar avatar-lg rounded-3 bg-label-primary d-flex align-items-center justify-content-center">
+                <i class="icon-base ti tabler-building-skyscraper fs-2"></i>
             </div>
-            <div class="pos-glass-intro-sub">
-                <i class="icon-base ti tabler-map-pin me-1"></i> {{ $project->location ?? 'No location' }} &bull;
-                Site: {{ $project->site_name ?? '—' }} &bull;
-                Owner: {{ $project->owner?->name ?? '—' }}
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h4 class="awt-dash-title mb-0">{{ $project->name }}</h4>
+                    <span class="badge {{ $project->status->badgeClass() }}">{{ $project->status->label() }}</span>
+                </div>
+                <div class="awt-dash-subtitle mb-0">
+                    <i class="icon-base ti tabler-map-pin me-1"></i> {{ $project->location ?? 'No location' }} &bull;
+                    Site: {{ $project->site_name ?? '—' }} &bull;
+                    Owner: {{ $project->owner?->name ?? '—' }}
+                </div>
             </div>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
@@ -39,63 +44,63 @@
 {{-- Financial KPI Ribbon --}}
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-2">
-        <div class="pos-glass-card pos-tone-primary h-100">
-            <div class="pos-stat-body">
-                <div class="pos-stat-head">
-                    <span class="pos-stat-icon"><i class="icon-base ti tabler-briefcase" aria-hidden="true"></i></span>
-                    <h6 class="pos-stat-label">Contract Value</h6>
+        <div class="awt-kpi-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="awt-kpi-title">Contract Value</span>
+                <div class="avatar avatar-sm bg-label-primary rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="icon-base ti tabler-briefcase"></i>
                 </div>
-                <p class="pos-stat-value fs-6 fw-bold text-dark">PKR {{ number_format($totalContractAmount, 0) }}</p>
-                <div class="pos-stat-sub text-muted">All commitments</div>
             </div>
+            <div class="awt-kpi-value fs-6 fw-bold text-body mb-1">PKR {{ number_format($totalContractAmount, 0) }}</div>
+            <div class="awt-kpi-footer text-muted">All commitments</div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-2">
-        <div class="pos-glass-card pos-tone-success h-100">
-            <div class="pos-stat-body">
-                <div class="pos-stat-head">
-                    <span class="pos-stat-icon"><i class="icon-base ti tabler-cash" aria-hidden="true"></i></span>
-                    <h6 class="pos-stat-label">Paid to Date</h6>
+        <div class="awt-kpi-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="awt-kpi-title">Paid to Date</span>
+                <div class="avatar avatar-sm bg-label-success rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="icon-base ti tabler-cash"></i>
                 </div>
-                <p class="pos-stat-value fs-6 fw-bold text-success">PKR {{ number_format($totalPaidToContractors, 0) }}</p>
-                <div class="pos-stat-sub text-muted">Cleared vouchers</div>
             </div>
+            <div class="awt-kpi-value fs-6 fw-bold text-success mb-1">PKR {{ number_format($totalPaidToContractors, 0) }}</div>
+            <div class="awt-kpi-footer text-muted">Cleared vouchers</div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-2">
-        <div class="pos-glass-card pos-tone-danger h-100">
-            <div class="pos-stat-body">
-                <div class="pos-stat-head">
-                    <span class="pos-stat-icon"><i class="icon-base ti tabler-hourglass" aria-hidden="true"></i></span>
-                    <h6 class="pos-stat-label">Balance Due</h6>
+        <div class="awt-kpi-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="awt-kpi-title">Balance Due</span>
+                <div class="avatar avatar-sm bg-label-danger rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="icon-base ti tabler-hourglass"></i>
                 </div>
-                <p class="pos-stat-value fs-6 fw-bold text-danger">PKR {{ number_format($remainingContractorBalance, 0) }}</p>
-                <div class="pos-stat-sub text-muted">Pending balance</div>
             </div>
+            <div class="awt-kpi-value fs-6 fw-bold text-danger mb-1">PKR {{ number_format($remainingContractorBalance, 0) }}</div>
+            <div class="awt-kpi-footer text-muted">Pending balance</div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="pos-glass-card pos-tone-warning h-100">
-            <div class="pos-stat-body">
-                <div class="pos-stat-head">
-                    <span class="pos-stat-icon"><i class="icon-base ti tabler-receipt" aria-hidden="true"></i></span>
-                    <h6 class="pos-stat-label">Direct Materials</h6>
+        <div class="awt-kpi-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="awt-kpi-title">Direct Materials</span>
+                <div class="avatar avatar-sm bg-label-warning rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="icon-base ti tabler-receipt"></i>
                 </div>
-                <p class="pos-stat-value fs-6 fw-bold text-warning">PKR {{ number_format($totalDirectExpenses, 0) }}</p>
-                <div class="pos-stat-sub text-muted">Bricks, cement, fuel</div>
             </div>
+            <div class="awt-kpi-value fs-6 fw-bold text-warning mb-1">PKR {{ number_format($totalDirectExpenses, 0) }}</div>
+            <div class="awt-kpi-footer text-muted">Bricks, cement, fuel</div>
         </div>
     </div>
     <div class="col-sm-12 col-xl-3">
-        <div class="pos-glass-card pos-tone-primary h-100">
-            <div class="pos-stat-body">
-                <div class="pos-stat-head">
-                    <span class="pos-stat-icon"><i class="icon-base ti tabler-calculator" aria-hidden="true"></i></span>
-                    <h6 class="pos-stat-label">Total Outlay</h6>
+        <div class="awt-kpi-card p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="awt-kpi-title">Total Outlay</span>
+                <div class="avatar avatar-sm bg-label-info rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="icon-base ti tabler-calculator"></i>
                 </div>
-                <p class="pos-stat-value fs-5 fw-bold text-primary">PKR {{ number_format($totalProjectOutlay, 0) }}</p>
-                <div class="pos-stat-sub text-muted">Paid + Direct Expenses</div>
             </div>
+            <div class="awt-kpi-value fs-5 fw-bold text-primary mb-1">PKR {{ number_format($totalProjectOutlay, 0) }}</div>
+            <div class="awt-kpi-footer text-muted">Paid + Direct Expenses</div>
         </div>
     </div>
 </div>
@@ -103,9 +108,9 @@
 <div class="row g-4 mb-4">
     {{-- Contractors Assigned --}}
     <div class="col-lg-7">
-        <div class="pos-listing mb-4">
-            <div class="pos-listing-toolbar d-flex justify-content-between align-items-center">
-                <h5 class="pos-listing-title mb-0"><i class="icon-base ti tabler-user-cog me-2 text-primary"></i> Contractor Agreements & Balance</h5>
+        <div class="awt-table-card awt-tone-secondary mb-4">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-semibold mb-0"><i class="icon-base ti tabler-user-cog me-2 text-primary"></i> Contractor Agreements & Balance</h5>
                 @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#assignContractorModal">
                         <i class="icon-base ti tabler-plus me-1"></i> Assign Contractor
@@ -114,14 +119,14 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="border-bottom">
                         <tr>
-                            <th>Contractor</th>
-                            <th>Contract</th>
-                            <th>Paid</th>
-                            <th>Balance Due</th>
-                            <th class="text-end">Actions</th>
+                            <th class="text-uppercase small fw-semibold text-muted ps-3">Contractor</th>
+                            <th class="text-uppercase small fw-semibold text-muted">Contract</th>
+                            <th class="text-uppercase small fw-semibold text-muted">Paid</th>
+                            <th class="text-uppercase small fw-semibold text-muted">Balance Due</th>
+                            <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,7 +138,7 @@
                                 $percent = $cAmount > 0 ? min(100, round(($cPaid / $cAmount) * 100)) : 0;
                             @endphp
                             <tr>
-                                <td>
+                                <td class="ps-3">
                                     <a href="{{ route('contractors.show', $contractor) }}" class="fw-semibold text-primary text-decoration-none">
                                         {{ $contractor->name }}
                                     </a>
@@ -150,15 +155,15 @@
                                     </div>
                                 </td>
                                 <td class="text-danger fw-semibold">PKR {{ number_format($cRemaining, 0) }}</td>
-                                <td class="text-end">
+                                <td class="text-end pe-3">
                                     <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#payContractorModal_{{ $contractor->id }}" title="Record Payment">
                                         <i class="icon-base ti tabler-cash"></i> Pay
                                     </button>
                                     @if(auth()->user()->isAdmin() || auth()->user()->isOwner())
-                                        <form action="{{ route('projects.contractors.remove', [$project, $contractor]) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Remove contractor from this project?');">
+                                        <form id="remContrForm_{{ $contractor->id }}" action="{{ route('projects.contractors.remove', [$project, $contractor]) }}" method="POST" class="d-inline-block">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove">
+                                            <button type="button" class="btn btn-sm btn-icon btn-text-danger rounded-pill" title="Remove" onclick="confirmDelete(() => document.getElementById('remContrForm_{{ $contractor->id }}').submit(), 'Remove contractor from this project?')">
                                                 <i class="icon-base ti tabler-trash"></i>
                                             </button>
                                         </form>
@@ -167,8 +172,11 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">
-                                    No contractors assigned to this project yet.
+                                <td colspan="5" class="p-0">
+                                    <div class="awt-empty-state">
+                                        <h6 class="fw-semibold mb-1">No contractors assigned</h6>
+                                        <p class="text-muted small mb-0">Assign a contractor to start tracking project agreements.</p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
