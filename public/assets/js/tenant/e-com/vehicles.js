@@ -1,0 +1,380 @@
+(function ($) {
+  'use strict';
+
+  const $table = $('.vehicles-datatables');
+  const $filterCustomer = $('#vehicle_filter_customer');
+  const initialCustomerId = new URLSearchParams(window.location.search).get('customer_id') || '';
+  let vehicleTable = null;
+  let vehicleManager = null;
+
+  const csrfToken = $('meta[name="csrf-token"]').attr('content');
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest',
+      Accept: 'application/json'
+    }
+  });
+
+  const vehicleEditUrl = function (vehicleId) {
+    return (window.vehicleEditUrlTemplate || '').replace('__VEHICLE__', vehicleId);
+  };
+
+  const showAlert = function (type, message) {
+    if (typeof window.appNotify === 'function') {
+      window.appNotify(type, message);
+    }
+  };
+
+  const alignCreateButtonWithSearch = function (table, actionsSelector) {
+    if (window.PosListingToolbar && typeof window.PosListingToolbar.align === 'function') {
+      window.PosListingToolbar.align(table, actionsSelector);
+    }
+  };
+
+  const escapeHtml = function (value) {
+    return $('<div>').text(value ?? '').html();
+  };
+
+  const tooltipAttrs = function (title) {
+    return window.Helpers && window.Helpers.getTooltipAttributes
+      ? window.Helpers.getTooltipAttributes(title)
+      : 'title="' + title + '"';
+  };
+
+  const ensureSelectOption = function ($select, id, text) {
+    if (!id) {
+      $select.val(null).trigger('change');
+      return;
+    }
+
+    let option = $select.find('option[value="' + id + '"]');
+    if (!option.length) {
+      option = new Option(text || 'Selected item', id, true, true);
+      $select.append(option);
+    }
+
+    $select.val(String(id)).trigger('change');
+  };
+
+  const initCustomerSelect = function ($element) {
+    if (typeof $.fn.select2 !== 'function' || !$element.length || $element.data('select2')) {
+      return;
+    }
+
+    const dropdownParentSelector = $element.data('dropdown-parent');
+
+    if (!dropdownParentSelector && !$element.parent().hasClass('position-relative')) {
+      $element.wrap('<div class="position-relative"></div>');
+    }
+
+    $element.select2({
+      dropdownParent: dropdownParentSelector ? $(dropdownParentSelector) : $element.parent(),
+      placeholder: $element.data('placeholder'),
+      allowClear: Boolean($element.data('allow-clear')),
+      ajax: {
+        global: false, // table/dropdown has its own indicator — skip the global overlay
+        url: window.customerDropdownUrl,
+        delay: 250,
+        dataType: 'json',
+        data: function (params) {
+          return {
+            q: params.term || '',
+            page: params.page || 1
+          };
+        },
+        processResults: function (response, params) {
+          params.page = params.page || 1;
+
+          return {
+            results: response.results || [],
+            pagination: response.pagination || { more: false }
+          };
+        }
+      }
+    });
+  };
+
+  const actionButtonsHtml = function (row) {
+    let html = '<div class="d-flex align-items-center justify-content-center">';
+
+    if (row.can_update) {
+      html +=
+        '<button type="button" class="btn btn-sm btn-icon btn-outline-primary edit-vehicle-btn" ' +
+        'data-id="' + row.id + '" data-edit-url="' + escapeHtml(row.edit_url || vehicleEditUrl(row.id)) + '" ' + tooltipAttrs('Edit') + '>' +
+        '<i class="icon-base ti tabler-edit"></i>' +
+        '</button>';
+    }
+
+    if (row.can_delete && row.delete_url) {
+      html +=
+        '<button type="button" class="btn btn-sm btn-icon btn-outline-danger delete-vehicle-btn" ' +
+        'data-url="' + row.delete_url + '" data-name="' + escapeHtml(row.plate_number) + '" ' + tooltipAttrs('Delete') + '>' +
+        '<i class="icon-base ti tabler-trash"></i>' +
+        '</button>';
+    }
+
+    html += '</div>';
+
+    return html;
+  };
+
+  const initDataTable = function () {
+    if (typeof DataTable === 'undefined' || !$table.length) {
+      return;
+    }
+
+    vehicleTable = new DataTable($table[0], {
+      processing: true,
+      serverSide: true,
+      searching: true,
+      ordering: true,
+      ajax: {
+        global: false, // table/dropdown has its own indicator — skip the global overlay
+        url: window.vehicleListingUrl,
+        data: function (d) {
+          d.customer_id = $filterCustomer.val() || initialCustomerId;
+          d.is_default = $('#vehicle_default_filter').val();
+          d.sort = $('#vehicle_sort').val();
+        }
+      },
+      pageLength: 10,
+      lengthMenu: [10, 25, 50, 100],
+      layout: {
+        topStart: {
+          search: {
+            placeholder: 'Search by customer, plate or vehicle details',
+            text: '_INPUT_',
+            className: 'form-control'
+          }
+        },
+        topEnd: null,
+        bottomStart: {
+          rowClass: 'row mx-3 my-md-0 me-3 ms-0 justify-content-between',
+          features: [
+            'info',
+            { pageLength: { menu: [10, 25, 50, 100], text: '_MENU_' } }
+          ]
+        },
+        bottomEnd: 'paging'
+      },
+      language: {
+        emptyTable: 'No vehicles found',
+        paginate: {
+          next: '<i class="icon-base ti tabler-chevron-right scaleX-n1-rtl icon-18px"></i>',
+          previous: '<i class="icon-base ti tabler-chevron-left scaleX-n1-rtl icon-18px"></i>'
+        }
+      },
+      columns: [
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          render: function (data, type, row, meta) {
+            return meta.settings._iDisplayStart + meta.row + 1;
+          }
+        },
+        {
+          data: 'customer_name',
+          render: function (data, type, row) {
+            let html = '<div><span class="fw-semibold">' + escapeHtml(data || '—') + '</span>';
+            if (row.customer_type_label) {
+              html += '<div class="small"><span class="badge rounded bg-label-secondary">' + escapeHtml(row.customer_type_label) + '</span></div>';
+            }
+            if (row.customer_phone) {
+              html += '<div class="small text-muted">' + escapeHtml(row.customer_phone) + '</div>';
+            }
+            html += '</div>';
+            return html;
+          }
+        },
+        {
+          data: 'plate_number',
+          render: function (data) {
+            return '<span class="fw-semibold">' + escapeHtml(data) + '</span>';
+          }
+        },
+        {
+          data: 'registration_number',
+          render: function (data) {
+            return escapeHtml(data || '—');
+          }
+        },
+        {
+          data: 'vehicle_label',
+          render: function (data, type, row) {
+            let html = '<div>' + escapeHtml(data || 'Vehicle') + '</div>';
+            const meta = [row.color, row.engine_type].filter(Boolean).join(' • ');
+            if (meta) {
+              html += '<div class="small text-muted">' + escapeHtml(meta) + '</div>';
+            }
+            return html;
+          }
+        },
+        {
+          data: 'odometer',
+          render: function (data) {
+            return escapeHtml(data ? data + ' km' : '—');
+          }
+        },
+        {
+          data: null,
+          render: function (data, type, row) {
+            return '<span class="badge rounded ' + row.default_badge_class + '">' + escapeHtml(row.default_label) + '</span>';
+          }
+        },
+        {
+          data: 'created_at',
+          render: function (data) {
+            return '<span class="text-nowrap">' + escapeHtml(data || '') + '</span>';
+          }
+        },
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          className: 'text-center',
+          render: function (data, type, row) {
+            return actionButtonsHtml(row);
+          }
+        }
+      ],
+      drawCallback: function () {
+        alignCreateButtonWithSearch(this.api(), '#vehicleTableActions');
+        if (window.Helpers && window.Helpers.initToolTip) {
+          window.Helpers.initToolTip(this.api().table().container());
+        }
+      }
+    });
+
+    alignCreateButtonWithSearch(vehicleTable, '#vehicleTableActions');
+  };
+
+  const bindFilters = function () {
+    $('#vehicle_default_filter, #vehicle_sort').on('change', function () {
+      if (vehicleTable) {
+        vehicleTable.ajax.reload(null, false);
+      }
+    });
+
+    $filterCustomer.on('change', function () {
+      if (vehicleTable) {
+        vehicleTable.ajax.reload(null, false);
+      }
+    });
+  };
+
+  const bindEditActions = function () {
+    $(document).on('click', '.edit-vehicle-btn', function () {
+      const editUrl = $(this).data('edit-url') || vehicleEditUrl($(this).data('id'));
+
+      if (window.appLoading && typeof window.appLoading.show === 'function') {
+        window.appLoading.show('Loading vehicle...');
+      }
+
+      $.get(editUrl)
+        .done(function (response) {
+          if (vehicleManager) {
+            vehicleManager.fillForm(response.data || {});
+            if (vehicleManager.modal) {
+              vehicleManager.modal.show();
+            }
+          }
+        })
+        .fail(function (xhr) {
+          showAlert('error', xhr.responseJSON?.message || 'Unable to load vehicle.');
+        })
+        .always(function () {
+          if (window.appLoading && typeof window.appLoading.hide === 'function') {
+            window.appLoading.hide(200);
+          }
+        });
+    });
+  };
+
+  const bindDeleteActions = function () {
+    $(document).on('click', '.delete-vehicle-btn', function () {
+      const url = $(this).data('url');
+      const name = $(this).data('name') || 'this vehicle';
+
+      if (!window.PosConfirm || typeof window.PosConfirm.open !== 'function') {
+        return;
+      }
+
+      window.PosConfirm.open({
+        title: 'Delete Vehicle?',
+        message: 'This action will permanently remove ' + name + '.',
+        confirmText: 'Yes, delete it',
+        cancelText: 'Cancel',
+        tone: 'danger',
+        onConfirm: function () {
+          return $.ajax({
+            url: url,
+            method: 'DELETE'
+          }).then(
+            function (response) {
+              showAlert('success', response.message || 'Vehicle deleted successfully.');
+              if (vehicleTable) {
+                vehicleTable.ajax.reload(null, false);
+              }
+            },
+            function (xhr) {
+              throw new Error((xhr.responseJSON && xhr.responseJSON.message) || 'Unable to delete vehicle.');
+            }
+          );
+        }
+      });
+    });
+  };
+
+  const initStaticSelect2 = function () {
+    const $selects = $('.select2');
+
+    if (typeof $.fn.select2 !== 'function' || !$selects.length) {
+      return;
+    }
+
+    $selects.each(function () {
+      const $this = $(this);
+
+      if ($this.data('select2')) {
+        return;
+      }
+
+      const dropdownParentSelector = $this.data('dropdown-parent');
+
+      if (!dropdownParentSelector && !$this.parent().hasClass('position-relative')) {
+        $this.wrap('<div class="position-relative"></div>');
+      }
+
+      $this.select2({
+        dropdownParent: dropdownParentSelector ? $(dropdownParentSelector) : $this.parent(),
+        placeholder: $this.data('placeholder'),
+        allowClear: Boolean($this.data('allow-clear')),
+        minimumResultsForSearch: $this.data('minimum-results-for-search') ?? 0
+      });
+    });
+  };
+
+  $(function () {
+    initStaticSelect2();
+    if (typeof window.VehicleManager === 'function') {
+      vehicleManager = new window.VehicleManager({
+        onSaveSuccess: function () {
+          if (vehicleTable) {
+            vehicleTable.ajax.reload(null, false);
+          }
+        }
+      });
+    }
+
+    initCustomerSelect($filterCustomer);
+    if (initialCustomerId) {
+      ensureSelectOption($filterCustomer, initialCustomerId, 'Selected customer');
+    }
+    initDataTable();
+    bindFilters();
+    bindEditActions();
+    bindDeleteActions();
+  });
+})(window.jQuery);

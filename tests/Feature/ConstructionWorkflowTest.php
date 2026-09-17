@@ -36,6 +36,26 @@ class ConstructionWorkflowTest extends TestCase
         $response->assertSee('Welcome back');
     }
 
+    public function test_admin_can_view_dashboard(): void
+    {
+        $admin = User::where('role', UserRole::Admin)->first();
+
+        $response = $this->actingAs($admin)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('System Administration');
+    }
+
+    public function test_contractor_can_view_dashboard(): void
+    {
+        $contractor = User::where('role', UserRole::Contractor)->first();
+
+        $response = $this->actingAs($contractor)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Welcome back');
+    }
+
     public function test_owner_can_create_project_and_assign_contractor(): void
     {
         $owner = User::where('role', UserRole::Owner)->first();

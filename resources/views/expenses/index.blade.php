@@ -3,20 +3,30 @@
 @section('title', 'Expenses — ' . config('app.name'))
 
 @section('content')
-<div class="cst-page-header">
-    <div>
-        <h1 class="cst-page-title">Direct Expenses</h1>
-        <p class="cst-page-subtitle">Track project materials, fuel, utilities, equipment, and administrative costs.</p>
-    </div>
-    <div>
-        <a href="{{ route('expenses.create') }}" class="btn btn-primary">
-            <i class="ti ti-plus me-1"></i> Add Expense
-        </a>
+{{-- Banner Intro --}}
+<div class="pos-glass-card pos-tone-warning mb-4">
+    <div class="pos-glass-intro">
+        <div class="pos-glass-intro-icon">
+            <i class="icon-base ti tabler-receipt" aria-hidden="true"></i>
+        </div>
+        <div class="pos-glass-intro-content">
+            <div class="pos-glass-intro-title">
+                <h4 class="mb-1 text-heading fw-bold">Direct Site Expenses</h4>
+                <span class="badge bg-label-warning">Materials & Overhead</span>
+            </div>
+            <p class="pos-glass-intro-subtitle mb-0">Track raw building materials (cement, bricks, steel), equipment rentals, fuel, and utility bills.</p>
+        </div>
+        <div class="pos-glass-intro-actions">
+            <a href="{{ route('expenses.create') }}" class="btn btn-primary">
+                <i class="icon-base ti tabler-plus me-1"></i> Add Expense
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="cst-card mb-4">
-    <div class="cst-card-body p-3">
+{{-- Filter Toolbar --}}
+<div class="pos-glass-card pos-tone-secondary mb-4">
+    <div class="card-body p-3">
         <form method="GET" action="{{ route('expenses.index') }}" class="row g-3 align-items-end">
             <div class="col-md-3">
                 <label class="form-label small">Project</label>
@@ -62,19 +72,23 @@
 </div>
 
 {{-- Total Banner --}}
-<div class="alert alert-primary d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 border-0 bg-primary bg-opacity-10 text-primary">
-    <div class="d-flex align-items-center">
-        <i class="ti ti-receipt fs-2 me-3"></i>
-        <div>
-            <div class="small fw-semibold">Filtered Total Direct Expenses</div>
-            <div class="fs-4 fw-bold">PKR {{ number_format($totalExpense, 0) }}</div>
+<div class="pos-glass-card pos-tone-primary mb-4">
+    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <span class="avatar avatar-md bg-label-primary me-3">
+                <i class="icon-base ti tabler-receipt fs-4"></i>
+            </span>
+            <div>
+                <div class="small text-muted">Filtered Total Direct Expenses</div>
+                <div class="fs-4 fw-bold text-primary">PKR {{ number_format($totalExpense, 0) }}</div>
+            </div>
         </div>
+        <span class="badge bg-label-primary fs-6">{{ $expenses->total() }} Records</span>
     </div>
-    <span class="badge bg-primary">{{ $expenses->total() }} Records</span>
 </div>
 
-<div class="cst-card">
-    <div class="cst-card-body p-0">
+<div class="pos-listing">
+    <div class="pos-glass-card pos-tone-secondary pos-listing-panel">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead class="table-light">
@@ -94,24 +108,24 @@
                         <tr>
                             <td>{{ $exp->expense_date->format('d M Y') }}</td>
                             <td>
-                                <a href="{{ route('projects.show', $exp->project) }}" class="fw-semibold text-dark text-decoration-none">
+                                <a href="{{ route('projects.show', $exp->project) }}" class="fw-semibold text-heading text-decoration-none">
                                     {{ $exp->project?->name }}
                                 </a>
                             </td>
                             <td>
                                 <span class="badge" style="background-color: {{ $exp->category?->color }}20; color: {{ $exp->category?->color }};">
-                                    <i class="ti {{ $exp->category?->icon ?? 'ti-receipt' }} me-1"></i>{{ $exp->category?->name ?? 'Uncategorized' }}
+                                    <i class="icon-base ti {{ $exp->category?->icon ?? 'tabler-receipt' }} me-1"></i>{{ $exp->category?->name ?? 'Uncategorized' }}
                                 </span>
                             </td>
                             <td>
-                                <div class="fw-semibold text-dark">{{ $exp->vendor ?? '—' }}</div>
+                                <div class="fw-semibold text-heading">{{ $exp->vendor ?? '—' }}</div>
                                 <div class="small text-muted">{{ Str::limit($exp->description, 40) }}</div>
                             </td>
-                            <td><span class="badge bg-light text-dark border">{{ $exp->payment_method ?? 'Cash' }}</span></td>
+                            <td><span class="badge bg-label-secondary">{{ $exp->payment_method ?? 'Cash' }}</span></td>
                             <td>
                                 @if($exp->receipt_path)
                                     <a href="{{ asset('storage/' . $exp->receipt_path) }}" target="_blank" class="btn btn-xs btn-outline-info">
-                                        <i class="ti ti-paperclip"></i> View
+                                        <i class="icon-base ti tabler-paperclip"></i> View
                                     </a>
                                 @else
                                     <span class="text-muted small">—</span>
@@ -122,13 +136,13 @@
                             </td>
                             <td class="text-end">
                                 <a href="{{ route('expenses.edit', $exp) }}" class="btn btn-sm btn-icon btn-outline-secondary" title="Edit">
-                                    <i class="ti ti-edit"></i>
+                                    <i class="icon-base ti tabler-edit"></i>
                                 </a>
                                 <form action="{{ route('expenses.destroy', $exp) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Delete this expense record?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Delete">
-                                        <i class="ti ti-trash"></i>
+                                        <i class="icon-base ti tabler-trash"></i>
                                     </button>
                                 </form>
                             </td>
@@ -136,7 +150,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="ti ti-receipt-off fs-1 d-block mb-2 opacity-50"></i>
+                                <i class="icon-base ti tabler-receipt-off fs-1 d-block mb-2 opacity-50"></i>
                                 <p class="mb-2">No expenses recorded matching your criteria.</p>
                                 <a href="{{ route('expenses.create') }}" class="btn btn-sm btn-primary">Add Expense</a>
                             </td>
@@ -145,11 +159,11 @@
                 </tbody>
             </table>
         </div>
+        @if($expenses->hasPages())
+            <div class="card-footer p-3">
+                {{ $expenses->links() }}
+            </div>
+        @endif
     </div>
-    @if($expenses->hasPages())
-        <div class="cst-card-footer p-3">
-            {{ $expenses->links() }}
-        </div>
-    @endif
 </div>
 @endsection

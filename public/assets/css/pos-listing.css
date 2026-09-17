@@ -1,0 +1,847 @@
+/*
+ * pos-listing.css — Reusable glass listing chrome for ecommerce DataTables pages.
+ *
+ * Layer 2.5 (shared screen kit): sits on pos-glass.css. Pages opt in with
+ * .pos-listing and load this file + pos-glass.css. No flow / JS contracts.
+ *
+ * Pieces:
+ *   .pos-listing              page shell
+ *   .pos-listing-panel        single glass card (toolbar + table)
+ *   .pos-listing-toolbar      title · search · filter · add in one row
+ *   .pos-listing-table        padded transparent DataTable
+ *   .pos-listing-toolbar-actions  filter + add (parked until DT relocates)
+ *   .pos-listing-modal        glass modal surface
+ */
+
+/* ── Page shell ─────────────────────────────────────────────────────── */
+
+.pos-listing {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    /* Tenant listing accent — matches admin Vuexy primary (#7367f0), not employee portal indigo. */
+    --pos-listing-accent: #7367f0;
+    --pos-listing-accent-rgb: 115, 103, 240;
+}
+
+/* ── Listing panel + table ──────────────────────────────────────────── */
+
+.pos-listing .pos-listing-panel {
+    position: relative;
+    padding: 0;
+    overflow: visible;
+}
+
+/* Single toolbar: title · search (left) · filter · add (right) */
+.pos-listing .pos-listing-toolbar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem 1rem;
+    width: 100%;
+    padding: 1rem 1rem 0.85rem;
+    border-bottom: 1px solid rgba(var(--pos-tone-rgb, var(--bs-secondary-rgb)), 0.1);
+}
+
+.pos-listing .pos-listing-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--bs-heading-color, var(--bs-body-color));
+    white-space: nowrap;
+}
+
+.pos-listing .pos-listing-search-slot {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1 1 12rem;
+    max-width: 20rem;
+}
+
+.pos-listing .pos-listing-search-slot .dt-search {
+    margin: 0;
+    width: 100%;
+}
+
+.pos-listing .pos-listing-search-slot .dt-search label {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.pos-listing .pos-listing-search-slot .dt-search .form-control {
+    width: 100%;
+    min-width: 0;
+    background-color: rgba(255, 255, 255, 0.72);
+    border-color: rgba(var(--pos-tone-rgb, var(--bs-secondary-rgb)), 0.22);
+    box-shadow: none;
+}
+
+.pos-listing .pos-listing-search-slot .dt-search .form-control:focus {
+    border-color: rgba(var(--bs-primary-rgb), 0.55);
+    box-shadow: 0 0 0 0.15rem rgba(var(--bs-primary-rgb), 0.12);
+}
+
+.pos-listing .pos-listing-toolbar-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem 0.65rem;
+    margin-inline-start: auto;
+    min-width: 0;
+}
+
+.pos-listing .pos-listing-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.pos-listing .pos-listing-toolbar-actions .btn-icon {
+    flex-shrink: 0;
+}
+
+/* DataTables top row emptied after search is moved into the Blade toolbar */
+.pos-listing .pos-listing-panel .dt-layout-row.is-pos-listing-top-moved {
+    display: none !important;
+}
+
+.pos-listing .pos-listing-panel .dt-container > .dt-layout-row:has(.dt-search) {
+    display: none !important;
+}
+
+.pos-listing .pos-listing-table {
+    position: relative;
+    z-index: 1;
+    padding-inline: 1rem;
+    padding-block: 0.25rem 0.75rem;
+    overflow-x: auto;
+    border-radius: 0;
+}
+
+.pos-listing .pos-listing-table .table {
+    --bs-table-bg: transparent;
+    margin-bottom: 0;
+}
+
+/* Shop management needs all actions visible; scroll the complete table on a
+ * narrow effective viewport (including browser zoom) rather than collapsing
+ * columns into DataTables' expandable rows. */
+.pos-listing .pos-listing-table #shop-table {
+    min-width: 1100px;
+}
+
+.pos-listing .pos-listing-table .table > thead th {
+    padding-top: 1rem;
+    border-bottom: 1px solid rgba(var(--pos-tone-rgb, var(--bs-secondary-rgb)), 0.18);
+    background-color: transparent;
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.pos-listing .pos-listing-table .table > thead.bg-label-primary,
+.pos-listing .pos-listing-table .table > thead.bg-label-primary th {
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+.pos-listing .pos-listing-table .table > tbody td {
+    border-bottom-color: rgba(var(--pos-tone-rgb, var(--bs-secondary-rgb)), 0.1);
+    vertical-align: middle;
+}
+
+.pos-listing .pos-listing-table .table > tbody tr:last-child td {
+    border-bottom: 0;
+    padding-bottom: 1rem;
+}
+
+.pos-listing .pos-listing-table .table-hover > tbody > tr:hover > * {
+    --bs-table-accent-bg: transparent;
+    background-color: rgba(var(--pos-listing-accent-rgb), 0.05);
+    color: inherit;
+}
+
+/* DataTables adds a dark inset shadow on row hover — replace with listing tint. */
+.pos-listing .pos-listing-table table.table.dataTable.table-hover > tbody > tr:hover > * {
+    box-shadow: none !important;
+    background-color: rgba(var(--pos-listing-accent-rgb), 0.05) !important;
+}
+
+/* Vuexy soft-label badges on glass — preserve bg-label-* colors */
+.pos-listing .pos-listing-table .badge {
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    vertical-align: middle;
+}
+
+.pos-listing .pos-listing-table code {
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.35rem;
+    background: rgba(var(--pos-tone-rgb, var(--bs-secondary-rgb)), 0.08);
+    color: var(--bs-heading-color, var(--bs-body-color));
+    font-size: 0.8125rem;
+}
+
+/* Row action cluster */
+.pos-listing .pos-listing-table .btn-icon.btn-outline-primary,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-secondary {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: 0.5rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.pos-listing .pos-listing-table .btn-icon.btn-outline-primary {
+    --bs-btn-color: var(--pos-listing-accent);
+    --bs-btn-border-color: rgba(var(--pos-listing-accent-rgb), 0.32);
+    --bs-btn-bg: rgba(var(--pos-listing-accent-rgb), 0.06);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--pos-listing-accent);
+    --bs-btn-hover-border-color: var(--pos-listing-accent);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--pos-listing-accent);
+    --bs-btn-active-border-color: var(--pos-listing-accent);
+}
+
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger {
+    --bs-btn-color: rgb(var(--bs-danger-rgb));
+    --bs-btn-border-color: rgba(var(--bs-danger-rgb), 0.32);
+    --bs-btn-bg: rgba(var(--bs-danger-rgb), 0.06);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: rgb(var(--bs-danger-rgb));
+    --bs-btn-hover-border-color: rgb(var(--bs-danger-rgb));
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: rgb(var(--bs-danger-rgb));
+    --bs-btn-active-border-color: rgb(var(--bs-danger-rgb));
+}
+
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success {
+    --bs-btn-color: rgb(var(--bs-success-rgb));
+    --bs-btn-border-color: rgba(var(--bs-success-rgb), 0.32);
+    --bs-btn-bg: rgba(var(--bs-success-rgb), 0.06);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: rgb(var(--bs-success-rgb));
+    --bs-btn-hover-border-color: rgb(var(--bs-success-rgb));
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: rgb(var(--bs-success-rgb));
+    --bs-btn-active-border-color: rgb(var(--bs-success-rgb));
+}
+
+.pos-listing .pos-listing-table .btn-icon.btn-outline-primary:hover,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-primary:focus-visible,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-primary:active,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:hover,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:focus-visible,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:active,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:hover,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:focus-visible,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:active {
+    color: #fff;
+    box-shadow: 0 4px 12px -6px rgba(var(--pos-listing-accent-rgb), 0.45);
+}
+
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:hover,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:focus-visible,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:active {
+    box-shadow: 0 4px 12px -6px rgba(var(--bs-success-rgb), 0.45);
+}
+
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:hover,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:focus-visible,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:active {
+    box-shadow: 0 4px 12px -6px rgba(var(--bs-danger-rgb), 0.45);
+}
+
+.pos-listing .pos-listing-table .btn-icon.btn-outline-primary:hover .icon-base,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-primary:focus-visible .icon-base,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-primary:active .icon-base,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:hover .icon-base,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:focus-visible .icon-base,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-success:active .icon-base,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:hover .icon-base,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:focus-visible .icon-base,
+.pos-listing .pos-listing-table .btn-icon.btn-outline-danger:active .icon-base {
+    color: #fff;
+}
+
+.pos-listing .pos-listing-table .btn-icon + .btn-icon {
+    margin-inline-start: 0.35rem;
+}
+
+/*
+ * Employee portal overrides --bs-primary / .btn-outline-primary globally.
+ * Listing tables must keep the same tenant purple as admin categories.
+ */
+.employee-admin-preview .pos-listing .pos-listing-table .btn-icon.btn-outline-primary {
+    --bs-btn-color: var(--pos-listing-accent);
+    --bs-btn-border-color: rgba(var(--pos-listing-accent-rgb), 0.32);
+    --bs-btn-bg: rgba(var(--pos-listing-accent-rgb), 0.06);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--pos-listing-accent);
+    --bs-btn-hover-border-color: var(--pos-listing-accent);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--pos-listing-accent);
+    --bs-btn-active-border-color: var(--pos-listing-accent);
+}
+
+.employee-admin-preview .pos-listing .pos-listing-table .btn-icon.btn-outline-primary:hover,
+.employee-admin-preview .pos-listing .pos-listing-table .btn-icon.btn-outline-primary:focus-visible,
+.employee-admin-preview .pos-listing .pos-listing-table .btn-icon.btn-outline-primary:active {
+    color: #fff !important;
+    background-color: var(--pos-listing-accent) !important;
+    border-color: var(--pos-listing-accent) !important;
+    box-shadow: 0 4px 12px -6px rgba(var(--pos-listing-accent-rgb), 0.45) !important;
+}
+
+.employee-admin-preview .pos-listing .pos-listing-table .btn-icon.btn-outline-primary:hover .icon-base,
+.employee-admin-preview .pos-listing .pos-listing-table .btn-icon.btn-outline-primary:focus-visible .icon-base,
+.employee-admin-preview .pos-listing .pos-listing-table .btn-icon.btn-outline-primary:active .icon-base {
+    color: #fff !important;
+}
+
+.employee-admin-preview .pos-listing .pos-listing-table table.table.dataTable.table-hover > tbody > tr:hover > * {
+    box-shadow: none !important;
+    background-color: rgba(var(--pos-listing-accent-rgb), 0.05) !important;
+}
+
+/* ── DataTables chrome ──────────────────────────────────────────────── */
+
+.pos-listing .pos-listing-panel .dt-container {
+    position: relative;
+    z-index: 1;
+}
+
+.pos-listing .pos-listing-panel .dt-layout-row {
+    padding-inline: 1rem;
+}
+
+.pos-listing .pos-listing-panel .dt-layout-table {
+    padding-inline: 0;
+}
+
+.pos-listing .pos-listing-panel .dt-info {
+    color: var(--bs-secondary-color);
+    font-size: 0.8125rem;
+}
+
+.pos-listing .pos-listing-panel .dt-search .form-control,
+.pos-listing .pos-listing-panel .dt-length .form-select {
+    background-color: rgba(255, 255, 255, 0.72);
+    border-color: rgba(var(--pos-tone-rgb, var(--bs-secondary-rgb)), 0.22);
+    box-shadow: none;
+}
+
+.pos-listing .pos-listing-panel .dt-search .form-control:focus,
+.pos-listing .pos-listing-panel .dt-length .form-select:focus {
+    border-color: rgba(var(--bs-primary-rgb), 0.55);
+    box-shadow: 0 0 0 0.15rem rgba(var(--bs-primary-rgb), 0.12);
+}
+
+/* Pagination */
+.pos-listing .pos-listing-panel .pagination {
+    gap: 0.25rem;
+    margin-bottom: 0;
+}
+
+.pos-listing .pos-listing-panel .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+    border: 1px solid rgba(var(--pos-tone-rgb, var(--bs-secondary-rgb)), 0.18);
+    border-radius: 0.5rem !important;
+    background-color: rgba(255, 255, 255, 0.55);
+    color: var(--bs-heading-color, var(--bs-body-color));
+    box-shadow: none;
+}
+
+.pos-listing .pos-listing-panel .page-link:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-color: rgba(var(--bs-primary-rgb), 0.35);
+    color: rgb(var(--bs-primary-rgb));
+}
+
+.pos-listing .pos-listing-panel .page-item.active .page-link {
+    background-color: rgba(var(--bs-primary-rgb), 0.16);
+    border-color: rgba(var(--bs-primary-rgb), 0.4);
+    color: rgb(var(--bs-primary-rgb));
+    font-weight: 600;
+}
+
+.pos-listing .pos-listing-panel .page-item.disabled .page-link {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(var(--pos-tone-rgb, var(--bs-secondary-rgb)), 0.1);
+    color: var(--bs-secondary-color);
+    opacity: 0.65;
+}
+
+/* Processing indicator */
+.pos-listing .pos-listing-panel .dt-processing > div {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 24px -12px rgba(var(--bs-primary-rgb), 0.35);
+}
+
+.pos-listing .pos-listing-toolbar-actions .dropdown-menu {
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.12);
+    border-radius: 0.85rem;
+    background-color: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 16px 40px -16px rgba(47, 43, 61, 0.35);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+}
+
+/* ── Glass modal ────────────────────────────────────────────────────── */
+
+.pos-listing .pos-listing-modal .modal-content,
+.pos-listing-modal .modal-content {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: var(--pos-glass-radius, 1rem);
+    background-color: rgba(255, 255, 255, 0.92);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--bs-primary-rgb), 0.08) 0%,
+        rgba(var(--bs-primary-rgb), 0.02) 45%,
+        rgba(255, 255, 255, 0.35) 80%
+    );
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow:
+        0 24px 48px -18px rgba(var(--bs-primary-rgb), 0.35),
+        0 2px 6px rgba(47, 43, 61, 0.06),
+        inset 0 1px 1.5px rgba(255, 255, 255, 0.95);
+}
+
+/* Ensure scrollable modals with inner forms keep footer pinned and body scrollable */
+.pos-listing-modal .modal-dialog {
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+}
+
+.pos-listing-modal.modal-dialog-scrollable,
+.pos-listing-modal .modal-dialog-scrollable {
+    height: calc(100% - 2rem);
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+}
+
+.pos-listing-modal .modal-content,
+.pos-listing-modal.modal-dialog-scrollable .modal-content,
+.pos-listing-modal .modal-dialog-scrollable .modal-content {
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pos-listing-modal form,
+.pos-listing-modal.modal-dialog-scrollable form,
+.pos-listing-modal .modal-dialog-scrollable form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.pos-listing-modal .modal-body,
+.pos-listing-modal.modal-dialog-scrollable .modal-body,
+.pos-listing-modal .modal-dialog-scrollable .modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+}
+
+.pos-listing-modal .modal-header,
+.pos-listing-modal .modal-footer,
+.pos-listing-modal.modal-dialog-scrollable .modal-header,
+.pos-listing-modal.modal-dialog-scrollable .modal-footer,
+.pos-listing-modal .modal-dialog-scrollable .modal-header,
+.pos-listing-modal .modal-dialog-scrollable .modal-footer {
+    flex-shrink: 0;
+}
+
+/* Clean, single-ring focus state for modal navigation (no double border/circle) */
+.pos-listing-modal input.form-control:focus,
+.pos-listing-modal input.form-control:focus-visible,
+.pos-listing-modal select.form-select:focus,
+.pos-listing-modal select.form-select:focus-visible,
+.pos-listing-modal textarea.form-control:focus,
+.pos-listing-modal textarea.form-control:focus-visible,
+.pos-listing-modal .form-control:focus,
+.pos-listing-modal .form-select:focus,
+.pos-listing .pos-listing-modal .form-control:focus,
+.pos-listing .pos-listing-modal .form-select:focus {
+    border-color: #7367f0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(115, 103, 240, 0.18) !important;
+    outline: none !important;
+}
+
+.pos-listing-modal .select2-container--default.select2-container--focus .select2-selection {
+    border-color: #7367f0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(115, 103, 240, 0.18) !important;
+    outline: none !important;
+}
+
+/* ── High-visibility Double-Border & Glow for Buttons and Active Tabs ── */
+
+/* Active and keyboard-focused buttons: Update, Create, Cancel, Save */
+.modal .modal-footer .btn:focus,
+.modal .modal-footer .btn:focus-visible,
+.modal .modal-footer .btn.is-keyboard-focused,
+.modal .btn.is-keyboard-focused,
+.btn.is-keyboard-focused,
+.pos-listing-modal .modal-footer .btn:focus,
+.pos-listing-modal .modal-footer .btn:focus-visible,
+.pos-listing-modal .modal-footer .btn.is-keyboard-focused {
+    position: relative;
+    z-index: 5 !important;
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, outline 0.15s ease !important;
+}
+
+/* Primary Action Buttons (Update, Create, Save) — High-Visibility Double Border */
+.modal .modal-footer .btn-primary:focus,
+.modal .modal-footer .btn-primary:focus-visible,
+.modal .modal-footer .btn-primary.is-keyboard-focused,
+.pos-listing-modal .modal-footer .btn-primary:focus,
+.pos-listing-modal .modal-footer .btn-primary:focus-visible,
+.pos-listing-modal .modal-footer .btn-primary.is-keyboard-focused,
+.btn-primary.is-keyboard-focused {
+    outline: 3px solid #7367f0 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #7367f0, 0 0 20px rgba(115, 103, 240, 0.75), 0 8px 24px rgba(115, 103, 240, 0.45) !important;
+    transform: translateY(-2px) scale(1.03) !important;
+    filter: brightness(1.08) !important;
+    border-color: #5548e2 !important;
+}
+
+/* Cancel & Secondary Buttons — High-Visibility Double Border */
+.modal .modal-footer .btn-label-secondary:focus,
+.modal .modal-footer .btn-label-secondary:focus-visible,
+.modal .modal-footer .btn-secondary:focus,
+.modal .modal-footer .btn-secondary:focus-visible,
+.modal .modal-footer .btn-label-secondary.is-keyboard-focused,
+.modal .modal-footer .btn-secondary.is-keyboard-focused,
+.pos-listing-modal .modal-footer .btn-label-secondary:focus,
+.pos-listing-modal .modal-footer .btn-label-secondary:focus-visible,
+.pos-listing-modal .modal-footer .btn-secondary:focus,
+.pos-listing-modal .modal-footer .btn-secondary:focus-visible,
+.pos-listing-modal .modal-footer .btn-label-secondary.is-keyboard-focused,
+.pos-listing-modal .modal-footer .btn-secondary.is-keyboard-focused,
+.btn-label-secondary.is-keyboard-focused,
+.btn-secondary.is-keyboard-focused {
+    outline: 3px solid #6e7987 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #6e7987, 0 0 16px rgba(110, 121, 135, 0.6), 0 6px 18px rgba(110, 121, 135, 0.35) !important;
+    transform: translateY(-2px) scale(1.03) !important;
+    filter: brightness(1.05) !important;
+}
+
+/* ── Tabs: Active State Border & Keyboard Focus ── */
+
+/* Active tab distinct border and highlight */
+.nav-tabs .nav-link.active,
+.pos-listing .nav-tabs .nav-link.active,
+.pos-listing-modal .nav-tabs .nav-link.active {
+    border-bottom: 3px solid #7367f0 !important;
+    color: #7367f0 !important;
+    font-weight: 600 !important;
+    background: rgba(115, 103, 240, 0.08) !important;
+    box-shadow: inset 0 -3px 0 0 #7367f0 !important;
+}
+
+.nav-pills .nav-link.active,
+.pos-listing .nav-pills .nav-link.active,
+.pos-listing-modal .nav-pills .nav-link.active {
+    background-color: #7367f0 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 3px 12px rgba(115, 103, 240, 0.45) !important;
+}
+
+/* Tabs active keyboard focus state */
+.nav-tabs .nav-link:focus,
+.nav-tabs .nav-link:focus-visible,
+.nav-tabs .nav-link.is-keyboard-focused,
+.nav-pills .nav-link:focus,
+.nav-pills .nav-link:focus-visible,
+.nav-pills .nav-link.is-keyboard-focused,
+.pos-listing-modal .nav-tabs .nav-link:focus,
+.pos-listing-modal .nav-tabs .nav-link:focus-visible,
+.pos-listing-modal .nav-pills .nav-link:focus,
+.pos-listing-modal .nav-pills .nav-link:focus-visible,
+.pos-listing .nav-tabs .nav-link:focus,
+.pos-listing .nav-tabs .nav-link:focus-visible,
+.pos-listing .nav-pills .nav-link:focus,
+.pos-listing .nav-pills .nav-link:focus-visible {
+    outline: 3px solid #7367f0 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #7367f0, 0 4px 12px rgba(115, 103, 240, 0.35) !important;
+    border-radius: 0.375rem !important;
+}
+
+/* ── Dark Theme Overrides for Buttons & Tabs ── */
+
+[data-bs-theme='dark'] .modal .modal-footer .btn-primary:focus,
+[data-bs-theme='dark'] .modal .modal-footer .btn-primary:focus-visible,
+[data-bs-theme='dark'] .modal .modal-footer .btn-primary.is-keyboard-focused,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-primary:focus,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-primary:focus-visible,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-primary.is-keyboard-focused,
+[data-bs-theme='dark'] .btn-primary.is-keyboard-focused {
+    outline: 3px solid #948bfa !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 2px #25293c, 0 0 0 5px #7367f0, 0 0 22px rgba(115, 103, 240, 0.85), 0 6px 20px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-bs-theme='dark'] .modal .modal-footer .btn-label-secondary:focus,
+[data-bs-theme='dark'] .modal .modal-footer .btn-label-secondary:focus-visible,
+[data-bs-theme='dark'] .modal .modal-footer .btn-secondary:focus,
+[data-bs-theme='dark'] .modal .modal-footer .btn-secondary:focus-visible,
+[data-bs-theme='dark'] .modal .modal-footer .btn-label-secondary.is-keyboard-focused,
+[data-bs-theme='dark'] .modal .modal-footer .btn-secondary.is-keyboard-focused,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-label-secondary:focus,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-label-secondary:focus-visible,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-secondary:focus,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-secondary:focus-visible,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-label-secondary.is-keyboard-focused,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer .btn-secondary.is-keyboard-focused,
+[data-bs-theme='dark'] .btn-label-secondary.is-keyboard-focused,
+[data-bs-theme='dark'] .btn-secondary.is-keyboard-focused {
+    outline: 3px solid #cbd5e1 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 2px #25293c, 0 0 0 5px #a5a9ad, 0 0 16px rgba(165, 169, 173, 0.65), 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-bs-theme='dark'] .nav-tabs .nav-link.active,
+[data-bs-theme='dark'] .pos-listing .nav-tabs .nav-link.active,
+[data-bs-theme='dark'] .pos-listing-modal .nav-tabs .nav-link.active {
+    border-bottom: 3px solid #7367f0 !important;
+    color: #948bfa !important;
+    background: rgba(115, 103, 240, 0.16) !important;
+    box-shadow: inset 0 -3px 0 0 #7367f0 !important;
+}
+
+[data-bs-theme='dark'] .nav-tabs .nav-link:focus,
+[data-bs-theme='dark'] .nav-tabs .nav-link:focus-visible,
+[data-bs-theme='dark'] .nav-tabs .nav-link.is-keyboard-focused,
+[data-bs-theme='dark'] .nav-pills .nav-link:focus,
+[data-bs-theme='dark'] .nav-pills .nav-link:focus-visible,
+[data-bs-theme='dark'] .nav-pills .nav-link.is-keyboard-focused,
+[data-bs-theme='dark'] .pos-listing-modal .nav-tabs .nav-link:focus,
+[data-bs-theme='dark'] .pos-listing-modal .nav-tabs .nav-link:focus-visible,
+[data-bs-theme='dark'] .pos-listing-modal .nav-pills .nav-link:focus,
+[data-bs-theme='dark'] .pos-listing-modal .nav-pills .nav-link:focus-visible {
+    outline: 3px solid #948bfa !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 2px #25293c, 0 0 0 5px #7367f0, 0 4px 14px rgba(115, 103, 240, 0.5) !important;
+}
+
+.modal .modal-header .btn-close:focus,
+.modal .modal-header .btn-close:focus-visible,
+.pos-listing-modal .modal-header .btn-close:focus,
+.pos-listing-modal .modal-header .btn-close:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #7367f0 !important;
+}
+
+/*
+ * Vuexy absolutely positions .modal-header .btn-close (inset top/end), which
+ * clips against the glass card radius. Keep the close button in normal flex
+ * flow at the top-right, fully inside the header padding.
+ */
+.pos-listing .pos-listing-modal .modal-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+    background: transparent;
+}
+
+.pos-listing .pos-listing-modal .modal-header .modal-title {
+    margin: 0;
+    padding: 0;
+    font-weight: 600;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.pos-listing .pos-listing-modal .modal-header .btn-close {
+    --bs-btn-close-color: #444050;
+    --bs-btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23444050'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e");
+    --bs-btn-close-opacity: 1;
+    --bs-btn-close-hover-opacity: 1;
+    --bs-btn-close-focus-opacity: 1;
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    flex-shrink: 0;
+    width: 0.75rem;
+    height: 0.75rem;
+    margin: 0 0 0 auto !important;
+    padding: 0.5rem !important;
+    box-sizing: content-box;
+    border-radius: 0.5rem;
+    background-color: rgba(var(--bs-primary-rgb), 0.12);
+    background-image: var(--bs-btn-close-bg);
+    background-position: center;
+    background-size: 0.7rem auto;
+    background-repeat: no-repeat;
+    filter: none;
+    transform: none !important;
+    opacity: 1;
+}
+
+.pos-listing .pos-listing-modal .modal-header .btn-close:hover,
+.pos-listing .pos-listing-modal .modal-header .btn-close:focus {
+    --bs-btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%237367F0'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e");
+    background-color: rgba(var(--bs-primary-rgb), 0.2);
+    background-image: var(--bs-btn-close-bg);
+    opacity: 1;
+    transform: none !important;
+    box-shadow: none;
+}
+
+[data-bs-theme='dark'] .pos-listing .pos-listing-modal .modal-header .btn-close {
+    --bs-btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23e7e3fc'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e");
+    background-color: rgba(var(--bs-primary-rgb), 0.22);
+    background-image: var(--bs-btn-close-bg);
+}
+
+.pos-listing .pos-listing-modal .modal-body {
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+}
+
+.pos-listing .pos-listing-modal .modal-footer,
+.pos-listing-modal .modal-footer {
+    padding: 1rem 1.5rem 1.25rem;
+    border-top: 1px solid rgba(var(--bs-primary-rgb), 0.12);
+    background: rgba(255, 255, 255, 0.96);
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    backdrop-filter: blur(12px);
+}
+
+.pos-listing .pos-listing-modal .form-label {
+    font-weight: 600;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.pos-listing .pos-listing-modal .form-control,
+.pos-listing .pos-listing-modal .form-select {
+    border-color: rgba(var(--bs-primary-rgb), 0.18);
+    background-color: rgba(255, 255, 255, 0.78);
+}
+
+.pos-listing .pos-listing-modal .form-control:focus,
+.pos-listing .pos-listing-modal .form-select:focus {
+    border-color: #7367f0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(115, 103, 240, 0.18) !important;
+    outline: none !important;
+}
+
+.pos-listing .pos-listing-modal .jquery-validate-error {
+    display: none !important;
+}
+
+.pos-listing .pos-listing-modal .is-invalid ~ .invalid-feedback,
+.pos-listing .pos-listing-modal .select2-container .select2-selection.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+.pos-listing .pos-listing-modal .invalid-feedback.d-block {
+    display: block;
+}
+
+.pos-listing .pos-listing-modal .form-check-input:checked {
+    background-color: rgb(var(--bs-primary-rgb));
+    border-color: rgb(var(--bs-primary-rgb));
+}
+
+.pos-listing .pos-listing-modal .btn-label-secondary {
+    background-color: rgba(var(--bs-secondary-rgb), 0.12);
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────── */
+
+[data-bs-theme='dark'] .pos-listing .pos-listing-table .table-hover > tbody > tr:hover > * {
+    background-color: rgba(var(--pos-listing-accent-rgb), 0.1);
+}
+
+[data-bs-theme='dark'] .employee-admin-preview .pos-listing .pos-listing-table table.table.dataTable.table-hover > tbody > tr:hover > * {
+    background-color: rgba(var(--pos-listing-accent-rgb), 0.1) !important;
+}
+
+[data-bs-theme='dark'] .pos-listing .pos-listing-panel .dt-search .form-control,
+[data-bs-theme='dark'] .pos-listing .pos-listing-panel .dt-length .form-select,
+[data-bs-theme='dark'] .pos-listing .pos-listing-modal .form-control,
+[data-bs-theme='dark'] .pos-listing .pos-listing-modal .form-select {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme='dark'] .pos-listing .pos-listing-panel .page-link {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme='dark'] .pos-listing .pos-listing-panel .page-item.active .page-link {
+    background-color: rgba(var(--bs-primary-rgb), 0.22);
+    color: #fff;
+}
+
+[data-bs-theme='dark'] .pos-listing .pos-listing-toolbar-actions .dropdown-menu,
+[data-bs-theme='dark'] .pos-listing .pos-listing-modal .modal-content {
+    background-color: rgba(37, 41, 60, 0.94);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-bs-theme='dark'] .pos-listing .pos-listing-modal .modal-footer,
+[data-bs-theme='dark'] .pos-listing-modal .modal-footer {
+    background: rgba(37, 41, 60, 0.96);
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme='dark'] .pos-listing .pos-listing-table code {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Soft glass Notiflix toasts (success / error / etc.) on listing pages */
+.pos-listing ~ .notiflix-notify-wrap,
+body:has(.pos-listing) .notiflix-notify {
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    backdrop-filter: blur(12px) saturate(160%);
+    box-shadow:
+        0 12px 32px -12px rgba(47, 43, 61, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+}

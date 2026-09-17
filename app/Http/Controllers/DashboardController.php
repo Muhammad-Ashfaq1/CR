@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contractor;
 use App\Models\Expense;
 use App\Models\Project;
 use App\Models\Worker;
@@ -58,16 +57,6 @@ class DashboardController extends Controller
 
     private function adminDashboard(): View
     {
-        $totalProjects = Project::count();
-        $activeProjects = Project::where('status', 'active')->count();
-        $totalContractors = Contractor::count();
-        $totalWorkers = Worker::count();
-        $totalExpenses = Expense::sum('amount');
-
-        $recentProjects = Project::with('owner')->latest()->take(5)->get();
-
-        return view('admin.dashboard', compact(
-            'totalProjects', 'activeProjects', 'totalContractors', 'totalWorkers', 'totalExpenses', 'recentProjects'
-        ));
+        return (new Admin\DashboardController)->index();
     }
 }

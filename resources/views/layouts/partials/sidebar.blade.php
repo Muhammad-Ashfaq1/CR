@@ -1,119 +1,129 @@
 @php
     $user = auth()->user();
     $currentRoute = request()->route()?->getName() ?? '';
-
     $isActive = fn(string $pattern): bool => str($currentRoute)->is($pattern);
-
-    $pkrFormatter = fn(float $n): string => 'PKR ' . number_format($n, 0);
 @endphp
 
-<aside class="cst-sidebar" id="cstSidebar">
-    {{-- Brand --}}
-    <a href="{{ route('dashboard') }}" class="cst-sidebar-brand">
-        <div class="cst-sidebar-brand-icon">
-            <i class="ti ti-building-skyscraper" aria-hidden="true"></i>
-        </div>
-        <span class="cst-sidebar-brand-text">Construction</span>
-    </a>
-
-    <nav class="cst-sidebar-nav" aria-label="Main navigation">
-        {{-- Dashboard --}}
-        <a href="{{ route('dashboard') }}"
-           class="cst-nav-item {{ $isActive('dashboard') ? 'active' : '' }}">
-            <i class="ti ti-smart-home" aria-hidden="true"></i>
-            Dashboard
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme pos-menu">
+    <div class="app-brand demo">
+        <a href="{{ route('dashboard') }}" class="app-brand-link">
+            <span class="app-brand-logo demo">
+                @include('layouts.partials.brand-logo', ['size' => 32])
+            </span>
+            <span class="app-brand-text demo menu-text fw-bold ms-2">{{ config('app.name', 'Construction') }}</span>
         </a>
 
-        {{-- Admin section --}}
-        @if($user?->isAdmin())
-            <p class="cst-nav-section-title">Administration</p>
-
-            <a href="{{ route('admin.users.index') }}"
-               class="cst-nav-item {{ $isActive('admin.users.*') ? 'active' : '' }}">
-                <i class="ti ti-users" aria-hidden="true"></i>
-                Users
-            </a>
-
-            <a href="{{ route('admin.expense-categories.index') }}"
-               class="cst-nav-item {{ $isActive('admin.expense-categories.*') ? 'active' : '' }}">
-                <i class="ti ti-category" aria-hidden="true"></i>
-                Expense Categories
-            </a>
-        @endif
-
-        {{-- Projects --}}
-        <p class="cst-nav-section-title">Projects</p>
-
-        <a href="{{ route('projects.index') }}"
-           class="cst-nav-item {{ $isActive('projects.*') ? 'active' : '' }}">
-            <i class="ti ti-building-factory-2" aria-hidden="true"></i>
-            Projects
+        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto" aria-label="Toggle navigation menu">
+            <i class="icon-base ti tabler-chevron-left d-none d-xl-block" aria-hidden="true"></i>
+            <i class="icon-base ti tabler-x d-block d-xl-none" aria-hidden="true"></i>
         </a>
-
-        @if($user?->isOwner() || $user?->isAdmin())
-            <a href="{{ route('contractors.index') }}"
-               class="cst-nav-item {{ $isActive('contractors.*') ? 'active' : '' }}">
-                <i class="ti ti-user-cog" aria-hidden="true"></i>
-                Contractors
-            </a>
-        @endif
-
-        {{-- Workforce --}}
-        <p class="cst-nav-section-title">Workforce</p>
-
-        <a href="{{ route('workers.index') }}"
-           class="cst-nav-item {{ $isActive('workers.*') ? 'active' : '' }}">
-            <i class="ti ti-hammer" aria-hidden="true"></i>
-            Workers
-        </a>
-
-        <a href="{{ route('attendance.index') }}"
-           class="cst-nav-item {{ $isActive('attendance.*') ? 'active' : '' }}">
-            <i class="ti ti-calendar-check" aria-hidden="true"></i>
-            Attendance
-        </a>
-
-        {{-- Finance --}}
-        <p class="cst-nav-section-title">Finance</p>
-
-        <a href="{{ route('expenses.index') }}"
-           class="cst-nav-item {{ $isActive('expenses.*') ? 'active' : '' }}">
-            <i class="ti ti-receipt" aria-hidden="true"></i>
-            Expenses
-        </a>
-
-        @if($user?->isOwner() || $user?->isAdmin())
-            <a href="{{ route('contractor-payments.index') }}"
-               class="cst-nav-item {{ $isActive('contractor-payments.*') ? 'active' : '' }}">
-                <i class="ti ti-cash" aria-hidden="true"></i>
-                Contractor Payments
-            </a>
-
-            <a href="{{ route('reports.index') }}"
-               class="cst-nav-item {{ $isActive('reports.*') ? 'active' : '' }}">
-                <i class="ti ti-chart-bar" aria-hidden="true"></i>
-                Reports
-            </a>
-        @endif
-    </nav>
-
-    {{-- User Footer --}}
-    <div class="cst-sidebar-footer">
-        <div class="cst-sidebar-user">
-            <div class="cst-sidebar-avatar">
-                {{ strtoupper(substr($user?->name ?? 'U', 0, 1)) }}
-            </div>
-            <div class="flex-1 min-width-0">
-                <div class="cst-sidebar-user-name">{{ $user?->name }}</div>
-                <div class="cst-sidebar-user-role">{{ $user?->role?->label() }}</div>
-            </div>
-            <form action="{{ route('logout') }}" method="POST" class="ms-1">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-icon" title="Logout"
-                        style="color: rgba(160,174,192,0.6); background: none; border: none;">
-                    <i class="ti ti-logout" aria-hidden="true"></i>
-                </button>
-            </form>
-        </div>
     </div>
+
+    <div class="menu-inner-shadow"></div>
+
+    <ul class="menu-inner py-1">
+        {{-- Dashboard --}}
+        <li class="menu-item {{ $isActive('dashboard') || $isActive('admin.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('dashboard') }}" class="menu-link">
+                <i class="menu-icon icon-base ti tabler-smart-home" aria-hidden="true"></i>
+                <div data-i18n="Dashboard">Dashboard</div>
+            </a>
+        </li>
+
+        {{-- Admin Section --}}
+        @if($user?->isAdmin())
+            <li class="menu-header small">
+                <span class="menu-header-text" data-i18n="Administration">Administration</span>
+            </li>
+
+            <li class="menu-item {{ $isActive('admin.users.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.users.index') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-users" aria-hidden="true"></i>
+                    <div data-i18n="Users">Users</div>
+                </a>
+            </li>
+
+            <li class="menu-item {{ $isActive('admin.expense-categories.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.expense-categories.index') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-category" aria-hidden="true"></i>
+                    <div data-i18n="Expense Categories">Expense Categories</div>
+                </a>
+            </li>
+        @endif
+
+        {{-- Projects Section --}}
+        <li class="menu-header small">
+            <span class="menu-header-text" data-i18n="Projects">Projects</span>
+        </li>
+
+        <li class="menu-item {{ $isActive('projects.*') ? 'active' : '' }}">
+            <a href="{{ route('projects.index') }}" class="menu-link">
+                <i class="menu-icon icon-base ti tabler-building-skyscraper" aria-hidden="true"></i>
+                <div data-i18n="Projects">Projects</div>
+            </a>
+        </li>
+
+        @if($user?->isOwner() || $user?->isAdmin())
+            <li class="menu-item {{ $isActive('contractors.*') ? 'active' : '' }}">
+                <a href="{{ route('contractors.index') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-user-cog" aria-hidden="true"></i>
+                    <div data-i18n="Contractors">Contractors</div>
+                </a>
+            </li>
+        @endif
+
+        {{-- Workforce Section --}}
+        <li class="menu-header small">
+            <span class="menu-header-text" data-i18n="Workforce">Workforce</span>
+        </li>
+
+        <li class="menu-item {{ $isActive('workers.*') ? 'active' : '' }}">
+            <a href="{{ route('workers.index') }}" class="menu-link">
+                <i class="menu-icon icon-base ti tabler-hammer" aria-hidden="true"></i>
+                <div data-i18n="Workers">Workers</div>
+            </a>
+        </li>
+
+        <li class="menu-item {{ $isActive('attendance.*') ? 'active' : '' }}">
+            <a href="{{ route('attendance.index') }}" class="menu-link">
+                <i class="menu-icon icon-base ti tabler-calendar-check" aria-hidden="true"></i>
+                <div data-i18n="Daily Attendance">Attendance</div>
+            </a>
+        </li>
+
+        {{-- Finance Section --}}
+        <li class="menu-header small">
+            <span class="menu-header-text" data-i18n="Finance">Finance</span>
+        </li>
+
+        <li class="menu-item {{ $isActive('expenses.*') ? 'active' : '' }}">
+            <a href="{{ route('expenses.index') }}" class="menu-link">
+                <i class="menu-icon icon-base ti tabler-receipt" aria-hidden="true"></i>
+                <div data-i18n="Direct Expenses">Expenses</div>
+            </a>
+        </li>
+
+        @if($user?->isOwner() || $user?->isAdmin())
+            <li class="menu-item {{ $isActive('contractor-payments.*') ? 'active' : '' }}">
+                <a href="{{ route('contractor-payments.index') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-cash" aria-hidden="true"></i>
+                    <div data-i18n="Contractor Payments">Payments</div>
+                </a>
+            </li>
+
+            <li class="menu-item {{ $isActive('reports.*') ? 'active' : '' }}">
+                <a href="{{ route('reports.index') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-chart-bar" aria-hidden="true"></i>
+                    <div data-i18n="Reports">Reports</div>
+                </a>
+            </li>
+        @endif
+
+        <li class="menu-item {{ $isActive('activities.*') ? 'active' : '' }}">
+            <a href="{{ route('activities.index') }}" class="menu-link">
+                <i class="menu-icon icon-base ti tabler-activity" aria-hidden="true"></i>
+                <div data-i18n="Audit Trail">Audit Trail</div>
+            </a>
+        </li>
+    </ul>
 </aside>

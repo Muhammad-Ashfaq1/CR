@@ -1,8 +1,13 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="cst-theme-amber" data-bs-theme="light">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+      class="light-style layout-navbar-fixed layout-menu-fixed layout-compact"
+      dir="ltr"
+      data-theme="theme-default"
+      data-assets-path="{{ asset('assets') }}/"
+      data-template="vertical-menu-template">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>@yield('title', config('app.name', 'Construction Ready'))</title>
 
@@ -11,141 +16,123 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
 
-    <!-- Bootstrap 5 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <!-- Icons -->
+    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/tabler-icons.css') }}" />
 
-    <!-- Tabler Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.0/dist/tabler-icons.min.css" />
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/vendor/css/rtl/core.css') }}" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/css/rtl/theme-default.css') }}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/pos-themes.css') }}" />
 
-    <!-- Flatpickr -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/flatpickr/flatpickr.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/apex-charts/apex-charts.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.8/dist/notiflix-3.2.8.min.css" />
 
-    <!-- DataTables -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" />
+    <!-- Helpers -->
+    <script src="{{ asset('assets/vendor/js/helpers.js') }}"></script>
+    <script src="{{ asset('assets/js/config.js') }}"></script>
 
-    <!-- App CSS Kit -->
-    <link rel="stylesheet" href="{{ asset('assets/css/cst-themes.css') }}?v={{ filemtime(public_path('assets/css/cst-themes.css')) }}" />
-    <link rel="stylesheet" href="{{ asset('assets/css/cst-glass.css') }}?v={{ filemtime(public_path('assets/css/cst-glass.css')) }}" />
-    <link rel="stylesheet" href="{{ asset('assets/css/cst-listing.css') }}?v={{ filemtime(public_path('assets/css/cst-listing.css')) }}" />
-    <link rel="stylesheet" href="{{ asset('assets/css/cst-app.css') }}?v={{ filemtime(public_path('assets/css/cst-app.css')) }}" />
+    <!-- Glass & POS UI Kit Styles -->
+    <link rel="stylesheet" href="{{ asset('assets/css/pos-responsive.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/pos-table.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/pos-menu.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/pos-glass.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/pos-navbar.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/pos-listing.css') }}" />
+
+    <style>
+        #template-customizer { display: none !important; }
+        .cst-stat-card {
+            border-radius: 12px;
+            padding: 1.25rem;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .cst-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+        .cst-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .cst-page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: #1e293b;
+        }
+        .cst-page-subtitle {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+    </style>
 
     @stack('styles')
 </head>
+
 <body>
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            @include('layouts.partials.sidebar')
 
-<div class="cst-layout">
-    @include('layouts.partials.sidebar')
+            <div class="layout-page">
+                @include('layouts.partials.navbar')
 
-    <div class="cst-sidebar-overlay" id="sidebarOverlay"></div>
+                <div class="content-wrapper">
+                    <div class="container-fluid flex-grow-1 container-p-y">
+                        @if (session('success'))
+                            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                                <i class="icon-base ti tabler-check me-2"></i>{{ session('success') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
+                        @if (session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                                <i class="icon-base ti tabler-alert-circle me-2"></i>{{ session('error') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
 
-    <div class="cst-main">
-        @include('layouts.partials.navbar')
+                        @yield('content')
+                    </div>
 
-        <div class="cst-content">
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                    <i class="ti ti-circle-check me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    @include('layouts.partials.footer')
+                    <div class="content-backdrop fade"></div>
                 </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-                    <i class="ti ti-alert-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @yield('content')
+            </div>
         </div>
+
+        <div class="layout-overlay layout-menu-toggle"></div>
+        <div class="drag-target"></div>
     </div>
-</div>
 
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- jQuery (DataTables needs it) -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<!-- DataTables -->
-<script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
-<!-- Flatpickr -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<!-- ApexCharts -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<!-- Notiflix -->
-<script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.8/dist/notiflix-aio-3.2.8.min.js"></script>
+    <!-- Core JS -->
+    <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script>
+    <script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/node-waves/node-waves.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/flatpickr/flatpickr.js') }}"></script>
+    <script src="{{ asset('assets/vendor/js/menu.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
+    <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
+    <script src="{{ asset('assets/js/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.8/dist/notiflix-aio-3.2.8.min.js"></script>
 
-<script>
-// Sidebar toggle
-(function() {
-    const sidebar = document.querySelector('.cst-sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    const toggleBtn = document.getElementById('sidebarToggle');
-
-    function openSidebar() {
-        sidebar?.classList.add('open');
-        overlay?.classList.add('active');
-    }
-    function closeSidebar() {
-        sidebar?.classList.remove('open');
-        overlay?.classList.remove('active');
-    }
-
-    toggleBtn?.addEventListener('click', openSidebar);
-    overlay?.addEventListener('click', closeSidebar);
-})();
-
-// Notiflix config
-Notiflix.Notify.init({
-    position: 'right-top',
-    timeout: 4000,
-    borderRadius: '8px',
-    fontSize: '14px',
-});
-
-// Confirm helper
-window.CstConfirm = {
-    open: function({ title = 'Confirm', message = 'Are you sure?', onConfirm, tone = 'danger' }) {
-        Notiflix.Confirm.show(
-            title,
-            message,
-            'Yes, Confirm',
-            'Cancel',
-            onConfirm,
-            function() {},
-            {
-                titleColor: tone === 'danger' ? '#dc2626' : '#f59e0b',
-                okButtonBackground: tone === 'danger' ? '#dc2626' : '#f59e0b',
-                okButtonColor: '#fff',
-                borderRadius: '8px',
-            }
-        );
-    }
-};
-
-// Auto-initialize DataTables
-document.querySelectorAll('table.cst-datatable').forEach(function(table) {
-    $(table).DataTable({
-        responsive: true,
-        pageLength: 25,
-        dom: 'rtip',
-        language: {
-            search: '',
-            searchPlaceholder: 'Search...',
-            emptyTable: 'No records found',
-        }
-    });
-});
-
-// Wire search boxes to DataTables
-document.querySelectorAll('[data-dt-search]').forEach(function(input) {
-    var tableId = input.getAttribute('data-dt-search');
-    var dt = $('#' + tableId).DataTable();
-    input.addEventListener('input', function() {
-        dt.search(this.value).draw();
-    });
-});
-</script>
-
-@stack('scripts')
+    @stack('scripts')
 </body>
 </html>

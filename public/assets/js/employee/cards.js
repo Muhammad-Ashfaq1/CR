@@ -1,0 +1,281 @@
+(function ($) {
+  'use strict';
+
+  $(function () {
+    const currencySymbol = window.employeeCards?.currencySymbol || window.appCurrency?.symbol || '';
+    const initialModule = window.employeeCards?.initialModule || 'discount';
+    const csrfToken = $('meta[name="csrf-token"]').attr('content');
+    const $forms = $('.js-employee-card-form');
+    const $addCardBtn = $('#addCardBtn');
+    const $addCardLabel = $('[data-add-card-label]');
+    const listClassByType = {
+      gift: 'gift-card-list',
+      reward: 'reward-card-list',
+      discount: 'employee-loyalty-cards'
+    };
+
+    if (!$forms.length || !window.CardForm) {
+      return;
+    }
+
+    if (csrfToken) {
+      $.ajaxSetup({
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+          Accept: 'application/json'
+        }
+      });
+    }
+
+    const updateDiscountFields = function ($form) {
+      window.CardForm.updateDiscountFields($form, { currencySymbol: currencySymbol });
+    };
+
+    const activateModule = function (module) {
+      const $tab = $('[data-card-section="' + module + '"]');
+      if (!$tab.length || !$addCardBtn.length || !$addCardLabel.length) {
+        return;
+      }
+
+      $('[data-card-section]').each(function () {
+        const active = this.dataset.cardSection === module;
+        $(this).toggleClass('active', active).attr('aria-selected', active ? 'true' : 'false');
+      });
+
+      $('[data-card-panel]').each(function () {
+        $(this).toggleClass('d-none', this.dataset.cardPanel !== module);
+      });
+
+      $addCardBtn.attr('data-bs-target', $tab.data('card-modal'));
+      $addCardLabel.text($tab.data('card-label'));
+      $addCardBtn.attr('data-active-module', module);
+    };
+
+    const bumpTabCount = function (cardType) {
+      const $count = $('[data-card-section="' + cardType + '"]').children('span').first();
+      if (!$count.length) {
+        return;
+      }
+
+      const next = (parseInt($count.text(), 10) || 0) + 1;
+      $count.text(String(next));
+    };
+
+    const prependCreatedCard = function (cardType, html) {
+      if (!html) {
+        return;
+      }
+
+      const $panel = $('[data-card-panel="' + cardType + '"]');
+      if (!$panel.length) {
+        return;
+      }
+
+      let $list = $panel.find('[data-card-list="' + cardType + '"]');
+      if (!$list.length) {
+        $panel.find('.employee-orders-empty').remove();
+        $list = $('<div></div>')
+          .addClass(listClassByType[cardType] || 'employee-loyalty-cards')
+          .attr('data-card-list', cardType);
+        $panel.append($list);
+      }
+
+      $list.prepend(html);
+      bumpTabCount(cardType);
+    };
+
+    const prependOrderPickerCard = function (cardType, pickerHtml) {
+      if (!pickerHtml) {
+        return;
+      }
+
+      const $list = $('.order-card-list[data-card-type="' + cardType + '"]');
+      if (!$list.length) {
+        return;
+      }
+
+      $list.find('[data-order-card-empty="' + cardType + '"]').remove();
+      $list.prepend(pickerHtml);
+      $('.order-card-actions[data-card-type="' + cardType + '"]').removeClass('d-none');
+    };
+
+    activateModule(initialModule);
+
+    // Init after the modal is visible — Select2 initialized while display:none
+    // often shows "No results found" even when <option> nodes exist.
+    $forms.each(function () {
+      const $form = $(this);
+      const $modal = $form.closest('.modal');
+
+      if ($modal.length) {
+        $modal.on('shown.bs.modal', function () {
+          window.CardForm.initProductSelects({ $root: $modal });
+        });
+      } else {
+        window.CardForm.initProductSelects({ $root: $form });
+      }
+    });
+
+    const bindFormValidation = function ($form) {
+      if (typeof $.fn.validate !== 'function') {
+        return null;
+      }
+
+      const cardType = String($form.data('cardType') || 'discount');
+      const isDiscount = cardType === 'discount';
+      const isReward = cardType === 'reward';
+
+      const rules = {
+        name: { required: true, maxlength: 150 },
+        value: { required: !isReward, number: true, min: isReward ? 0 : 0.01 },
+        minimum_spend: { required: true, number: true, min: 0 }
+      };
+
+      const messages = {
+        name: {
+          required: 'Please enter a card name.',
+          maxlength: 'The card name may not be greater than 150 characters.'
+        },
+        value: {
+          required: 'Please enter a card value.',
+          number: 'The card value must be numeric.',
+          min: isReward ? 'The card value must be zero or greater.' : 'The card value must be greater than zero.'
+        },
+        minimum_spend: {
+          required: 'Please enter a minimum spend amount.',
+          number: 'The minimum spend must be numeric.',
+          min: 'The minimum spend must be zero or greater.'
+        }
+      };
+
+      if (isDiscount) {
+        rules.discount_type = { required: true };
+        messages.discount_type = { required: 'Please select a discount type.' };
+
+        rules.value.max = function () {
+          return $form.find('[data-card-discount-type]').val() === 'percentage' ? 100 : undefined;
+        };
+        messages.value.max = 'Percentage discounts may not be greater than 100.';
+      }
+
+      return $form.validate({
+        ignore: [],
+        rules: rules,
+        messages: messages,
+        errorElement: 'div',
+        errorClass: 'jquery-validate-error',
+        errorPlacement: function (error, element) {
+          if (window.CardForm) {
+            window.CardForm.renderValidationErrors($form, {
+              [$(element).attr('name')]: error.text()
+            });
+          }
+        },
+        highlight: function (element) {
+          const $field = $(element);
+          $field.addClass('is-invalid');
+          if ($field.hasClass('select2-hidden-accessible') && window.CardForm) {
+            window.CardForm.setSelect2ErrorState($field, true);
+          }
+        },
+        unhighlight: function (element) {
+          const $field = $(element);
+          $field.removeClass('is-invalid');
+          if (window.CardForm) {
+            window.CardForm.clearFieldError($field);
+          }
+        }
+      });
+    };
+
+    $forms.each(function () {
+      const $form = $(this);
+      const $modal = $form.closest('.modal');
+      const $submitButton = $form.find('[data-card-submit]');
+      const validator = bindFormValidation($form);
+
+      updateDiscountFields($form);
+
+      $form.on('change', '[data-card-discount-type]', function () {
+        window.CardForm.clearFieldError($(this));
+        updateDiscountFields($form);
+        if (validator) {
+          validator.element($form.find('[data-card-value]'));
+        }
+      });
+
+      $form.on('input change', 'input, select', function () {
+        window.CardForm.clearFieldError($(this));
+      });
+
+      $modal.on('hidden.bs.modal', function () {
+        $form[0].reset();
+        $form.find('.card-product-select').val(null).trigger('change');
+        window.CardForm.clearValidation($form);
+        if (validator) {
+          validator.resetForm();
+        }
+        updateDiscountFields($form);
+        window.CardForm.setButtonLoading($submitButton, false);
+      });
+
+      $form.on('submit', function (event) {
+        event.preventDefault();
+
+        if (validator && !$form.valid()) {
+          return;
+        }
+
+        if (!validator && !$form[0].checkValidity()) {
+          $form[0].reportValidity();
+          return;
+        }
+
+        window.CardForm.clearValidation($form);
+        window.CardForm.setButtonLoading($submitButton, true);
+
+        $.ajax({
+          url: $form.attr('action'),
+          method: 'POST',
+          data: $form.serialize()
+        })
+          .done(function (response) {
+            const cardType = response.card_type || $form.data('cardType');
+            prependCreatedCard(cardType, response.html);
+            prependOrderPickerCard(cardType, response.picker_html);
+
+            $(document).trigger('employee:card-created', {
+              cardType: cardType,
+              html: response.html,
+              pickerHtml: response.picker_html || ''
+            });
+
+            const modalInstance = window.bootstrap?.Modal?.getInstance($modal[0]);
+            if (modalInstance) {
+              modalInstance.hide();
+            } else {
+              $modal.modal('hide');
+            }
+
+            if (typeof window.appNotify === 'function') {
+              window.appNotify('success', response.message || 'Card created successfully.');
+            }
+          })
+          .fail(function (xhr) {
+            if (xhr.status === 422) {
+              window.CardForm.renderValidationErrors($form, xhr.responseJSON?.errors || {});
+              return;
+            }
+
+            if (typeof window.appNotify === 'function') {
+              window.appNotify('error', xhr.responseJSON?.message || 'Unable to create card.');
+            }
+          })
+          .always(function () {
+            window.CardForm.setButtonLoading($submitButton, false);
+          });
+      });
+    });
+  });
+})(window.jQuery);

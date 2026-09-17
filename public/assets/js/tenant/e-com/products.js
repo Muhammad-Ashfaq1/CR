@@ -1,0 +1,1213 @@
+(function ($) {
+  'use strict';
+
+  const csrfToken = $('meta[name="csrf-token"]').attr('content');
+  const $modal = $('#productModal');
+  const modal = $modal.length ? bootstrap.Modal.getOrCreateInstance($modal[0]) : null;
+  const $form = $('#productForm');
+  const $submitButton = $('#productSubmitBtn');
+  const $table = $('.products-datatables');
+  const $formCategory = $('#product_category_id');
+  const $formSubCategory = $('#product_sub_category_id');
+  const $formDiscount = $('#product_discount_id');
+  const $formService = $('#product_service_id');
+  const $filterCategory = $('#product_filter_category');
+  const $filterSubCategory = $('#product_filter_sub_category');
+  const $trackInventoryToggle = $('#product_track_inventory_toggle');
+  const mediaDropzoneElement = document.getElementById('product_images_dropzone');
+  const mediaManager = window.AppMediaDropzone ? window.AppMediaDropzone.create(mediaDropzoneElement, {
+    removedInputName: 'removed_image_ids[]'
+  }) : null;
+  let productTable = null;
+  let stockRefreshSequence = 0;
+
+  const productEditUrl = function (productId) {
+    if (!window.productEditUrlTemplate) {
+      return '';
+    }
+
+    return window.productEditUrlTemplate.replace('__PRODUCT__', productId);
+  };
+
+  $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest',
+      Accept: 'application/json'
+    }
+  });
+
+  const showAlert = function (type, message) {
+    if (typeof window.appNotify === 'function') {
+      window.appNotify(type, message);
+    }
+  };
+
+  const alignProductToolbar = function (table) {
+    if (window.PosListingToolbar && typeof window.PosListingToolbar.align === 'function') {
+      window.PosListingToolbar.align(table, '#productTableActions');
+    }
+  };
+
+  const escapeHtml = function (value) {
+    return $('<div>').text(value ?? '').html();
+  };
+
+  const parseJsonAttribute = function (value) {
+    if (!value) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      return [];
+    }
+  };
+
+  const setSubmitButtonState = function (loading) {
+    const isEdit = Boolean($('#product_id').val());
+    const defaultText = isEdit ? $submitButton.data('update-text') : $submitButton.data('create-text');
+
+    if (typeof window.appSetButtonLoading === 'function') {
+      window.appSetButtonLoading($submitButton, loading, 'Saving...', defaultText);
+      return;
+    }
+
+    if (loading) {
+      $submitButton.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Saving...');
+      return;
+    }
+
+    $submitButton.prop('disabled', false).text(defaultText);
+  };
+
+  const setSelect2ErrorState = function ($element, invalid) {
+    const $selection = $element.next('.select2').find('.select2-selection');
+    $selection.toggleClass('is-invalid', invalid);
+  };
+
+  const setInventoryFieldsState = function () {
+    const enabled = $trackInventoryToggle.is(':checked');
+    $('.inventory-field').prop('disabled', !enabled).toggleClass('bg-label-secondary', !enabled);
+  };
+
+  const $stockCurrentWrapper = $('[data-stock-current-wrapper]');
+  const $stockAdjustmentWrapper = $('[data-stock-adjustment-wrapper]');
+  const $stockAdjustmentMode = $('#product_stock_adjustment_mode');
+  const $stockAdjustmentQty = $('#product_stock_adjustment_quantity');
+  const $stockAdjustmentPlus = $('#product_stock_adjustment_plus');
+  const $stockAdjustmentMinus = $('#product_stock_adjustment_minus');
+  const $stockAdjustmentError = $('#product_stock_adjustment_error');
+  const $stockAdjustmentWarning = $('#product_stock_adjustment_warning');
+  const $stockNow = $('#product_stock_now');
+  const $stockPreview = $('#product_stock_preview');
+
+  const formatStock = function (value) {
+    const n = Math.trunc(Number(value || 0));
+    return Number.isFinite(n) ? Math.max(0, n).toString() : '0';
+  };
+
+  const toIntStock = function (value) {
+    const n = Math.trunc(Number(value || 0));
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  };
+
+  const getCurrentStockBaseline = function () {
+    return Number($('#product_current_stock').data('baseline') || 0);
+  };
+
+  const setStockBaseline = function (value) {
+    const n = Number(value || 0);
+    $('#product_current_stock').data('baseline', n).val(n);
+    $stockNow.text(formatStock(n));
+  };
+
+  const recomputeStockPreview = function () {
+    const mode = $stockAdjustmentMode.val() || 'none';
+    const baseline = getCurrentStockBaseline();
+
+    if (mode === 'none') {
+      $stockPreview.text(formatStock(baseline));
+      return;
+    }
+
+    let qty = Number($stockAdjustmentQty.val() || 0);
+    if (!Number.isFinite(qty) || qty < 0) qty = 0;
+
+    const next = mode === 'add' ? baseline + qty : Math.max(0, baseline - qty);
+    $stockPreview.text(formatStock(next));
+  };
+
+  const setStepperLimits = function () {
+    const mode = $stockAdjustmentMode.val() || 'none';
+    const baseline = getCurrentStockBaseline();
+
+    if (mode === 'add') {
+      $stockAdjustmentQty.attr({ min: 0, max: 9999 });
+    } else if (mode === 'subtract') {
+      $stockAdjustmentQty.attr({ min: 0, max: baseline });
+    } else {
+      $stockAdjustmentQty.attr({ min: 0, max: 0 });
+    }
+  };
+
+  const clampStockQuantity = function () {
+    let qty = Number($stockAdjustmentQty.val() || 0);
+    if (!Number.isFinite(qty) || qty < 0) qty = 0;
+    const max = Number($stockAdjustmentQty.attr('max') || 0);
+    if (qty > max) qty = max;
+    $stockAdjustmentQty.val(qty);
+    return qty;
+  };
+
+  const updateStockAdjustmentMessage = function () {
+    const mode = $stockAdjustmentMode.val() || 'none';
+    const baseline = getCurrentStockBaseline();
+    const quantity = Number($stockAdjustmentQty.val() || 0);
+    const exceedsLimit = mode === 'subtract' && quantity > baseline;
+    const zeroStock = mode === 'subtract' && (baseline === 0 || quantity === baseline);
+
+    $stockAdjustmentWarning
+      .toggleClass('d-none', exceedsLimit || !zeroStock)
+      .text(baseline === 0
+        ? 'Stock is 0, so this product is not available for orders.'
+        : 'Stock will be 0, so this product will not be available for orders.');
+  };
+
+  const refreshCurrentStockFromServer = function (isCurrent) {
+    const productId = $('#product_id').val();
+    if (!productId) return $.Deferred().resolve().promise();
+
+    const editUrl = productEditUrl(productId);
+    if (!editUrl) return $.Deferred().resolve().promise();
+
+    $stockAdjustmentError.text('');
+
+    return $.ajax({ url: editUrl, method: 'GET' })
+      .done(function (response) {
+        if (!isCurrent()) return;
+        const fresh = response?.data?.current_stock;
+        if (fresh !== undefined) setStockBaseline(fresh);
+      })
+      .fail(function () {
+        if (!isCurrent()) return;
+        $stockAdjustmentError.text('Could not refresh current stock. Please try again.');
+      });
+  };
+
+  const onStockModeChange = function () {
+    const mode = $stockAdjustmentMode.val() || 'none';
+    const enabled = mode === 'add' || mode === 'subtract';
+    const refreshingStock = mode === 'subtract';
+    const refreshSequence = ++stockRefreshSequence;
+    const isCurrent = function () {
+      return refreshSequence === stockRefreshSequence
+        && ($stockAdjustmentMode.val() || 'none') === mode;
+    };
+
+    $stockAdjustmentQty.prop('disabled', !enabled || refreshingStock).val(0);
+    $stockAdjustmentPlus.prop('disabled', !enabled || refreshingStock);
+    $stockAdjustmentMinus.prop('disabled', !enabled || refreshingStock);
+    $stockAdjustmentError.text('');
+
+    const continueWith = function () {
+      if (!isCurrent()) return;
+
+      const outOfStockForSubtraction = mode === 'subtract' && getCurrentStockBaseline() === 0;
+
+      $stockAdjustmentQty.prop('disabled', !enabled || outOfStockForSubtraction);
+      $stockAdjustmentPlus.prop('disabled', !enabled || outOfStockForSubtraction);
+      $stockAdjustmentMinus.prop('disabled', !enabled || outOfStockForSubtraction);
+      setStepperLimits();
+      clampStockQuantity();
+      recomputeStockPreview();
+      updateStockAdjustmentMessage();
+    };
+
+    if (mode === 'subtract') {
+      refreshCurrentStockFromServer(isCurrent).always(continueWith);
+      return;
+    }
+
+    continueWith();
+  };
+
+  const showStockAdjustmentWidget = function (currentStock) {
+    setStockBaseline(currentStock);
+    $stockPreview.text(formatStock(currentStock));
+    $stockCurrentWrapper.addClass('d-none');
+    $stockAdjustmentWrapper.removeClass('d-none');
+    $stockAdjustmentMode.val('none');
+    $stockAdjustmentQty.val(0).prop('disabled', true);
+    $stockAdjustmentPlus.prop('disabled', true);
+    $stockAdjustmentMinus.prop('disabled', true);
+    $stockAdjustmentError.text('');
+    $stockAdjustmentWarning.addClass('d-none').text('');
+    setStepperLimits();
+    updateStockAdjustmentMessage();
+  };
+
+  const hideStockAdjustmentWidget = function () {
+    $stockCurrentWrapper.removeClass('d-none');
+    $stockAdjustmentWrapper.addClass('d-none');
+    $stockAdjustmentMode.val('none');
+    $stockAdjustmentQty.val(0).prop('disabled', true);
+    $stockAdjustmentPlus.prop('disabled', true);
+    $stockAdjustmentMinus.prop('disabled', true);
+    $stockAdjustmentError.text('');
+    $stockAdjustmentWarning.addClass('d-none').text('');
+    $('#product_current_stock').removeData('baseline');
+  };
+
+  const fieldFeedback = function ($field) {
+    if ($field.hasClass('select2-hidden-accessible')) {
+      return $field.closest('.position-relative').find('.invalid-feedback').first();
+    }
+    return $field.siblings('.invalid-feedback').first();
+  };
+
+  const applyFieldError = function (field, message) {
+    if (!message) {
+      return;
+    }
+
+    const $field = $form.find('[name="' + field + '"]').first();
+
+    if (! $field.length) {
+      return;
+    }
+
+    $field.addClass('is-invalid');
+    if ($field.hasClass('select2-hidden-accessible')) {
+      setSelect2ErrorState($field, true);
+    }
+
+    if ($field.is('#product_stock_adjustment_quantity')) {
+      $('#product_stock_adjustment_error').text(message);
+      $stockAdjustmentWarning.addClass('d-none');
+      return;
+    }
+
+    fieldFeedback($field).text(message).addClass('d-block').css('display', 'block');
+  };
+
+  const resetValidationState = function () {
+    $form.find('.is-invalid').removeClass('is-invalid');
+    $form.find('.invalid-feedback').text('').removeClass('d-block').css('display', '');
+    setSelect2ErrorState($formCategory, false);
+    setSelect2ErrorState($formSubCategory, false);
+    setSelect2ErrorState($formDiscount, false);
+    setSelect2ErrorState($formService, false);
+  };
+
+  const ensureSelectOption = function ($select, id, text) {
+    if (!id) {
+      $select.val(null).trigger('change');
+      return;
+    }
+
+    let option = $select.find('option[value="' + id + '"]');
+
+    if (!option.length) {
+      option = new Option(text || 'Selected item', id, true, true);
+      $select.append(option);
+    }
+
+    $select.val(String(id)).trigger('change');
+  };
+
+  const initStaticSelect2 = function () {
+    const $selects = $('.select2');
+
+    if (typeof $.fn.select2 !== 'function' || !$selects.length) {
+      return;
+    }
+
+    $selects.each(function () {
+      const $this = $(this);
+
+      if ($this.data('select2')) {
+        return;
+      }
+
+      const dropdownParentSelector = $this.data('dropdown-parent');
+
+      if (!dropdownParentSelector && !$this.parent().hasClass('position-relative')) {
+        $this.wrap('<div class="position-relative"></div>');
+      }
+
+      $this.select2({
+        dropdownParent: dropdownParentSelector ? $(dropdownParentSelector) : $this.parent(),
+        placeholder: $this.data('placeholder'),
+        allowClear: Boolean($this.data('allow-clear')),
+        minimumResultsForSearch: $this.data('minimum-results-for-search') ?? 0
+      });
+    });
+  };
+
+  const initCategorySelect = function ($element) {
+    if (typeof $.fn.select2 !== 'function' || !$element.length || $element.data('select2')) {
+      return;
+    }
+
+    const dropdownParentSelector = $element.data('dropdown-parent');
+
+    if (!dropdownParentSelector && !$element.parent().hasClass('position-relative')) {
+      $element.wrap('<div class="position-relative"></div>');
+    }
+
+    $element.select2({
+      dropdownParent: dropdownParentSelector ? $(dropdownParentSelector) : $element.parent(),
+      placeholder: $element.data('placeholder'),
+      allowClear: Boolean($element.data('allow-clear')),
+      ajax: {
+        global: false, // table/dropdown has its own indicator — skip the global overlay
+        url: window.categoryDropdownUrl,
+        delay: 250,
+        dataType: 'json',
+        data: function (params) {
+          return {
+            q: params.term || '',
+            page: params.page || 1
+          };
+        },
+        processResults: function (response, params) {
+          params.page = params.page || 1;
+
+          return {
+            results: response.results || [],
+            pagination: response.pagination || { more: false }
+          };
+        }
+      }
+    }).on('change', function () {
+      setSelect2ErrorState($element, false);
+      $element.closest('.position-relative').find('.invalid-feedback').text('');
+    });
+  };
+
+  const initSubCategorySelect = function ($element, getCategoryId) {
+    if (typeof $.fn.select2 !== 'function' || !$element.length || $element.data('select2')) {
+      return;
+    }
+
+    const dropdownParentSelector = $element.data('dropdown-parent');
+
+    if (!dropdownParentSelector && !$element.parent().hasClass('position-relative')) {
+      $element.wrap('<div class="position-relative"></div>');
+    }
+
+    $element.select2({
+      dropdownParent: dropdownParentSelector ? $(dropdownParentSelector) : $element.parent(),
+      placeholder: $element.data('placeholder'),
+      allowClear: Boolean($element.data('allow-clear')),
+      ajax: {
+        global: false, // table/dropdown has its own indicator — skip the global overlay
+        url: window.subCategoryDropdownUrl,
+        delay: 250,
+        dataType: 'json',
+        data: function (params) {
+          return {
+            q: params.term || '',
+            page: params.page || 1,
+            category_id: getCategoryId()
+          };
+        },
+        processResults: function (response, params) {
+          params.page = params.page || 1;
+
+          return {
+            results: response.results || [],
+            pagination: response.pagination || { more: false }
+          };
+        }
+      }
+    }).on('select2:select', function (e) {
+      const data = e.params ? e.params.data : null;
+      if (data && data.category_id && !$formCategory.val()) {
+        ensureSelectOption($formCategory, data.category_id, data.category_name || 'Category #' + data.category_id);
+      }
+    }).on('change', function () {
+      setSelect2ErrorState($element, false);
+      $element.closest('.position-relative').find('.invalid-feedback').text('');
+    });
+  };
+
+  const initDiscountSelect = function ($element) {
+    if (typeof $.fn.select2 !== 'function' || !$element.length || $element.data('select2')) {
+      return;
+    }
+
+    const dropdownParentSelector = $element.data('dropdown-parent');
+
+    if (!dropdownParentSelector && !$element.parent().hasClass('position-relative')) {
+      $element.wrap('<div class="position-relative"></div>');
+    }
+
+    $element.select2({
+      dropdownParent: dropdownParentSelector ? $(dropdownParentSelector) : $element.parent(),
+      placeholder: $element.data('placeholder'),
+      allowClear: Boolean($element.data('allow-clear')),
+      ajax: {
+        global: false, // table/dropdown has its own indicator — skip the global overlay
+        url: window.discountDropdownUrl,
+        delay: 250,
+        dataType: 'json',
+        data: function (params) {
+          return {
+            q: params.term || '',
+            page: params.page || 1,
+            applies_to: 'item',
+            active_only: 1
+          };
+        },
+        processResults: function (response, params) {
+          params.page = params.page || 1;
+
+          return {
+            results: response.results || [],
+            pagination: response.pagination || { more: false }
+          };
+        }
+      }
+    }).on('change', function () {
+      setSelect2ErrorState($element, false);
+      $element.closest('.position-relative').find('.invalid-feedback').text('');
+    });
+  };
+
+  const initServiceSelect = function ($element) {
+    if (typeof $.fn.select2 !== 'function' || !$element.length || $element.data('select2')) {
+      return;
+    }
+
+    const dropdownParentSelector = $element.data('dropdown-parent');
+
+    if (!dropdownParentSelector && !$element.parent().hasClass('position-relative')) {
+      $element.wrap('<div class="position-relative"></div>');
+    }
+
+    $element.select2({
+      dropdownParent: dropdownParentSelector ? $(dropdownParentSelector) : $element.parent(),
+      placeholder: $element.data('placeholder'),
+      allowClear: Boolean($element.data('allow-clear')),
+      ajax: {
+        global: false, // table/dropdown has its own indicator — skip the global overlay
+        url: window.serviceDropdownUrl,
+        delay: 250,
+        dataType: 'json',
+        data: function (params) {
+          return {
+            q: params.term || '',
+            page: params.page || 1,
+            active_only: 1
+          };
+        },
+        processResults: function (response, params) {
+          params.page = params.page || 1;
+
+          return {
+            results: response.results || [],
+            pagination: response.pagination || { more: false }
+          };
+        }
+      }
+    }).on('change', function () {
+      setSelect2ErrorState($element, false);
+      $element.closest('.position-relative').find('.invalid-feedback').text('');
+    });
+  };
+
+  const clearSubCategorySelect = function ($select) {
+    $select.val(null).trigger('change');
+    $select.find('option').not(':first').remove();
+  };
+
+  const resetForm = function () {
+    $form[0].reset();
+    $('#product_id').val('');
+    $('#product_cost_price').val('');
+    $('#product_sale_price').val('');
+    $('#product_opening_stock').val('0');
+    $('#product_current_stock').val('0');
+    $('#product_minimum_stock_level').val('0');
+    $('#product_reorder_level').val('0');
+    $('#product_is_active').prop('checked', true);
+    $('#product_track_inventory_toggle').prop('checked', true);
+    const defaultTypeId = window.productTypes && Object.keys(window.productTypes).length ? Object.keys(window.productTypes)[0] : '';
+    $('#product_type').val(defaultTypeId).trigger('change');
+    ensureSelectOption($formCategory, null, null);
+    clearSubCategorySelect($formSubCategory);
+    ensureSelectOption($formDiscount, null, null);
+    ensureSelectOption($formService, null, null);
+    if (mediaManager) {
+      mediaManager.reset();
+    }
+    $('#productModalLabel').text('Add Product');
+    hideStockAdjustmentWidget();
+    setSubmitButtonState(false);
+    resetValidationState();
+    setInventoryFieldsState();
+  };
+
+  const fillForm = function (product) {
+    $('#product_id').val(product.id);
+    ensureSelectOption($formCategory, product.category_id, product.category_name);
+    ensureSelectOption($formSubCategory, product.sub_category_id, product.sub_category_name);
+    ensureSelectOption($formDiscount, product.discount_id, product.discount_label || product.discount_name);
+    ensureSelectOption($formService, product.service_id, product.service_label || product.service_name);
+    $('#product_type').val(String(product.product_type_id || '')).trigger('change');
+    $('#product_name').val(product.name);
+    $('#product_sku').val(product.sku);
+    $('#product_barcode').val(product.barcode);
+    $('#product_brand').val(product.brand);
+    $('#product_unit').val(product.unit);
+    $('#product_description').val(product.description);
+    $('#product_cost_price').val(product.cost_price);
+    $('#product_sale_price').val(product.sale_price);
+    $('#product_tax_percentage').val(product.tax_percentage);
+    $('#product_opening_stock').val(toIntStock(product.opening_stock));
+    $('#product_current_stock').val(toIntStock(product.current_stock));
+    $('#product_minimum_stock_level').val(toIntStock(product.minimum_stock_level));
+    $('#product_reorder_level').val(toIntStock(product.reorder_level));
+    $('#product_is_active').prop('checked', Boolean(product.is_active));
+    $('#product_track_inventory_toggle').prop('checked', Boolean(product.track_inventory));
+    if (mediaManager) {
+      mediaManager.loadExisting(Array.isArray(product.images) ? product.images : []);
+    }
+    $('#productModalLabel').text('Edit Product');
+    showStockAdjustmentWidget(product.current_stock);
+    setSubmitButtonState(false);
+    resetValidationState();
+    setInventoryFieldsState();
+  };
+
+  const money = function (value) {
+    const amount = Number(value || 0);
+    return ((window.appCurrencySymbol && window.appCurrencySymbol()) ||
+        (window.appCurrency && window.appCurrency.symbol) ||
+        '$') + amount.toFixed(2);
+  };
+
+  const tooltipAttrs = function (title) {
+    return window.Helpers && window.Helpers.getTooltipAttributes
+      ? window.Helpers.getTooltipAttributes(title)
+      : 'title="' + title + '"';
+  };
+
+  const actionButtonsHtml = function (row) {
+    let html = '<div class="d-flex align-items-center justify-content-center">';
+
+    if (row.can_update) {
+      html +=
+        '<button type="button" class="btn btn-sm btn-icon btn-outline-primary edit-product-btn" ' +
+        'data-id="' + row.id + '" ' +
+        'data-category-id="' + (row.category_id || '') + '" ' +
+        'data-category-name="' + escapeHtml(row.category_name || '') + '" ' +
+        'data-sub-category-id="' + (row.sub_category_id || '') + '" ' +
+        'data-sub-category-name="' + escapeHtml(row.sub_category_name || '') + '" ' +
+        'data-product-type-id="' + (row.product_type_id || '') + '" ' +
+        'data-name="' + escapeHtml(row.name) + '" ' +
+        'data-sku="' + escapeHtml(row.sku || '') + '" ' +
+        'data-barcode="' + escapeHtml(row.barcode || '') + '" ' +
+        'data-brand="' + escapeHtml(row.brand || '') + '" ' +
+        'data-unit="' + escapeHtml(row.unit || '') + '" ' +
+        'data-description="' + escapeHtml(row.description || '') + '" ' +
+        'data-cost-price="' + row.cost_price + '" ' +
+        'data-sale-price="' + row.sale_price + '" ' +
+        'data-tax-percentage="' + (row.tax_percentage || '') + '" ' +
+        'data-opening-stock="' + toIntStock(row.opening_stock) + '" ' +
+        'data-current-stock="' + toIntStock(row.current_stock) + '" ' +
+        'data-minimum-stock-level="' + toIntStock(row.minimum_stock_level) + '" ' +
+        'data-reorder-level="' + toIntStock(row.reorder_level) + '" ' +
+        'data-track-inventory="' + (row.track_inventory ? 1 : 0) + '" ' +
+        'data-is-active="' + (row.is_active ? 1 : 0) + '" ' +
+        'data-edit-url="' + escapeHtml(row.edit_url || productEditUrl(row.id)) + '" ' + tooltipAttrs('Edit') + '>' +
+        '<i class="icon-base ti tabler-edit"></i>' +
+        '</button>';
+    }
+
+    if (row.can_delete && row.delete_url) {
+      html +=
+        '<button type="button" class="btn btn-sm btn-icon btn-outline-danger delete-product-btn" ' +
+        'data-url="' + row.delete_url + '" ' +
+        'data-name="' + escapeHtml(row.name) + '" ' + tooltipAttrs('Delete') + '>' +
+        '<i class="icon-base ti tabler-trash"></i>' +
+        '</button>';
+    }
+
+    html += '</div>';
+
+    return html;
+  };
+
+  const bindFormValidation = function () {
+    if (typeof $.fn.validate !== 'function') {
+      return null;
+    }
+
+    return $form.validate({
+      ignore: [],
+      rules: {
+        product_type_id: {
+          required: false
+        },
+        name: {
+          required: true,
+          maxlength: 150
+        },
+        sku: {
+          maxlength: 80
+        },
+        barcode: {
+          maxlength: 80
+        },
+        brand: {
+          maxlength: 120
+        },
+        unit: {
+          maxlength: 50
+        },
+        description: {
+          maxlength: 2000
+        },
+        cost_price: {
+          required: false,
+          number: true,
+          min: 0
+        },
+        sale_price: {
+          required: true,
+          number: true,
+          min: 0.01
+        },
+        tax_percentage: {
+          number: true,
+          min: 0,
+          max: 100
+        },
+        opening_stock: {
+          digits: true,
+          min: 0
+        },
+        current_stock: {
+          digits: true,
+          min: 0
+        },
+        minimum_stock_level: {
+          digits: true,
+          min: 0
+        },
+        reorder_level: {
+          digits: true,
+          min: 0
+        },
+        stock_adjustment_quantity: {
+          digits: true,
+          min: 0
+        }
+      },
+      messages: {
+        sale_price: {
+          required: 'Please enter a sale price.',
+          number: 'Please enter a valid sale price.',
+          min: 'The sale price must be greater than 0.00.'
+        },
+        name: {
+          required: 'Please enter a product name.',
+          maxlength: 'The product name may not be greater than 150 characters.'
+        },
+        sku: {
+          maxlength: 'The SKU may not be greater than 80 characters.'
+        },
+        barcode: {
+          maxlength: 'The barcode may not be greater than 80 characters.'
+        },
+        brand: {
+          maxlength: 'The brand may not be greater than 120 characters.'
+        },
+        unit: {
+          maxlength: 'The unit may not be greater than 50 characters.'
+        },
+        description: {
+          maxlength: 'The description may not be greater than 2000 characters.'
+        },
+        cost_price: {
+          required: 'Please enter a cost price.',
+          number: 'Cost price must be numeric.',
+          min: 'Cost price cannot be negative.'
+        },
+        sale_price: {
+          required: 'Please enter a sale price.',
+          number: 'Sale price must be numeric.',
+          min: 'Sale price cannot be negative.'
+        },
+        tax_percentage: {
+          number: 'Tax percentage must be numeric.',
+          min: 'Tax percentage cannot be negative.',
+          max: 'Tax percentage cannot exceed 100%.'
+        },
+        opening_stock: {
+          digits: 'Opening stock must be a whole number.',
+          min: 'Opening stock cannot be negative.'
+        },
+        current_stock: {
+          digits: 'Current stock must be a whole number.',
+          min: 'Current stock cannot be negative.'
+        },
+        minimum_stock_level: {
+          digits: 'Minimum stock level must be a whole number.',
+          min: 'Minimum stock level cannot be negative.'
+        },
+        reorder_level: {
+          digits: 'Reorder level must be a whole number.',
+          min: 'Reorder level cannot be negative.'
+        },
+        stock_adjustment_quantity: {
+          digits: 'Stock adjustment must be a whole number.',
+          min: 'Stock adjustment cannot be negative.'
+        }
+      },
+      errorElement: 'div',
+      errorClass: 'jquery-validate-error',
+      errorPlacement: function (error, element) {
+        applyFieldError($(element).attr('name'), error.text());
+      },
+      highlight: function (element) {
+        const $element = $(element);
+        $element.addClass('is-invalid');
+
+        if ($element.hasClass('select2-hidden-accessible')) {
+          setSelect2ErrorState($element, true);
+        }
+      },
+      unhighlight: function (element) {
+        const $field = $(element);
+        $field.removeClass('is-invalid');
+
+        if ($field.hasClass('select2-hidden-accessible')) {
+          setSelect2ErrorState($field, false);
+        }
+
+        fieldFeedback($field).text('').removeClass('d-block').css('display', '');
+      },
+      success: function (_, element) {
+        if ($(element).is('#product_stock_adjustment_quantity')) {
+          $stockAdjustmentError.text('');
+          updateStockAdjustmentMessage();
+        }
+      }
+    });
+  };
+
+  const initDataTable = function () {
+    if (typeof DataTable === 'undefined' || !$table.length) {
+      return;
+    }
+
+    productTable = new DataTable($table[0], {
+      processing: true,
+      serverSide: true,
+      searching: true,
+      ordering: true,
+      ajax: {
+        global: false, // table/dropdown has its own indicator — skip the global overlay
+        url: window.productListingUrl,
+        data: function (d) {
+          d.status = $('#product_status').val();
+          d.category_id = $filterCategory.val();
+          d.sub_category_id = $filterSubCategory.val();
+          d.product_type_id = $('#product_type_filter').val();
+          d.track_inventory = $('#product_track_inventory').val();
+          d.sort = $('#product_sort').val();
+        }
+      },
+      pageLength: 10,
+      lengthMenu: [10, 25, 50, 100],
+      layout: {
+        topStart: {
+          search: {
+            placeholder: 'Search by name, SKU, barcode or brand',
+            text: '_INPUT_',
+            className: 'form-control'
+          }
+        },
+        topEnd: null,
+        bottomStart: {
+          rowClass: 'row mx-3 my-md-0 me-3 ms-0 justify-content-between',
+          features: [
+            'info',
+            {
+              pageLength: {
+                menu: [10, 25, 50, 100],
+                text: '_MENU_'
+              }
+            }
+          ]
+        },
+        bottomEnd: 'paging'
+      },
+      language: {
+        emptyTable: 'No products found',
+        paginate: {
+          next: '<i class="icon-base ti tabler-chevron-right scaleX-n1-rtl icon-18px"></i>',
+          previous: '<i class="icon-base ti tabler-chevron-left scaleX-n1-rtl icon-18px"></i>'
+        }
+      },
+      columns: [
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          render: function (data, type, row, meta) {
+            return meta.settings._iDisplayStart + meta.row + 1;
+          }
+        },
+        {
+          data: 'primary_image_url',
+          orderable: false,
+          searchable: false,
+          render: function (data, type, row) {
+            if (data) {
+              return '<img src="' + escapeHtml(data) + '" alt="' + escapeHtml(row.name) + '" class="rounded" style="width:40px;height:40px;object-fit:cover;">';
+            }
+
+            return '<span class="avatar avatar-sm rounded bg-label-secondary"><i class="ti tabler-photo-off"></i></span>';
+          }
+        },
+        {
+          data: 'category_name',
+          render: function (data) {
+            return '<span class="text-nowrap">' + escapeHtml(data || '—') + '</span>';
+          }
+        },
+        {
+          data: 'sub_category_name',
+          render: function (data) {
+            return '<span class="text-nowrap">' + escapeHtml(data || '—') + '</span>';
+          }
+        },
+        {
+          data: 'name',
+          render: function (data, type, row) {
+            const sku = row.sku ? '<small class="text-muted d-block">' + escapeHtml(row.sku) + '</small>' : '';
+            return '<div><span class="fw-semibold">' + escapeHtml(data) + '</span>' + sku + '</div>';
+          }
+        },
+        {
+          data: 'product_type_label',
+          render: function (data) {
+            return '<span class="badge rounded bg-label-info">' + escapeHtml(data) + '</span>';
+          }
+        },
+        {
+          data: 'sku',
+          render: function (data) {
+            return escapeHtml(data || '—');
+          }
+        },
+        {
+          data: 'brand',
+          render: function (data) {
+            return escapeHtml(data || '—');
+          }
+        },
+        {
+          data: 'sale_price',
+          render: function (data) {
+            return '<span class="text-nowrap">' + money(data) + '</span>';
+          }
+        },
+        {
+          data: null,
+          render: function (data, type, row) {
+            return '<div class="text-nowrap">' +
+              '<span class="d-block fw-medium">' + escapeHtml(toIntStock(row.current_stock)) + '</span>' +
+              '<small class="badge rounded ' + row.stock_badge_class + '">' + escapeHtml(row.stock_status_label) + '</small>' +
+              '</div>';
+          }
+        },
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          render: function (data, type, row) {
+            return '<span class="badge rounded ' + row.status_badge_class + '">' + escapeHtml(row.status_label) + '</span>';
+          }
+        },
+        {
+          data: 'created_at',
+          render: function (data) {
+            return '<span class="text-nowrap">' + escapeHtml(data || '') + '</span>';
+          }
+        },
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          className: 'text-center',
+          render: function (data, type, row) {
+            return actionButtonsHtml(row);
+          }
+        }
+      ],
+      drawCallback: function () {
+        alignProductToolbar(this.api());
+        if (window.Helpers && window.Helpers.initToolTip) {
+          window.Helpers.initToolTip(this.api().table().container());
+        }
+      }
+    });
+
+    alignProductToolbar(productTable);
+  };
+
+  const reloadTable = function () {
+    if (productTable) {
+      productTable.ajax.reload(null, false);
+    }
+  };
+
+  const bindFilters = function () {
+    $('#product_status, #product_type_filter, #product_track_inventory, #product_sort').on('change', reloadTable);
+
+    $filterCategory.on('change', function () {
+      clearSubCategorySelect($filterSubCategory);
+      reloadTable();
+    });
+
+    $filterSubCategory.on('change', reloadTable);
+  };
+
+  const bindFormInteractions = function () {
+    $trackInventoryToggle.on('change', setInventoryFieldsState);
+
+    $formCategory.on('change', function () {
+      clearSubCategorySelect($formSubCategory);
+    });
+
+    $stockAdjustmentMode.on('change', onStockModeChange);
+
+    $stockAdjustmentQty.on('input change', function () {
+      clampStockQuantity();
+      recomputeStockPreview();
+      updateStockAdjustmentMessage();
+    });
+
+    $stockAdjustmentPlus.on('click', function () {
+      if ($stockAdjustmentQty.prop('disabled')) return;
+      const max = Number($stockAdjustmentQty.attr('max') || 0);
+      const qty = Math.min(max, Number($stockAdjustmentQty.val() || 0) + 1);
+      $stockAdjustmentQty.val(qty);
+      recomputeStockPreview();
+      updateStockAdjustmentMessage();
+    });
+
+    $stockAdjustmentMinus.on('click', function () {
+      if ($stockAdjustmentQty.prop('disabled')) return;
+      const qty = Math.max(0, Number($stockAdjustmentQty.val() || 0) - 1);
+      $stockAdjustmentQty.val(qty);
+      recomputeStockPreview();
+      updateStockAdjustmentMessage();
+    });
+  };
+
+  const bindModalActions = function (validator) {
+    $(document).on('click', '#addProductBtn', function () {
+      resetForm();
+      if (validator) {
+        validator.resetForm();
+      }
+    });
+
+    $(document).on('click', '.edit-product-btn', function () {
+      const $button = $(this);
+      const editUrl = $button.data('edit-url') || productEditUrl($button.data('id'));
+
+      const modalEl = document.getElementById('productModal');
+      if (modalEl && window.bootstrap && window.bootstrap.Modal) {
+        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      }
+
+      resetForm();
+      setSubmitButtonState(true);
+
+      if (window.appLoading && typeof window.appLoading.show === 'function') {
+        window.appLoading.show('Loading product...');
+      }
+
+      $.ajax({
+        url: editUrl,
+        method: 'GET'
+      })
+        .done(function (response) {
+          fillForm(response.data || {});
+          if (validator) {
+            validator.resetForm();
+          }
+        })
+        .fail(function (xhr) {
+          if (modal) {
+            modal.hide();
+          }
+
+          showAlert('error', xhr.responseJSON?.message || 'Unable to load product details.');
+        })
+        .always(function () {
+          setSubmitButtonState(false);
+          if (window.appLoading && typeof window.appLoading.hide === 'function') {
+            window.appLoading.hide(200);
+          }
+        });
+    });
+
+    $modal.on('hidden.bs.modal', function () {
+      resetForm();
+      if (validator) {
+        validator.resetForm();
+      }
+    });
+  };
+
+  const appendServerErrors = function (errors, validator) {
+    if (errors.images && mediaManager) {
+      mediaManager.showError(errors.images[0]);
+    }
+
+    if (errors.primary_image_ref && mediaManager) {
+      mediaManager.showError(errors.primary_image_ref[0]);
+    }
+
+    if (errors.removed_image_ids && mediaManager) {
+      mediaManager.showError(errors.removed_image_ids[0]);
+    }
+
+    if (validator) {
+      validator.showErrors(Object.fromEntries(
+        Object.entries(errors).map(function (entry) {
+          return [entry[0], entry[1][0]];
+        })
+      ));
+    }
+  };
+
+  const bindSaveForm = function (validator) {
+    $form.on('submit', function (event) {
+      event.preventDefault();
+      resetValidationState();
+      if (mediaManager) {
+        mediaManager.clearError();
+      }
+
+      if (validator && !$form.valid()) {
+        return;
+      }
+
+      const formData = new FormData($form[0]);
+
+      setSubmitButtonState(true);
+      if (window.appLoading && typeof window.appLoading.show === 'function') {
+        window.appLoading.show('Saving product...');
+      }
+
+      $.ajax({
+        url: $form.attr('action'),
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false
+      })
+        .done(function (response) {
+          if (modal) {
+            modal.hide();
+          }
+
+          reloadTable();
+          showAlert('success', response.message || 'Product saved successfully.');
+        })
+        .fail(function (xhr) {
+          if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+            const errors = xhr.responseJSON.errors;
+
+            Object.entries(errors).forEach(function (entry) {
+              applyFieldError(entry[0], entry[1][0]);
+            });
+
+            if (errors.id) {
+              showAlert('error', errors.id[0]);
+            }
+
+            appendServerErrors(errors, validator);
+            return;
+          }
+
+          showAlert('error', xhr.responseJSON?.message || 'Unable to save product.');
+        })
+        .always(function () {
+          setSubmitButtonState(false);
+          if (window.appLoading && typeof window.appLoading.hide === 'function') {
+            window.appLoading.hide(200);
+          }
+        });
+    });
+  };
+
+  const bindDeleteButton = function () {
+    $(document).on('click', '.delete-product-btn', function () {
+      const $button = $(this);
+      const deleteUrl = $button.data('url');
+      const name = $button.data('name');
+
+      if (!window.PosConfirm || typeof window.PosConfirm.open !== 'function') {
+        return;
+      }
+
+      window.PosConfirm.open({
+        title: 'Delete product?',
+        message: 'This will remove "' + name + '" from the tenant catalog.',
+        confirmText: 'Yes, delete it',
+        cancelText: 'Cancel',
+        tone: 'danger',
+        onConfirm: function () {
+          return $.ajax({
+            url: deleteUrl,
+            method: 'DELETE'
+          }).then(
+            function (response) {
+              reloadTable();
+              showAlert('success', response.message || 'Product deleted successfully.');
+            },
+            function (xhr) {
+              throw new Error((xhr.responseJSON && xhr.responseJSON.message) || 'Unable to delete product.');
+            }
+          );
+        }
+      });
+    });
+  };
+
+  $(function () {
+    initStaticSelect2();
+    initCategorySelect($formCategory);
+    initCategorySelect($filterCategory);
+    initSubCategorySelect($formSubCategory, function () {
+      return $formCategory.val();
+    });
+    initDiscountSelect($formDiscount);
+    initServiceSelect($formService);
+    initSubCategorySelect($filterSubCategory, function () {
+      return $filterCategory.val();
+    });
+
+    const validator = bindFormValidation();
+
+    initDataTable();
+    bindFilters();
+    bindFormInteractions();
+    bindModalActions(validator);
+    bindSaveForm(validator);
+    bindDeleteButton();
+    resetForm();
+  });
+})(jQuery);

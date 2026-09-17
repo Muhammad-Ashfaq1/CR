@@ -3,22 +3,32 @@
 @section('title', 'Contractor Payments — ' . config('app.name'))
 
 @section('content')
-<div class="cst-page-header">
-    <div>
-        <h1 class="cst-page-title">Contractor Payments</h1>
-        <p class="cst-page-subtitle">Record and audit payments, installments, and advances made to project contractors.</p>
-    </div>
-    <div>
-        @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
-            <a href="{{ route('contractor-payments.create') }}" class="btn btn-primary">
-                <i class="ti ti-plus me-1"></i> Make Payment
-            </a>
-        @endif
+{{-- Banner Intro --}}
+<div class="pos-glass-card pos-tone-success mb-4">
+    <div class="pos-glass-intro">
+        <div class="pos-glass-intro-icon">
+            <i class="icon-base ti tabler-cash" aria-hidden="true"></i>
+        </div>
+        <div class="pos-glass-intro-content">
+            <div class="pos-glass-intro-title">
+                <h4 class="mb-1 text-heading fw-bold">Contractor Payment Vouchers</h4>
+                <span class="badge bg-label-success">Disbursement Log</span>
+            </div>
+            <p class="pos-glass-intro-subtitle mb-0">Record and audit payments, advances, milestone installments, and printable disbursement vouchers.</p>
+        </div>
+        <div class="pos-glass-intro-actions">
+            @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
+                <a href="{{ route('contractor-payments.create') }}" class="btn btn-success">
+                    <i class="icon-base ti tabler-plus me-1"></i> Make Payment
+                </a>
+            @endif
+        </div>
     </div>
 </div>
 
-<div class="cst-card mb-4">
-    <div class="cst-card-body p-3">
+{{-- Filter Toolbar --}}
+<div class="pos-glass-card pos-tone-secondary mb-4">
+    <div class="card-body p-3">
         <form method="GET" action="{{ route('contractor-payments.index') }}" class="row g-3 align-items-end">
             <div class="col-md-3">
                 <label class="form-label small">Project</label>
@@ -65,20 +75,24 @@
     </div>
 </div>
 
-{{-- Total Paid Banner --}}
-<div class="alert alert-success d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 border-0 bg-success bg-opacity-10 text-success">
-    <div class="d-flex align-items-center">
-        <i class="ti ti-cash fs-2 me-3"></i>
-        <div>
-            <div class="small fw-semibold">Filtered Total Disbursements</div>
-            <div class="fs-4 fw-bold">PKR {{ number_format($totalPaid, 0) }}</div>
+{{-- Total Paid Glass Metric --}}
+<div class="pos-glass-card pos-tone-success mb-4">
+    <div class="card-body p-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <span class="avatar avatar-md bg-label-success me-3">
+                <i class="icon-base ti tabler-cash fs-4"></i>
+            </span>
+            <div>
+                <div class="small text-muted">Filtered Total Disbursements</div>
+                <div class="fs-4 fw-bold text-success">PKR {{ number_format($totalPaid, 0) }}</div>
+            </div>
         </div>
+        <span class="badge bg-label-success fs-6">{{ $payments->total() }} Payment Vouchers</span>
     </div>
-    <span class="badge bg-success">{{ $payments->total() }} Payment Vouchers</span>
 </div>
 
-<div class="cst-card">
-    <div class="cst-card-body p-0">
+<div class="pos-listing">
+    <div class="pos-glass-card pos-tone-secondary pos-listing-panel">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead class="table-light">
@@ -103,17 +117,17 @@
                             </td>
                             <td>{{ $payment->payment_date->format('d M Y') }}</td>
                             <td>
-                                <a href="{{ route('projects.show', $payment->project) }}" class="text-dark text-decoration-none fw-semibold">
+                                <a href="{{ route('projects.show', $payment->project) }}" class="text-heading text-decoration-none fw-semibold">
                                     {{ $payment->project?->name }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{{ route('contractors.show', $payment->contractor) }}" class="text-dark text-decoration-none">
+                                <a href="{{ route('contractors.show', $payment->contractor) }}" class="text-heading text-decoration-none">
                                     {{ $payment->contractor?->name }}
                                 </a>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border">{{ $payment->payment_type->label() }}</span>
+                                <span class="badge bg-label-info">{{ $payment->payment_type->label() }}</span>
                             </td>
                             <td>
                                 <div class="small text-muted">{{ $payment->reference ?? '—' }}</div>
@@ -123,14 +137,14 @@
                             </td>
                             <td class="text-end">
                                 <a href="{{ route('contractor-payments.show', $payment) }}" class="btn btn-sm btn-outline-primary" title="View Voucher">
-                                    <i class="ti ti-file-text"></i> Voucher
+                                    <i class="icon-base ti tabler-file-text"></i> Voucher
                                 </a>
                                 @if(auth()->user()->isAdmin() || auth()->user()->isOwner())
                                     <form action="{{ route('contractor-payments.destroy', $payment) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Void this payment voucher?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Void">
-                                            <i class="ti ti-ban"></i>
+                                            <i class="icon-base ti tabler-ban"></i>
                                         </button>
                                     </form>
                                 @endif
@@ -139,22 +153,19 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="ti ti-receipt-off fs-1 d-block mb-2 opacity-50"></i>
+                                <i class="icon-base ti tabler-receipt-off fs-1 d-block mb-2 opacity-50"></i>
                                 <p class="mb-2">No contractor payments recorded.</p>
-                                @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
-                                    <a href="{{ route('contractor-payments.create') }}" class="btn btn-sm btn-primary">Make First Payment</a>
-                                @endif
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+        @if($payments->hasPages())
+            <div class="card-footer p-3">
+                {{ $payments->links() }}
+            </div>
+        @endif
     </div>
-    @if($payments->hasPages())
-        <div class="cst-card-footer p-3">
-            {{ $payments->links() }}
-        </div>
-    @endif
 </div>
 @endsection
