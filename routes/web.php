@@ -23,10 +23,11 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Profile
+    // Profile & Preferences
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/theme', [ProfileController::class, 'updateTheme'])->name('theme.update');
 
     // Admin routes
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {

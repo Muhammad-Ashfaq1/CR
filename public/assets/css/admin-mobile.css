@@ -1,0 +1,529 @@
+/* ============================================================================
+   admin-mobile.css  —  Platform Admin panel mobile responsiveness
+   ----------------------------------------------------------------------------
+   Loaded LAST in layouts/admin.blade.php (after awt-responsive.css) so it can
+   override theme values at small viewports without !important wars.
+
+   HARD RULES:
+   • Every meaningful rule lives inside a @media (max-width: …) block.
+   • Desktop (≥ 992 px) is untouched.
+   • No route, controller, or database contract is touched.
+
+   Sections:
+     §1  Shell overflow guard
+     §2  Mobile sticky header (< 992 px)
+     §3  Off-canvas sidebar touch targets (< 992 px)
+     §4  Dashboard KPI 2×2 grid + metric compaction (< 768 px)
+     §5  Traffic chart tab toggle (< 768 px)
+     §6  Table → stacked glass-card transformation (< 768 px)
+     §7  Row kebab bottom-sheet actions (< 768 px)
+     §8  Billing layout stack + touch inputs (< 768 px)
+     §9  Client detail sticky action bar (< 992 px)
+     §10 Reduced-motion overrides
+   ========================================================================== */
+
+
+/* ── §1. Shell overflow guard ───────────────────────────────────────────────
+   Prevents horizontal scroll jitter from 100vw shells while native vertical
+   scrolling stays untouched on content containers. */
+.layout-wrapper,
+.layout-container {
+    overflow-x: hidden;
+}
+
+
+/* ── §2. Mobile sticky header ───────────────────────────────────────────────
+   On phones the full navbar collapses into a tight 56 px sticky bar:
+     Left  — hamburger (44 × 44 px touch target, existing .layout-menu-toggle)
+     Center — compact "AWT Admin" badge
+     Right  — avatar dropdown
+   The bar reuses Bootstrap's .navbar-detached colour tokens. */
+@media (max-width: 991.98px) {
+    /* Ensure the top navbar stays anchored and opaque on scroll */
+    .layout-navbar.navbar-detached {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        min-height: 56px;
+        padding-top: 0;
+        padding-bottom: 0;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* Hamburger toggle — raised to the 44 × 44 px minimum touch target */
+    .layout-menu-toggle.navbar-nav .nav-link {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 1.3rem;
+    }
+
+    /* Center: compact admin badge, only visible < xl */
+    .awt-admin-brand-mobile {
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--bs-heading-color, #384551);
+        white-space: nowrap;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        pointer-events: none;
+    }
+
+    /* Avatar — minimum 44 px touch target */
+    .layout-navbar .nav-link.dropdown-toggle.p-0 {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Collapse secondary utilities (search etc.) on small screens */
+    .navbar-nav-right .navbar-nav:not(:last-child) {
+        display: none;
+    }
+}
+
+
+/* ── §3. Off-canvas sidebar touch targets ──────────────────────────────────
+   The Vuexy .layout-menu already collapses off-screen on < xl via main.js.
+   We only ensure the backdrop (.layout-overlay) intercepts taps properly and
+   the close ✕ has a proper touch target. */
+@media (max-width: 991.98px) {
+    /* Drawer width cap so it never eats the full screen on large phones */
+    #layout-menu.layout-menu {
+        max-width: 280px;
+    }
+
+    /* Close ✕ button inside the brand bar */
+    #layout-menu .layout-menu-toggle {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Overlay/backdrop: let taps pass through to close the drawer */
+    .layout-overlay.layout-menu-toggle {
+        cursor: pointer;
+    }
+
+    /* Every menu link gets a 44 px minimum tap height */
+    #layout-menu .menu-link {
+        min-height: 44px;
+    }
+}
+
+
+/* ── §4. Dashboard KPI 2 × 2 grid  ─────────────────────────────────────────
+   On phone the 4-tile row becomes a 2-column grid. Counter font compacted to
+   1.35 rem; trend captions tighten. Desktop (col-xl-3 = 4-up) unchanged. */
+@media (max-width: 767.98px) {
+    /* Force two-column on the row that holds the KPI tiles */
+    .awt-cc .col-sm-6.col-xl-3 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    /* Compact counter value */
+    .awt-cc-value {
+        font-size: 1.35rem !important;
+        margin-bottom: 4px;
+    }
+
+    /* Tighter sub-label */
+    .awt-cc-value-sub {
+        font-size: 0.72rem;
+    }
+
+    /* Tighter notes */
+    .awt-cc-note {
+        font-size: 0.72rem;
+        line-height: 1.4;
+    }
+
+    /* Banner glass card: tighten padding, stack title + pill vertically */
+    .awt-glass-intro {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Attention / risk cards — full-width, stacked */
+    .awt-cc-alert-card {
+        width: 100%;
+    }
+
+    /* Alert action buttons stretch full width */
+    .awt-cc-alert-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+    .awt-cc-alert-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+
+/* ── §5. Traffic chart tab toggle ───────────────────────────────────────────
+   On phones only one dataset is shown at a time via .awt-admin-chart-tabs.
+   admin-mobile.js drives the active/inactive toggle; this CSS provides the
+   shell and the hide/show. Desktop (≥768 px) shows both in one chart as usual. */
+@media (max-width: 767.98px) {
+    /* Tab strip above the canvas */
+    .awt-admin-chart-tabs {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .awt-admin-chart-tab-strip {
+        display: flex;
+        gap: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--bs-border-color, #e3e6ea);
+        margin-bottom: 12px;
+        align-self: flex-start;
+    }
+
+    .awt-admin-chart-tab-btn {
+        flex: 1;
+        min-height: 36px;
+        padding: 4px 16px;
+        background: transparent;
+        border: none;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--bs-secondary-color, #697a8d);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .awt-admin-chart-tab-btn.is-active {
+        background: var(--bs-primary, #696cff);
+        color: #fff;
+    }
+
+    /* Canvas height cap on mobile */
+    .awt-admin-chart-tabs .awt-cc-panel-body canvas,
+    .awt-admin-chart-tabs #trafficChart {
+        max-height: 240px;
+    }
+
+    /* Hide inactive dataset canvas; shown via JS toggle */
+    .awt-admin-chart-canvas[data-chart-target].is-hidden {
+        display: none;
+    }
+}
+
+/* On desktop the tab strip and per-canvas visibility wrappers are transparent */
+@media (min-width: 768px) {
+    .awt-admin-chart-tab-strip { display: none; }
+    .awt-admin-chart-canvas[data-chart-target].is-hidden { display: block; }
+}
+
+
+/* ── §6. Table → stacked glass-card transformation ─────────────────────────
+   Any <div class="table-responsive awt-admin-table-responsive"> becomes a card
+   stack on phones. Each <tr> renders as a glass card; <thead> hides. Column
+   labels come from data-label attributes on each <td>. */
+@media (max-width: 767.98px) {
+    .awt-admin-table-responsive table,
+    .awt-admin-table-responsive thead,
+    .awt-admin-table-responsive tbody,
+    .awt-admin-table-responsive tr,
+    .awt-admin-table-responsive td {
+        display: block;
+        width: 100%;
+    }
+
+    /* Hide desktop column headers */
+    .awt-admin-table-responsive thead {
+        display: none;
+    }
+
+    /* Each row becomes a glass card */
+    .awt-admin-table-responsive tbody tr {
+        background: var(--bs-body-bg, #fff);
+        border: 1px solid var(--bs-border-color, #e3e6ea);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        position: relative;
+    }
+
+    /* Skip empty rows (no-results colspan row) */
+    .awt-admin-table-responsive tbody tr td[colspan] {
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+    }
+
+    /* Identity td (first) — card header row: name left, status badge right */
+    .awt-admin-table-responsive td:first-child {
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--bs-border-color, #e3e6ea);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    /* Key-value label from data-label="…" attribute */
+    .awt-admin-table-responsive td[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--bs-secondary-color, #697a8d);
+        margin-bottom: 2px;
+    }
+
+    /* Tighter cell padding inside the card */
+    .awt-admin-table-responsive td {
+        padding: 4px 0;
+        border: none;
+    }
+
+    /* Actions column — full-width row at the bottom of the card */
+    .awt-admin-table-responsive td.awt-admin-actions-col,
+    .awt-admin-table-responsive td[data-label="Actions"] {
+        padding-top: 10px;
+        border-top: 1px solid var(--bs-border-color, #e3e6ea);
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+
+    /* Hide the data-label pseudo on the actions cell */
+    .awt-admin-table-responsive td.awt-admin-actions-col::before,
+    .awt-admin-table-responsive td[data-label="Actions"]::before {
+        display: none;
+    }
+}
+
+
+/* ── §7. Kebab bottom-sheet actions ─────────────────────────────────────────
+   .awt-admin-kebab is a ⋮ icon button in each action td.
+   .awt-admin-action-sheet is the bottom sheet panel it opens.
+   admin-mobile.js toggles .is-open on the sheet and a backdrop. */
+.awt-admin-action-sheet {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .awt-admin-action-sheet {
+        display: block;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--bs-body-bg, #fff);
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.18);
+        padding: 20px 16px max(20px, env(safe-area-inset-bottom));
+        z-index: 1055;
+        transform: translateY(100%);
+        transition: transform 0.25s cubic-bezier(.32, .72, 0, 1);
+    }
+
+    .awt-admin-action-sheet.is-open {
+        transform: translateY(0);
+    }
+
+    .awt-admin-action-sheet-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--bs-secondary-color, #697a8d);
+        margin-bottom: 12px;
+    }
+
+    .awt-admin-action-sheet .btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        text-align: left;
+        min-height: 44px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        justify-content: flex-start;
+    }
+
+    /* Backdrop for the bottom sheet */
+    .awt-admin-sheet-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1054;
+    }
+    .awt-admin-sheet-backdrop.is-open {
+        display: block;
+    }
+}
+
+
+/* ── §8. Billing layout stack + touch inputs ────────────────────────────────
+   Add-on pricing cards go full-width on phones, stacked vertically.
+   Telemetry counters sit side-by-side in a compact capsule.
+   Currency inputs and Save buttons meet the 44 px / 16 px touch rules. */
+@media (max-width: 767.98px) {
+    /* Stack add-on pricing cards */
+    .awt-admin-addon-card {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* Billing telemetry capsule: two-cell pill */
+    .awt-admin-telemetry-capsule {
+        display: flex;
+        gap: 0;
+        background: var(--bs-tertiary-bg, #f8f9fa);
+        border: 1px solid var(--bs-border-color, #e3e6ea);
+        border-radius: 999px;
+        overflow: hidden;
+        margin-bottom: 16px;
+    }
+
+    .awt-admin-telemetry-cell {
+        flex: 1;
+        padding: 8px 16px;
+        text-align: center;
+        font-size: 0.78rem;
+    }
+
+    .awt-admin-telemetry-cell:not(:last-child) {
+        border-right: 1px solid var(--bs-border-color, #e3e6ea);
+    }
+
+    .awt-admin-telemetry-cell strong {
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    /* Touch-optimised price inputs on the existing .awt-ap-field inputs */
+    .awt-ap-field .form-control,
+    .awt-ap-field input {
+        min-height: 44px;
+        font-size: 16px; /* prevents iOS auto-zoom on focus */
+    }
+
+    /* Save Price button — 44 px height */
+    .awt-ap-save,
+    .awt-ap-reset {
+        min-height: 44px;
+        font-size: 15px;
+    }
+
+    /* Touch-optimised currency inputs */
+    .awt-admin-touch-input,
+    .awt-admin-price-row .form-control,
+    .awt-admin-price-row .btn {
+        min-height: 44px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+
+    /* Save Price button aligns with input */
+    .awt-admin-price-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .awt-admin-price-row .form-control {
+        flex: 1;
+    }
+
+    /* Stat counters in the rate card — side-by-side compact capsule on phones */
+    .awt-ap-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .awt-ap-stat {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 0;
+    }
+}
+
+
+
+/* ── §9. Client detail sticky action bar ────────────────────────────────────
+   Save / Submit / Approve / Decline buttons anchor to the bottom of the
+   viewport on small screens so they are always reachable. */
+@media (max-width: 991.98px) {
+    .awt-admin-sticky-actions {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1010;
+        background: var(--bs-body-bg, #fff);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid var(--bs-border-color, #e3e6ea);
+        padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Each button in the sticky bar meets the 44 px touch height */
+    .awt-admin-sticky-actions .btn {
+        min-height: 44px;
+        font-size: 0.9rem;
+    }
+
+    /* Add breathing room at the bottom of the page content so the sticky bar
+       does not permanently overlap the last card. */
+    .layout-page .content-wrapper {
+        padding-bottom: 80px;
+    }
+}
+
+/* On desktop the sticky bar is invisible — the buttons stay inline in the card */
+@media (min-width: 992px) {
+    .awt-admin-sticky-actions {
+        display: none;
+    }
+}
+
+
+/* ── §10. Reduced motion ────────────────────────────────────────────────────
+   The action sheet slide and the backdrop are the only things that MOVE in
+   this file. Honour the OS preference. */
+@media (prefers-reduced-motion: reduce) {
+    .awt-admin-action-sheet {
+        transition: none;
+    }
+}

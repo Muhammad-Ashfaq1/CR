@@ -1,0 +1,715 @@
+/* ==========================================================================
+   Ask AI — floating help widget
+   ==========================================================================
+
+   A glassmorphic popover anchored bottom-right, above everything except a
+   modal.
+
+   ── Colour comes from the theme, never from this file ─────────────────────
+
+   Every surface, border, accent and text colour below is derived from the
+   Bootstrap custom properties the AWT themes already set, so the panel follows
+   Sky / Lake / Eggplant / Dark / High-contrast without a per-theme rule:
+
+     --bs-body-bg            the glass tint
+     --bs-body-color         body text
+     --bs-primary-rgb        the accent: gradient, chips, focus ring, send
+     --bs-emphasis-color-rgb hairlines and the assistant bubble fill
+     --bs-secondary-color    muted text (subtitle, disclaimer, typing dots)
+     --bs-success-rgb        the online dot
+     --bs-danger-rgb         the error bubble
+
+   The two-tone gradient is built by deepening --bs-primary against itself
+   rather than by mixing in a fixed second hue, so an Eggplant workspace gets a
+   purple gradient and a Sky one gets cyan — no hard-coded brand colour.
+
+   Two variants need more than variables and get an explicit block at the
+   bottom: High-contrast (which removes translucency by design) and the dark
+   theme's blanket !important on bare <textarea>.
+
+   No Tailwind in this application — the stack is Bootstrap 5 plus per-feature
+   stylesheets — so the design spec's utility classes are expressed here as
+   real declarations, with the intent named in a comment where it is not
+   obvious.
+   ========================================================================== */
+
+.awt-askai {
+    /* Below Bootstrap's modal (1055) so a dialog still covers it, above the
+       fixed navbar and the sticky table headers. */
+    --awt-askai-z: 1040;
+    --awt-askai-radius: 1rem;
+
+    /* Neutral ink, used for hairlines and low-opacity fills. Falls back to
+       black on a theme that has not defined the emphasis colour, which is the
+       correct guess on the light variants. */
+    --awt-askai-ink: var(--bs-emphasis-color-rgb, 0, 0, 0);
+
+    /* The accent gradient: the theme's own primary, deepened. */
+    --awt-askai-grad: linear-gradient(135deg,
+        rgb(var(--bs-primary-rgb)) 0%,
+        color-mix(in srgb, rgb(var(--bs-primary-rgb)) 72%, #000) 100%);
+
+    --awt-askai-grad-lit: linear-gradient(135deg,
+        color-mix(in srgb, rgb(var(--bs-primary-rgb)) 88%, #fff) 0%,
+        rgb(var(--bs-primary-rgb)) 100%);
+}
+
+/* color-mix is recent. Without it the gradient stops resolve to nothing, so
+   name a plain flat accent instead — a degraded look rather than a broken one.
+   Same reasoning as the panel fallback further down. */
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+    .awt-askai {
+        --awt-askai-grad: linear-gradient(135deg,
+            rgba(var(--bs-primary-rgb), 1) 0%,
+            rgba(var(--bs-primary-rgb), 0.78) 100%);
+        --awt-askai-grad-lit: var(--awt-askai-grad);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   core.css declares its display utilities !important AFTER the [hidden] reset,
+   so anything carrying both `hidden` and a display rule stays visible. The
+   panel is a flex column that toggles with the hidden attribute, so restate
+   the reset here, at the end of the cascade.
+   -------------------------------------------------------------------------- */
+.awt-askai [hidden] {
+    display: none !important;
+}
+
+/* ============================ Launcher ================================== */
+
+.awt-askai-fab {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: var(--awt-askai-z);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    padding: 0;
+
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 1.35rem;
+    background: var(--awt-askai-grad);
+    box-shadow:
+        0 10px 24px -8px rgba(var(--bs-primary-rgb), 0.55),
+        0 2px 6px rgba(0, 0, 0, 0.18);
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.awt-askai-fab:hover,
+.awt-askai-fab:focus-visible {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow:
+        0 16px 32px -10px rgba(var(--bs-primary-rgb), 0.65),
+        0 3px 8px rgba(0, 0, 0, 0.22);
+    outline: none;
+}
+
+.awt-askai-fab[aria-expanded="true"] {
+    /* The panel covers it; keeping it visible under a translucent surface
+       reads as a rendering fault. */
+    opacity: 0;
+    pointer-events: none;
+}
+
+@media (max-width: 575.98px) {
+    .awt-askai-fab {
+        right: 1rem;
+        bottom: 1rem;
+    }
+}
+
+/* ============================== Panel =================================== */
+
+.awt-askai-panel {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: var(--awt-askai-z);
+
+    display: flex;
+    flex-direction: column;
+    width: min(23.5rem, calc(100vw - 2rem));
+    height: min(36rem, calc(100vh - 3rem));
+    max-height: calc(100vh - 3rem);
+
+    border-radius: var(--awt-askai-radius);
+    border: 1px solid rgba(var(--awt-askai-ink), 0.12);
+    overflow: hidden;
+
+    /* The glass. A translucent tint of the page's own surface colour rather
+       than a fixed slate, so it sits correctly on a light or a dark theme
+       without being re-specified per theme. */
+    background: color-mix(in srgb, var(--bs-body-bg) 85%, transparent);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    color: var(--bs-body-color);
+
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.45),
+        0 0 0 1px rgba(var(--awt-askai-ink), 0.04) inset;
+
+    /* Entrance/exit. The exit is why open/close is JS state rather than the
+       hidden attribute alone: an element flipped to display:none cannot
+       animate out. */
+    transform-origin: 100% 100%;
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.96);
+    transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.awt-askai-panel.is-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Browsers without color-mix get a solid surface. */
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+    .awt-askai-panel {
+        background: var(--bs-body-bg);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .awt-askai-panel {
+        right: 0.75rem;
+        bottom: 0.75rem;
+        max-height: calc(100vh - 1.5rem);
+        border-radius: var(--awt-askai-radius);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-askai-panel {
+        transition: opacity 0.01ms linear;
+        transform: none;
+    }
+
+    .awt-askai-panel.is-open {
+        transform: none;
+    }
+}
+
+/* ------------------------------- Head ---------------------------------- */
+
+.awt-askai-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+
+    background: var(--awt-askai-grad);
+    color: #fff;
+    border-bottom: none;
+}
+
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+    .awt-askai-head {
+        background: rgb(var(--bs-primary-rgb));
+    }
+}
+
+.awt-askai-head-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    text-align: center;
+    min-width: 0;
+}
+
+/* The gradient AI badge. */
+.awt-askai-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+
+    border-radius: 0.625rem;
+    color: #fff;
+    font-size: 1rem;
+    background: var(--awt-askai-grad);
+    box-shadow: 0 6px 14px -6px rgba(var(--bs-primary-rgb), 0.8);
+}
+
+.awt-askai-head-title strong {
+    display: block;
+    line-height: 1.2;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.awt-askai-head-title small {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.75rem;
+    line-height: 1.3;
+}
+
+/* Pulsing online dot. */
+.awt-askai-dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background: rgb(var(--bs-success-rgb));
+    box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0.7);
+    flex: none;
+    animation: awt-askai-pulse 2s infinite;
+}
+
+@keyframes awt-askai-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0.7); }
+    70%  { box-shadow: 0 0 0 0.35rem rgba(var(--bs-success-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-askai-dot {
+        animation: none;
+    }
+}
+
+.awt-askai-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    flex: none;
+    font-size: 1.25rem;
+
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.awt-askai-close:hover,
+.awt-askai-close:focus-visible {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    outline: none;
+}
+
+/* ------------------------------ Transcript ------------------------------ */
+
+.awt-askai-log {
+    flex: 1 1 auto;
+    min-height: 6rem;
+    padding: 0.875rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--awt-askai-ink), 0.25) transparent;
+}
+
+.awt-askai-log::-webkit-scrollbar {
+    width: 0.5rem;
+}
+
+.awt-askai-log::-webkit-scrollbar-thumb {
+    background: rgba(var(--awt-askai-ink), 0.25);
+    border-radius: 999px;
+}
+
+.awt-askai-log::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-askai-log {
+        scroll-behavior: auto;
+    }
+}
+
+.awt-askai-msg {
+    display: flex;
+    margin-bottom: 0.625rem;
+    animation: awt-askai-rise 0.22s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes awt-askai-rise {
+    from { opacity: 0; transform: translateY(0.375rem); }
+    to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-askai-msg {
+        animation: none;
+    }
+}
+
+.awt-askai-msg--user {
+    justify-content: flex-end;
+}
+
+.awt-askai-bubble {
+    max-width: 88%;
+    padding: 0.6875rem 0.8125rem;
+    border-radius: var(--awt-askai-radius);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    /* Answers arrive as plain text with newlines and numbered steps; preserve
+       them without letting a long URL blow the panel open. */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Assistant: a low-opacity wash of the theme's ink on a matching hairline, so
+   it reads as raised on a light theme and inset on a dark one. Square
+   top-left corner so the bubble points back at the sender. */
+.awt-askai-msg--bot .awt-askai-bubble {
+    background: rgba(var(--awt-askai-ink), 0.06);
+    border: 1px solid rgba(var(--awt-askai-ink), 0.1);
+    border-top-left-radius: 0.25rem;
+}
+
+/* Domain words the welcome bubble picks out. Also applies to any <strong> in
+   a server-rendered bubble; model answers are inserted as text and can never
+   carry markup (see ask-ai-widget.js). */
+.awt-askai-bubble strong {
+    color: var(--bs-heading-color, var(--bs-body-color));
+    font-weight: 600;
+}
+
+.awt-askai-msg--user .awt-askai-bubble {
+    background: var(--awt-askai-grad);
+    color: #fff;
+    border-top-right-radius: 0.25rem;
+    box-shadow: 0 6px 16px -8px rgba(var(--bs-primary-rgb), 0.8);
+}
+
+.awt-askai-msg--error .awt-askai-bubble {
+    background: rgba(var(--bs-danger-rgb), 0.12);
+    border: 1px solid rgba(var(--bs-danger-rgb), 0.4);
+    border-top-left-radius: 0.25rem;
+}
+
+/* Typing indicator */
+.awt-askai-typing {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    padding: 0.75rem 0.8125rem;
+}
+
+.awt-askai-typing span {
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 50%;
+    background: var(--bs-secondary-color);
+    animation: awt-askai-bounce 1.2s infinite ease-in-out;
+}
+
+.awt-askai-typing span:nth-child(2) { animation-delay: 0.15s; }
+.awt-askai-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes awt-askai-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+    30%           { transform: translateY(-0.25rem); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-askai-typing span {
+        animation: none;
+    }
+}
+
+/* -------------------------------- Chips --------------------------------- */
+
+.awt-askai-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0 0.875rem 0.75rem;
+}
+
+.awt-askai-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.625rem;
+
+    border-radius: 0.75rem;
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.3);
+    background: rgba(var(--bs-primary-rgb), 0.07);
+    color: var(--bs-body-color);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    text-align: left;
+
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+                color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.awt-askai-chip i {
+    font-size: 0.875rem;
+    flex: none;
+    opacity: 0.8;
+}
+
+/* The glow, in the theme's accent. Kept to a soft halo rather than a hard
+   ring — at chip size a strong glow bleeds into the neighbouring chip. */
+.awt-askai-chip:hover,
+.awt-askai-chip:focus-visible {
+    background: rgba(var(--bs-primary-rgb), 0.16);
+    border-color: rgba(var(--bs-primary-rgb), 0.6);
+    color: var(--bs-body-color);
+    box-shadow: 0 0 0.75rem -0.1rem rgba(var(--bs-primary-rgb), 0.45);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.awt-askai-chip:hover i,
+.awt-askai-chip:focus-visible i {
+    opacity: 1;
+    color: rgb(var(--bs-primary-rgb));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-askai-chip:hover,
+    .awt-askai-chip:focus-visible {
+        transform: none;
+    }
+}
+
+/* -------------------------------- Form ---------------------------------- */
+
+.awt-askai-form {
+    padding: 0.625rem 0.875rem;
+    border-top: 1px solid rgba(var(--awt-askai-ink), 0.1);
+}
+
+/* The inset well that holds the textarea and the send button.
+   The border AND the focus state live here, not on the textarea, so focusing
+   the field lights the whole bar instead of drawing a second rectangle inside
+   an already-bordered box. */
+.awt-askai-inputwrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0.3125rem 0.3125rem 0.3125rem 0.625rem;
+
+    border: 1px solid rgba(var(--awt-askai-ink), 0.15);
+    border-radius: 0.75rem;
+    background: rgba(var(--awt-askai-ink), 0.04);
+
+    /* Keeps the corners clean. Safe for the focus ring below: an element's own
+       box-shadow is not clipped by its own overflow — only its children are. */
+    overflow: hidden;
+
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.awt-askai-inputwrap:focus-within {
+    border-color: rgba(var(--bs-primary-rgb), 0.8);
+    box-shadow: 0 0 0 0.15rem rgba(var(--bs-primary-rgb), 0.4);
+}
+
+.awt-askai-input {
+    flex: 1 1 auto;
+    min-height: 1.75rem;
+    max-height: 7rem;
+    padding: 0.375rem 0;
+    resize: none;
+
+    border: 0;
+    background: transparent;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+/* Kill the native focus rectangle on the inner field.
+   The browser draws `outline: auto 1px` on a focused textarea; inside a well
+   that already lights up on :focus-within that reads as a rendering fault, and
+   it is what this rule exists to remove.
+
+   Removing an outline is only safe when something replaces it — here the
+   wrapper's ring above is the focus indicator, so the field never loses a
+   visible focused state. (The high-contrast theme is handled separately at the
+   bottom of this file; it must NOT simply lose its ring.) */
+.awt-askai .awt-askai-input:focus,
+.awt-askai .awt-askai-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+    border-color: transparent;
+}
+
+/* The dark theme paints every bare <textarea> with
+   `background-color: var(--bs-tertiary-bg) !important` (awt-themes.css:272),
+   which draws a second, differently-coloured box inside the input well. The
+   well supplies the surface, so this textarea opts out — and only !important
+   can reach past an !important. */
+.awt-askai .awt-askai-input {
+    background-color: transparent !important;
+    color: var(--bs-body-color) !important;
+}
+
+/* Specificity, not !important: the theme's placeholder rule is not marked. */
+.awt-askai .awt-askai-input::placeholder {
+    color: var(--bs-secondary-color);
+    opacity: 0.85;
+}
+
+.awt-askai-send {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+
+    border: 0;
+    border-radius: 0.625rem;
+    color: #fff;
+    background: var(--awt-askai-grad);
+    box-shadow: 0 8px 18px -8px rgba(var(--bs-primary-rgb), 0.75);
+    transition: filter 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+
+.awt-askai-send:hover:not(:disabled),
+.awt-askai-send:focus-visible:not(:disabled) {
+    background: var(--awt-askai-grad-lit);
+    box-shadow: 0 10px 22px -8px rgba(var(--bs-primary-rgb), 0.85);
+    outline: none;
+}
+
+.awt-askai-send:disabled {
+    opacity: 0.45;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.awt-askai-foot {
+    margin: 0;
+    padding: 0.5rem 0.875rem 0.75rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.6875rem;
+    line-height: 1.4;
+}
+
+/*
+ * Sponsored-trial counter, under the header.
+ *
+ * Amber because it is a countdown, not a status: the agent should register
+ * that these scans are finite before the eighth one stops them. It disappears
+ * entirely once the organization takes over the cost — a paying customer has
+ * no allowance to watch.
+ */
+.awt-askai-meter {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.4375rem 0.875rem;
+    border-block-end: 1px solid rgba(var(--awt-askai-ink), 0.1);
+    background: rgba(var(--bs-warning-rgb), 0.1);
+    color: rgb(var(--bs-warning-rgb));
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.awt-askai-meter i {
+    font-size: 0.875rem;
+}
+
+/* ======================= High-contrast variant ==========================
+
+   That variant exists to remove ambiguity: pure black surfaces, white
+   borders, no translucency (see the block in awt-themes.css). A blurred
+   translucent panel is precisely what it is meant to eliminate, so opt out of
+   the glass here rather than let an accessibility theme inherit it.
+
+   !important throughout, matching that file: several of the rules being
+   overridden are themselves !important, and a variant that loses a
+   specificity race is worse than no variant at all.
+   ======================================================================== */
+
+html.awt-theme-high-contrast .awt-askai-panel {
+    background: #000 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: none !important;
+}
+
+html.awt-theme-high-contrast .awt-askai-head,
+html.awt-theme-high-contrast .awt-askai-form {
+    background: #000 !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+html.awt-theme-high-contrast .awt-askai-msg--bot .awt-askai-bubble,
+html.awt-theme-high-contrast .awt-askai-chip,
+html.awt-theme-high-contrast .awt-askai-inputwrap {
+    background: #000 !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: #fff !important;
+}
+
+html.awt-theme-high-contrast .awt-askai-chip:hover,
+html.awt-theme-high-contrast .awt-askai-chip:focus-visible {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+}
+
+/* The focused input, in high contrast.
+ *
+ * That variant paints `outline: 3px solid #fbbf24 !important` on EVERY
+ * :focus-visible (awt-themes.css:1501) — a deliberate accessibility ring, not
+ * a browser default, and the one focus indicator a high-contrast user relies
+ * on. So the amber is not removed here, it is MOVED: off the bare textarea,
+ * onto the wrapper, so the whole input bar carries it.
+ *
+ * Net effect for that user: same colour, same 3px, same offset, drawn around
+ * the field they are typing in rather than inside it. The tinted focus-within
+ * ring the other themes use is dropped, because this variant does not do
+ * translucency. */
+html.awt-theme-high-contrast .awt-askai .awt-askai-input:focus,
+html.awt-theme-high-contrast .awt-askai .awt-askai-input:focus-visible {
+    outline: none !important;
+}
+
+html.awt-theme-high-contrast .awt-askai-inputwrap:focus-within {
+    outline: 3px solid #fbbf24 !important;
+    outline-offset: 2px !important;
+    border-color: #fff !important;
+    box-shadow: none !important;
+}
+
+html.awt-theme-high-contrast .awt-askai-chip:hover i,
+html.awt-theme-high-contrast .awt-askai-chip:focus-visible i {
+    color: #000 !important;
+}
+
+/* The accent surfaces stay filled — they carry white text and must not become
+   black-on-black — but lose the gradient and the glow. */
+html.awt-theme-high-contrast .awt-askai-fab,
+html.awt-theme-high-contrast .awt-askai-badge,
+html.awt-theme-high-contrast .awt-askai-send,
+html.awt-theme-high-contrast .awt-askai-msg--user .awt-askai-bubble {
+    background: rgb(var(--bs-primary-rgb)) !important;
+    color: #000 !important;
+    box-shadow: none !important;
+}

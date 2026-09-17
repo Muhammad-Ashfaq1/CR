@@ -1,0 +1,1975 @@
+/*
+ * Compliance UI — shared by the tenant's upload console (Tenant → Compliance)
+ * and the reviewer's case page (Super Admin → Telecom Compliance).
+ *
+ * One file on purpose: the two screens are opposite ends of the same workflow
+ * and a document that reads "Uploaded · In Review" in amber on one of them must
+ * not read something else on the other. The pills, the state badges, the file
+ * slots and the dropzone are defined once here; each page adds only its own
+ * layout on top (.awt-cmp-* for the tenant console, .awt-acmp-* for the
+ * reviewer's table and its action column).
+ *
+ * Built on the shared glass surfaces in awt-glass.css rather than beside them —
+ * this file only adds what a document workflow needs and that file does not
+ * have: a verification progress header, dropzone slots, requirement/state pills
+ * and the sticky submit bar.
+ *
+ * Everything is expressed against the theme's own variables (--bs-primary,
+ * --bs-body-color, …) so the page is slate glass under [data-bs-theme="dark"]
+ * and light glass in the default theme, with one set of rules. There is no
+ * hard-coded slate hex anywhere below for that reason: a tenant on the light
+ * theme would otherwise get one black panel in the middle of a white page.
+ *
+ * Naming: .awt-cmp-* — "compliance". Scoped to this page by construction; the
+ * only shared classes it touches are the ones it deliberately reuses from
+ * awt-glass.css.
+ */
+
+.awt-cmp {
+    /* Semantic accents, once, so a badge and its glow can never drift apart. */
+    --awt-cmp-indigo: var(--bs-primary-rgb);
+    --awt-cmp-amber: var(--bs-warning-rgb);
+    --awt-cmp-emerald: var(--bs-success-rgb);
+    --awt-cmp-danger: var(--bs-danger-rgb);
+    --awt-cmp-radius: 0.875rem;
+
+    /* The neutral the dropzones and slots sit on. Reads as a recessed well in
+       both themes: slightly darker than the card in light, slightly lighter in
+       dark, because "recessed" is about contrast with the card, not about grey. */
+    --awt-cmp-well: rgba(47, 43, 61, 0.025);
+    --awt-cmp-well-border: rgba(47, 43, 61, 0.14);
+    --awt-cmp-hairline: rgba(47, 43, 61, 0.08);
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+[data-bs-theme="dark"] .awt-cmp {
+    --awt-cmp-well: rgba(255, 255, 255, 0.03);
+    --awt-cmp-well-border: rgba(255, 255, 255, 0.13);
+    --awt-cmp-hairline: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Verification progress header ───────────────────────────────────── */
+
+.awt-cmp-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem 1.5rem;
+    padding: 1.375rem 1.5rem;
+}
+
+.awt-cmp-hero-main {
+    flex: 1 1 22rem;
+    min-width: 0;
+}
+
+.awt-cmp-hero-title {
+    margin: 0 0 0.25rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-cmp-hero-subtitle {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--bs-secondary-color);
+    text-wrap: pretty;
+}
+
+/* The meter. `--awt-cmp-pct` is written by the server as an inline style, so
+   the bar is correct in the HTML before a line of JavaScript runs, and the
+   uploader only ever updates that one custom property afterwards. */
+.awt-cmp-meter {
+    margin-block-start: 1rem;
+    max-inline-size: 34rem;
+}
+
+.awt-cmp-meter-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-block-end: 0.4375rem;
+}
+
+.awt-cmp-meter-count {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-cmp-meter-count strong {
+    font-weight: 700;
+    color: rgb(var(--awt-cmp-indigo));
+}
+
+.awt-cmp-meter-pct {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+    font-variant-numeric: tabular-nums;
+}
+
+.awt-cmp-meter-track {
+    position: relative;
+    block-size: 0.5rem;
+    border-radius: 999px;
+    background-color: var(--awt-cmp-well);
+    border: 1px solid var(--awt-cmp-hairline);
+    overflow: hidden;
+}
+
+/* Illuminated: the fill carries its own bloom rather than the track glowing,
+   so an empty meter is quiet and a full one is unmistakable. */
+.awt-cmp-meter-fill {
+    display: block;
+    block-size: 100%;
+    inline-size: var(--awt-cmp-pct, 0%);
+    border-radius: inherit;
+    background-image: linear-gradient(
+        90deg,
+        rgba(var(--awt-cmp-indigo), 0.75) 0%,
+        rgba(var(--awt-cmp-indigo), 1) 100%
+    );
+    box-shadow: 0 0 12px rgba(var(--awt-cmp-indigo), 0.55);
+    transition: inline-size 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-image 0.3s ease;
+}
+
+.awt-cmp-meter.is-complete .awt-cmp-meter-fill {
+    background-image: linear-gradient(
+        90deg,
+        rgba(var(--awt-cmp-emerald), 0.75) 0%,
+        rgba(var(--awt-cmp-emerald), 1) 100%
+    );
+    box-shadow: 0 0 12px rgba(var(--awt-cmp-emerald), 0.55);
+}
+
+.awt-cmp-meter.is-complete .awt-cmp-meter-count strong {
+    color: rgb(var(--awt-cmp-emerald));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-cmp-meter-fill {
+        transition: none;
+    }
+}
+
+/* Trust line. Deliberately a statement of fact about transport and access, not
+   a badge of a certification this platform does not hold. */
+.awt-cmp-trust {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    margin-block-start: 0.875rem;
+    padding: 0.3125rem 0.625rem;
+    border: 1px solid rgba(var(--awt-cmp-emerald), 0.22);
+    border-radius: 999px;
+    background-color: rgba(var(--awt-cmp-emerald), 0.08);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: rgb(var(--awt-cmp-emerald));
+}
+
+.awt-cmp-trust i {
+    font-size: 0.875rem;
+}
+
+.awt-cmp-hero-aside {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+}
+
+/* Back link under the status pill. Was a Bootstrap mt-2; the aside's own gap
+   already spaces it, so on desktop this keeps the same 0.5rem + 0.5rem. */
+.awt-cmp-hero-back {
+    margin-block-start: 0.5rem;
+}
+
+/* ── The overall status indicator ───────────────────────────────────── */
+
+.awt-cmp-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    padding: 0.4375rem 0.875rem;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--awt-cmp-tone), 0.32);
+    background-color: rgba(var(--awt-cmp-tone), 0.12);
+    box-shadow: 0 0 0 4px rgba(var(--awt-cmp-tone), 0.06),
+        0 6px 18px -10px rgba(var(--awt-cmp-tone), 0.7);
+    color: rgb(var(--awt-cmp-tone));
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.awt-cmp-status--warning  { --awt-cmp-tone: var(--awt-cmp-amber); }
+.awt-cmp-status--info     { --awt-cmp-tone: var(--awt-cmp-indigo); }
+.awt-cmp-status--success  { --awt-cmp-tone: var(--awt-cmp-emerald); }
+.awt-cmp-status--danger   { --awt-cmp-tone: var(--awt-cmp-danger); }
+
+.awt-cmp-status-note {
+    max-inline-size: 15rem;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    text-align: end;
+    color: var(--bs-secondary-color);
+}
+
+/* ── Two-column grid ────────────────────────────────────────────────── */
+
+.awt-cmp-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (min-width: 992px) {
+    .awt-cmp-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.awt-cmp-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.awt-cmp-col-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-inline-start: 0.125rem;
+}
+
+.awt-cmp-col-title {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-col-lead {
+    margin: 0 0 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.awt-cmp-feature-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.awt-cmp-col-rule {
+    flex: 1 1 auto;
+    block-size: 1px;
+    background-image: linear-gradient(90deg, var(--awt-cmp-hairline), transparent);
+}
+
+/* ── The document card ──────────────────────────────────────────────── */
+
+.awt-cmp-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1.25rem;
+}
+
+.awt-cmp-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.awt-cmp-card-title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-cmp-card-desc {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--bs-secondary-color);
+    text-wrap: pretty;
+}
+
+/* ── Pills: what the document IS, and what STATE it is in ───────────── */
+
+.awt-cmp-pill,
+.awt-cmp-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.awt-cmp-pill--required {
+    border-color: rgba(var(--awt-cmp-indigo), 0.2);
+    background-color: rgba(var(--awt-cmp-indigo), 0.1);
+    color: rgb(var(--awt-cmp-indigo));
+}
+
+.awt-cmp-pill--porting {
+    border-color: var(--awt-cmp-well-border);
+    background-color: rgba(var(--bs-info-rgb), 0.1);
+    color: rgb(var(--bs-info-rgb));
+}
+
+.awt-cmp-pill--optional {
+    border-color: var(--awt-cmp-hairline);
+    background-color: var(--awt-cmp-well);
+    color: var(--bs-secondary-color);
+}
+
+/* State badges glow; requirement pills do not. The glow is the thing the eye
+   scans down the column for — "where am I not done yet" — so only the states
+   that answer that question carry one. */
+.awt-cmp-state--missing {
+    border-color: var(--awt-cmp-hairline);
+    background-color: var(--awt-cmp-well);
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-state--review {
+    border-color: rgba(var(--awt-cmp-amber), 0.28);
+    background-color: rgba(var(--awt-cmp-amber), 0.12);
+    color: rgb(var(--awt-cmp-amber));
+    box-shadow: 0 0 10px -2px rgba(var(--awt-cmp-amber), 0.45);
+}
+
+.awt-cmp-state--verified {
+    border-color: rgba(var(--awt-cmp-emerald), 0.28);
+    background-color: rgba(var(--awt-cmp-emerald), 0.12);
+    color: rgb(var(--awt-cmp-emerald));
+    box-shadow: 0 0 10px -2px rgba(var(--awt-cmp-emerald), 0.45);
+}
+
+.awt-cmp-state--action {
+    border-color: rgba(var(--awt-cmp-danger), 0.28);
+    background-color: rgba(var(--awt-cmp-danger), 0.12);
+    color: rgb(var(--awt-cmp-danger));
+    box-shadow: 0 0 10px -2px rgba(var(--awt-cmp-danger), 0.45);
+}
+
+/* ── Dropzone (empty state) ─────────────────────────────────────────── */
+
+/*
+ * The file input is not hidden — it is stretched, transparent, over the whole
+ * dropzone. That is what makes click-to-browse and drop-to-upload work with no
+ * JavaScript at all: the browser's own file input accepts a drop. The script
+ * adds the highlight and the preview, and the control degrades to a plain,
+ * working file picker if it never loads.
+ */
+.awt-cmp-dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 1.5rem 1rem;
+    border: 1px dashed var(--awt-cmp-well-border);
+    border-radius: var(--awt-cmp-radius);
+    background-color: var(--awt-cmp-well);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.awt-cmp-dropzone:hover,
+.awt-cmp-dropzone.is-dragover {
+    border-color: rgba(var(--awt-cmp-indigo), 0.5);
+    background-color: rgba(var(--awt-cmp-indigo), 0.05);
+}
+
+.awt-cmp-dropzone.is-dragover {
+    box-shadow: 0 0 0 4px rgba(var(--awt-cmp-indigo), 0.1);
+}
+
+/* Keyboard users get the same ring the pointer users get from :hover. */
+.awt-cmp-dropzone:focus-within {
+    border-color: rgba(var(--awt-cmp-indigo), 0.6);
+    box-shadow: 0 0 0 4px rgba(var(--awt-cmp-indigo), 0.14);
+}
+
+/* A category that already holds a document only needs a way to replace it, not
+   an invitation the size of an empty slot. */
+.awt-cmp-dropzone--compact {
+    flex-direction: row;
+    gap: 0.5rem;
+    padding: 0.625rem 0.875rem;
+}
+
+.awt-cmp-dropzone--compact .awt-cmp-dropzone-icon {
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    font-size: 0.9375rem;
+}
+
+.awt-cmp-dropzone--compact .awt-cmp-dropzone-text {
+    font-size: 0.75rem;
+}
+
+.awt-cmp-dropzone-input {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.awt-cmp-dropzone-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: 0.625rem;
+    background-color: rgba(var(--awt-cmp-indigo), 0.1);
+    color: rgb(var(--awt-cmp-indigo));
+    font-size: 1.125rem;
+}
+
+.awt-cmp-dropzone-text {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--bs-body-color);
+}
+
+.awt-cmp-dropzone-hint {
+    font-size: 0.6875rem;
+    color: var(--bs-secondary-color);
+}
+
+/* ── File slot: a pending selection, or a stored document ───────────── */
+
+.awt-cmp-slot {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: var(--awt-cmp-radius);
+    background-color: var(--awt-cmp-well);
+}
+
+.awt-cmp-slot + .awt-cmp-slot {
+    margin-block-start: 0.5rem;
+}
+
+/* A removal is in flight. The row stays legible — it is still there, and may
+   come back if the request fails — but stops accepting clicks. */
+.awt-cmp-slot.is-removing {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.awt-cmp-slot--pending {
+    border-color: rgba(var(--awt-cmp-indigo), 0.28);
+    background-color: rgba(var(--awt-cmp-indigo), 0.05);
+}
+
+.awt-cmp-slot-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: 0.5rem;
+    background-color: rgba(var(--awt-cmp-tone, var(--awt-cmp-indigo)), 0.12);
+    color: rgb(var(--awt-cmp-tone, var(--awt-cmp-indigo)));
+    font-size: 1.125rem;
+}
+
+.awt-cmp-slot-icon--pdf   { --awt-cmp-tone: var(--awt-cmp-danger); }
+.awt-cmp-slot-icon--image { --awt-cmp-tone: var(--awt-cmp-emerald); }
+.awt-cmp-slot-icon--doc   { --awt-cmp-tone: var(--bs-info-rgb); }
+
+.awt-cmp-slot-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.awt-cmp-slot-name {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--bs-heading-color, var(--bs-body-color));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-cmp-slot-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin-block-start: 0.1875rem;
+    font-size: 0.6875rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-slot-meta .awt-cmp-state {
+    padding-block: 0.0625rem;
+}
+
+.awt-cmp-slot-notes {
+    margin: 0.375rem 0 0;
+    padding: 0.4375rem 0.5rem;
+    border-inline-start: 2px solid rgba(var(--awt-cmp-danger), 0.5);
+    border-radius: 0.25rem;
+    background-color: rgba(var(--awt-cmp-danger), 0.06);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+}
+
+.awt-cmp-slot-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Small, quiet, icon-led actions: the file name is the content of the row and
+   three word-buttons would out-shout it. Labels stay in the accessible name. */
+.awt-cmp-act {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.875rem;
+    block-size: 1.875rem;
+    padding: 0;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: 0.5rem;
+    background-color: transparent;
+    color: var(--bs-secondary-color);
+    font-size: 0.9375rem;
+    line-height: 1;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.awt-cmp-act:hover {
+    border-color: rgba(var(--awt-cmp-indigo), 0.4);
+    background-color: rgba(var(--awt-cmp-indigo), 0.08);
+    color: rgb(var(--awt-cmp-indigo));
+}
+
+.awt-cmp-act--danger:hover {
+    border-color: rgba(var(--awt-cmp-danger), 0.4);
+    background-color: rgba(var(--awt-cmp-danger), 0.08);
+    color: rgb(var(--awt-cmp-danger));
+}
+
+.awt-cmp-slot-actions form {
+    display: inline-flex;
+    margin: 0;
+}
+
+/* Upload progress on a pending slot. Indeterminate while a native form post is
+   in flight (the browser reports no progress for one); determinate when the
+   sticky bar uploads it with XHR and there is a real number to show. */
+.awt-cmp-slot-progress {
+    margin-block-start: 0.5rem;
+    block-size: 0.25rem;
+    border-radius: 999px;
+    background-color: var(--awt-cmp-hairline);
+    overflow: hidden;
+}
+
+.awt-cmp-slot-progress-bar {
+    display: block;
+    block-size: 100%;
+    inline-size: var(--awt-cmp-pct, 0%);
+    border-radius: inherit;
+    background-color: rgb(var(--awt-cmp-indigo));
+    transition: inline-size 0.2s linear;
+}
+
+.awt-cmp-slot-progress.is-indeterminate .awt-cmp-slot-progress-bar {
+    inline-size: 40%;
+    animation: awt-cmp-indeterminate 1.1s ease-in-out infinite;
+}
+
+@keyframes awt-cmp-indeterminate {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-cmp-slot-progress.is-indeterminate .awt-cmp-slot-progress-bar {
+        animation: none;
+        inline-size: 100%;
+        opacity: 0.5;
+    }
+}
+
+.awt-cmp-slot-error {
+    margin: 0.375rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: rgb(var(--awt-cmp-danger));
+}
+
+/* The card's own upload button, under the dropzone. */
+.awt-cmp-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.awt-cmp-upload-form {
+    margin: 0;
+}
+
+/* ── Sticky footer bar ──────────────────────────────────────────────── */
+
+.awt-cmp-footer {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-block-start: 0.25rem;
+    padding: 0.875rem 1.25rem;
+    border: 1px solid var(--awt-cmp-well-border);
+    border-radius: var(--awt-cmp-radius);
+    background-color: rgba(255, 255, 255, 0.86);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 -6px 24px -14px rgba(47, 43, 61, 0.45);
+}
+
+[data-bs-theme="dark"] .awt-cmp-footer {
+    background-color: rgba(24, 24, 34, 0.82);
+    box-shadow: 0 -6px 24px -12px rgba(0, 0, 0, 0.8);
+}
+
+.awt-cmp-footer-status {
+    flex: 1 1 16rem;
+    min-width: 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-footer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.awt-cmp-footer-actions form {
+    margin: 0;
+}
+
+/* A disabled submit still has to say WHY, so the button keeps its tooltip
+   wrapper: a disabled control fires no pointer events of its own. */
+.awt-cmp-tip {
+    display: inline-flex;
+}
+
+/* ── Supporting sections (status, notes, deliverability) ────────────── */
+
+.awt-cmp-panel {
+    padding: 1.25rem;
+}
+
+.awt-cmp-panel-title {
+    margin: 0 0 0.875rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.875rem;
+}
+
+.awt-cmp-tile-label {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-block-end: 0.3125rem;
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-tile-note {
+    margin: 0.3125rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-panel-foot {
+    margin: 0.875rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    color: var(--bs-secondary-color);
+}
+
+/* ── Narrow screens ─────────────────────────────────────────────────── */
+
+@media (max-width: 575.98px) {
+    /*
+     * Business Profile header. Stacked by the wrapping flex row, every item got
+     * its own line — status pill orphaned under the trust note, back button
+     * under that. On a phone it is laid out as a grid instead:
+     *
+     *   Business Profile .............. (Complete)
+     *   subtitle
+     *   (Private to compliance review)
+     *   [ ← Back to Branded Calling ──────────── ]
+     *
+     * Both wrappers step aside (display: contents) so their children place
+     * directly on the card's grid.
+     */
+    .awt-cmp-hero.awt-cmp-hero--profile {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.625rem 0.75rem;
+    }
+
+    .awt-cmp-hero--profile .awt-cmp-hero-main,
+    .awt-cmp-hero--profile .awt-cmp-hero-aside {
+        display: contents;
+    }
+
+    .awt-cmp-hero--profile .awt-cmp-hero-title {
+        grid-column: 1;
+        grid-row: 1;
+        margin: 0;
+    }
+
+    .awt-cmp-hero--profile .awt-cmp-status {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+    }
+
+    .awt-cmp-hero--profile .awt-cmp-hero-subtitle,
+    .awt-cmp-hero--profile .awt-cmp-trust,
+    .awt-cmp-hero--profile .awt-cmp-hero-back {
+        grid-column: 1 / -1;
+    }
+
+    .awt-cmp-hero--profile .awt-cmp-trust {
+        justify-self: start;
+        margin: 0;
+    }
+
+    .awt-cmp-hero--profile .awt-cmp-hero-back {
+        margin: 0.25rem 0 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .awt-cmp-hero {
+        padding: 1.125rem;
+    }
+
+    .awt-cmp-hero-aside {
+        align-items: flex-start;
+    }
+
+    .awt-cmp-status-note {
+        text-align: start;
+    }
+
+    .awt-cmp-footer-actions {
+        inline-size: 100%;
+    }
+
+    .awt-cmp-footer-actions form,
+    .awt-cmp-footer-actions .awt-cmp-tip,
+    .awt-cmp-footer-actions .btn {
+        inline-size: 100%;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * REVIEWER SIDE — Super Admin → Telecom Compliance → one case
+ *
+ * The document list here used to be a <table> whose last cell held five
+ * side-by-side buttons. It is a list of glass rows instead, for two reasons
+ * that are not decoration: a row can carry the reviewer's own notes on a second
+ * line without a colspan, and an actions dropdown is not clipped by the
+ * `overflow: auto` that .table-responsive needs.
+ *
+ * The row keeps table semantics where they matter — a header strip on wide
+ * screens, and every cell labelled by `data-label` so the stacked layout on a
+ * narrow screen still says which date is which.
+ *
+ * Inherits the tokens above: the wrapper carries .awt-cmp, so --awt-cmp-well,
+ * the accents and every state badge resolve exactly as they do for the tenant.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+.awt-acmp-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+/*
+ * Column track shared by the header strip and every row, so the two cannot
+ * drift apart. `minmax(0, …)` throughout: without it a long filename or a long
+ * reviewer note refuses to shrink and pushes the actions off the card.
+ *
+ * The actions track is a FIXED width, not `auto`. Auto sizes to content, and
+ * the content differs between the strip ("Actions") and a row (a button plus a
+ * kebab) — so the two grids resolved to different track widths and every
+ * column drifted further out of line than the one before it.
+ */
+.awt-acmp-head,
+.awt-acmp-row {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 2.4fr)   /* document + filename */
+        minmax(0, 1fr)     /* status             */
+        minmax(0, 0.9fr)   /* uploaded           */
+        minmax(0, 1fr)     /* reviewed           */
+        minmax(0, 1.8fr)   /* notes              */
+        13rem;             /* actions — see above */
+    gap: 0.75rem 1rem;
+    align-items: center;
+}
+
+/* The extra pixel is the row's border, which the strip does not have: without
+   it the two are off by exactly 1px all the way across. */
+.awt-acmp-head {
+    padding: 0 calc(1rem + 1px) 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-acmp-head span:last-child {
+    text-align: end;
+}
+
+/*
+ * The row is its OWN surface, deliberately not .awt-glass-card.
+ *
+ * That class carries `overflow: hidden` (to clip its decorative orb) and a
+ * `backdrop-filter` (which makes it a containing block for fixed-position
+ * descendants). Between them, a row's actions dropdown was clipped to the row
+ * box and could not escape by any positioning strategy — the menu appeared as a
+ * sliver behind the next row. So the row keeps the glass look and drops both
+ * properties, and the menu simply paints over its neighbours.
+ *
+ * The tone is a 3px accent rail rather than the full corner wash: down a list
+ * of ten rows the wash read as ten coloured cards competing with the status
+ * badges, which are the thing actually worth scanning for.
+ */
+.awt-acmp-row {
+    position: relative;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: var(--awt-cmp-radius);
+    background-color: var(--awt-cmp-well);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.awt-acmp-row::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.5rem;
+    inset-inline-start: 0;
+    inline-size: 3px;
+    border-radius: 999px;
+    background-color: rgba(var(--awt-tone-rgb, var(--awt-cmp-indigo)), 0.6);
+}
+
+.awt-acmp-row:hover {
+    border-color: rgba(var(--awt-tone-rgb, var(--awt-cmp-indigo)), 0.32);
+    background-color: rgba(var(--awt-tone-rgb, var(--awt-cmp-indigo)), 0.05);
+}
+
+/* A row nobody has filed anything against is quieter than one carrying a real
+   document — it is a gap in the case, not a thing to read. */
+.awt-acmp-row--empty {
+    opacity: 0.82;
+}
+
+.awt-acmp-row--empty::before {
+    opacity: 0.45;
+}
+
+/*
+ * The panel around the rows IS a glass card, so it clips too. Its own orb is
+ * turned off and the clipping released, otherwise the dropdown on the last row
+ * would be cut off at the foot of the card instead of at the row.
+ */
+.awt-acmp .awt-cmp-panel {
+    overflow: visible;
+}
+
+.awt-acmp .awt-cmp-panel::after {
+    display: none;
+}
+
+/* The open menu has to sit above the rows below it. Bootstrap's own z-index is
+   enough on its own, but only while nothing here creates a stacking context —
+   this states the intent so a future background or transform cannot quietly
+   break it again. */
+.awt-acmp-row:has(.dropdown-menu.show) {
+    z-index: 3;
+}
+
+.awt-acmp-cell {
+    min-width: 0;
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-acmp-doc {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.awt-acmp-doc-text {
+    min-width: 0;
+}
+
+.awt-acmp-doc-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-acmp-doc-file {
+    display: block;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--bs-secondary-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Reviewer notes: clamped to two lines so one long paragraph cannot make a
+   single row four times the height of its neighbours. The full text is on the
+   element's title, and in the review dialog. */
+.awt-acmp-notes {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.awt-acmp-muted {
+    color: var(--bs-secondary-color);
+    opacity: 0.7;
+}
+
+/* ── The action column ──────────────────────────────────────────────── */
+
+.awt-acmp-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+    white-space: nowrap;
+}
+
+/*
+ * The one primary action for the row's state. Indigo → emerald, because the
+ * gradient runs from "look at this" to "decide it" and that is the journey the
+ * button starts. Only ever one per row: the rest are in the kebab.
+ */
+.awt-acmp-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3125rem 0.75rem;
+    border: 1px solid rgba(var(--awt-cmp-indigo), 0.35);
+    border-radius: 0.5rem;
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-cmp-indigo), 0.95) 0%,
+        rgba(var(--awt-cmp-emerald), 0.85) 100%
+    );
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    box-shadow: 0 6px 16px -8px rgba(var(--awt-cmp-indigo), 0.8);
+    transition: box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.awt-acmp-primary:hover,
+.awt-acmp-primary:focus {
+    color: #fff;
+    filter: brightness(1.06);
+    box-shadow: 0 8px 20px -8px rgba(var(--awt-cmp-indigo), 0.95);
+}
+
+/* An approved document does not need a decision, only a way to open it — so it
+   gets the quiet glass variant of the same button rather than the gradient. */
+.awt-acmp-primary--glass {
+    border-color: var(--awt-cmp-well-border);
+    background-image: none;
+    background-color: var(--awt-cmp-well);
+    color: var(--bs-body-color);
+    box-shadow: none;
+}
+
+.awt-acmp-primary--glass:hover,
+.awt-acmp-primary--glass:focus {
+    border-color: rgba(var(--awt-cmp-indigo), 0.45);
+    background-color: rgba(var(--awt-cmp-indigo), 0.08);
+    color: rgb(var(--awt-cmp-indigo));
+    filter: none;
+}
+
+.awt-acmp-kebab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.875rem;
+    block-size: 1.875rem;
+    padding: 0;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: 0.5rem;
+    background-color: transparent;
+    color: var(--bs-secondary-color);
+    font-size: 1rem;
+    line-height: 1;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.awt-acmp-kebab:hover,
+.awt-acmp-kebab[aria-expanded="true"] {
+    border-color: rgba(var(--awt-cmp-indigo), 0.4);
+    background-color: rgba(var(--awt-cmp-indigo), 0.08);
+    color: rgb(var(--awt-cmp-indigo));
+}
+
+/* A dropdown item that is really a one-field <form>: the form must not
+   introduce a line box of its own or the item stops filling the menu. */
+.awt-acmp-menu form {
+    margin: 0;
+    display: block;
+}
+
+.awt-acmp-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    inline-size: 100%;
+    font-size: 0.8125rem;
+}
+
+.awt-acmp-menu .dropdown-item--danger {
+    color: rgb(var(--awt-cmp-danger));
+}
+
+.awt-acmp-menu .dropdown-item--danger:hover,
+.awt-acmp-menu .dropdown-item--danger:focus {
+    background-color: rgba(var(--awt-cmp-danger), 0.1);
+    color: rgb(var(--awt-cmp-danger));
+}
+
+.awt-acmp-menu-label {
+    padding: 0.375rem 1rem 0.25rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+/* ── "Upload on the tenant's behalf" dialog ─────────────────────────── */
+
+/*
+ * Was a bar pinned under the table, squeezed into one 2.375rem line. In a
+ * dialog the dropzone can be the size of the invitation it is, so the shared
+ * .awt-cmp-dropzone rules are used as they come; only the chosen-file slot
+ * needs anything extra — a Change button, centred against the file it swaps.
+ */
+#awtAcmpUploadModal .awt-cmp-slot {
+    align-items: center;
+}
+
+#awtAcmpUploadModal .awt-cmp-slot .btn {
+    flex: 0 0 auto;
+}
+
+/* The consequence of the chosen category ("this replaces what is filed"),
+   under the select that causes it. */
+#awtAcmpUploadModal [data-acmp-upload-note] {
+    display: block;
+    margin: 0.375rem 0 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * THE DOCUMENT VIEWER — shared by both pages (awt-doc-preview.js)
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+.awt-preview-header {
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.awt-preview-sub {
+    display: block;
+    margin-block-start: 0.125rem;
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-preview-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+}
+
+.awt-preview-body {
+    padding: 0;
+}
+
+/*
+ * A fixed viewport height rather than one that grows with the document: a
+ * 40-page PDF and a passport photo have to open the same size, or the dialog
+ * jumps around the screen as the reviewer works down a list.
+ */
+.awt-preview-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    block-size: min(72vh, 46rem);
+    background-color: var(--awt-cmp-well, rgba(47, 43, 61, 0.04));
+    border-block-start: 1px solid var(--awt-cmp-hairline, rgba(47, 43, 61, 0.08));
+    border-end-start-radius: var(--bs-modal-border-radius, 0.5rem);
+    border-end-end-radius: var(--bs-modal-border-radius, 0.5rem);
+    overflow: hidden;
+}
+
+.awt-preview-frame {
+    inline-size: 100%;
+    block-size: 100%;
+    border: 0;
+    background-color: #fff;
+}
+
+/* `contain`, never `cover`: a cropped identity document is worse than a small
+   one — the corner that got cut off is often the part being checked. */
+.awt-preview-image {
+    max-inline-size: 100%;
+    max-block-size: 100%;
+    object-fit: contain;
+}
+
+.awt-preview-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--bs-secondary-color);
+}
+
+.awt-preview-empty i {
+    font-size: 2.25rem;
+    opacity: 0.6;
+}
+
+.awt-preview-empty-title {
+    margin: 0.75rem 0 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-preview-empty-text {
+    margin: 0;
+    max-inline-size: 26rem;
+    margin-inline: auto;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
+/* ── The reviewer's decision dialog, with the document beside it ────── */
+
+/*
+ * Two panes on a wide screen: the file on the left, the decision on the right.
+ * The whole point of the dialog is deciding WHILE looking, so on a narrow
+ * screen the document still comes first — it stacks above the fields rather
+ * than being pushed below them.
+ */
+.awt-acmp-review-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+}
+
+@media (min-width: 992px) {
+    .awt-acmp-review-grid {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        align-items: start;
+    }
+}
+
+/* Inside the dialog the stage is shorter and squared off — it is a pane, not
+   the whole modal body. */
+.awt-acmp-review-grid .awt-preview-stage {
+    block-size: min(52vh, 32rem);
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: var(--awt-cmp-radius);
+}
+
+/* ── Stacked rows on narrow screens ─────────────────────────────────── */
+
+@media (max-width: 1199.98px) {
+    .awt-acmp-head {
+        display: none;
+    }
+
+    .awt-acmp-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.375rem;
+    }
+
+    /* Without the header strip, each value has to say what it is. */
+    .awt-acmp-cell[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: 600;
+        color: var(--bs-secondary-color);
+    }
+
+    .awt-acmp-cell--hide-empty:empty {
+        display: none;
+    }
+
+    .awt-acmp-actions {
+        justify-content: flex-start;
+        margin-block-start: 0.25rem;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Compliance readiness, documents, profile summary, and the LOA workflow.
+
+   Added with the 2026-08-17 restructure, which moved the business-profile FORM
+   off the dashboard (and off the Branded Calling page) and left a summary, a
+   readiness list and a document list in its place.
+
+   Every colour here resolves through the --awt-cmp-* custom properties defined
+   at the top of this file, so all of it inverts with the theme for free. No
+   literal hex below this line.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Readiness ─────────────────────────────────────────────────────────── */
+
+.awt-cmp-ready {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.awt-cmp-ready-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: var(--awt-cmp-radius);
+    background-color: var(--awt-cmp-well);
+}
+
+/* The state reads from the left edge, so a scan down the column answers
+   "what is left" without reading a word. */
+.awt-cmp-ready-row--action {
+    border-inline-start: 3px solid rgba(var(--awt-cmp-amber), 0.9);
+}
+
+.awt-cmp-ready-row--complete {
+    border-inline-start: 3px solid rgba(var(--awt-cmp-emerald), 0.75);
+}
+
+.awt-cmp-ready-row--waiting {
+    border-inline-start: 3px solid rgba(var(--awt-cmp-indigo), 0.7);
+}
+
+.awt-cmp-ready-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border-radius: 50%;
+    font-size: 1rem;
+}
+
+.awt-cmp-ready-row--complete .awt-cmp-ready-mark {
+    color: rgb(var(--awt-cmp-emerald));
+    background-color: rgba(var(--awt-cmp-emerald), 0.12);
+}
+
+.awt-cmp-ready-row--action .awt-cmp-ready-mark {
+    color: rgb(var(--awt-cmp-amber));
+    background-color: rgba(var(--awt-cmp-amber), 0.14);
+}
+
+.awt-cmp-ready-row--waiting .awt-cmp-ready-mark {
+    color: rgb(var(--awt-cmp-indigo));
+    background-color: rgba(var(--awt-cmp-indigo), 0.12);
+}
+
+.awt-cmp-ready-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+}
+
+.awt-cmp-ready-label {
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.awt-cmp-ready-detail {
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+}
+
+/* Why it is required — quieter than the detail, because it is background for
+   somebody who is deciding whether to care, not the instruction itself. */
+.awt-cmp-ready-why {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+    opacity: 0.85;
+}
+
+.awt-cmp-ready-act {
+    white-space: nowrap;
+}
+
+/* ── Documents ─────────────────────────────────────────────────────────── */
+
+.awt-cmp-docs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.awt-cmp-doc-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.875rem;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: var(--awt-cmp-radius);
+    background-color: var(--awt-cmp-well);
+}
+
+.awt-cmp-doc-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: 0.625rem;
+    font-size: 1.125rem;
+    color: rgb(var(--awt-cmp-indigo));
+    background-color: rgba(var(--awt-cmp-indigo), 0.1);
+}
+
+.awt-cmp-doc-icon--success {
+    color: rgb(var(--awt-cmp-emerald));
+    background-color: rgba(var(--awt-cmp-emerald), 0.12);
+}
+
+.awt-cmp-doc-icon--warning {
+    color: rgb(var(--awt-cmp-amber));
+    background-color: rgba(var(--awt-cmp-amber), 0.14);
+}
+
+.awt-cmp-doc-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+}
+
+.awt-cmp-doc-name {
+    font-weight: 600;
+}
+
+.awt-cmp-doc-desc,
+.awt-cmp-doc-meta {
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-doc-meta {
+    font-size: 0.75rem;
+    opacity: 0.85;
+}
+
+.awt-cmp-doc-side {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+/* ── Business profile summary ──────────────────────────────────────────── */
+
+.awt-cmp-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.awt-cmp-profile-group-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-secondary-color);
+    margin-block-end: 0.5rem;
+}
+
+.awt-cmp-profile-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.75rem 1.5rem;
+    margin: 0;
+}
+
+.awt-cmp-profile-item dt {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+    margin: 0;
+}
+
+.awt-cmp-profile-item dd {
+    margin: 0;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+/* A required blank is the news on a summary, so it is stated rather than
+   left as an empty line somebody has to notice. */
+.awt-cmp-profile-missing {
+    color: rgb(var(--awt-cmp-amber));
+    font-style: italic;
+}
+
+.awt-cmp-profile-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-block-start: 1.25rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--awt-cmp-hairline);
+}
+
+.awt-cmp-profile-foot .awt-cmp-panel-foot {
+    margin: 0;
+}
+
+/* ── LOA workflow ─────────────────────────────────────────────────────── */
+
+.awt-loa-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+    text-decoration: none;
+    color: var(--bs-secondary-color);
+    margin-block-end: 0.5rem;
+}
+
+.awt-loa-back:hover {
+    color: var(--bs-primary);
+}
+
+.awt-loa-panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-block-end: 0.75rem;
+}
+
+.awt-loa-steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.awt-loa-step {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: var(--awt-cmp-radius);
+    background-color: var(--awt-cmp-well);
+}
+
+.awt-loa-step-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+    background-color: rgba(var(--awt-cmp-tone, 105, 108, 255), 0.1);
+}
+
+.awt-loa-step--done .awt-loa-step-mark {
+    color: rgb(var(--awt-cmp-emerald));
+    background-color: rgba(var(--awt-cmp-emerald), 0.14);
+}
+
+.awt-loa-step--current .awt-loa-step-mark {
+    color: var(--bs-white);
+    background-color: var(--bs-primary);
+}
+
+.awt-loa-step-text {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+}
+
+.awt-loa-step-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.awt-loa-step--todo .awt-loa-step-label {
+    color: var(--bs-secondary-color);
+}
+
+.awt-loa-step-hint {
+    font-size: 0.6875rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-loa-numbers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.5rem;
+}
+
+.awt-loa-numbers li {
+    padding: 0.1875rem 0.5rem;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: 0.375rem;
+    background-color: var(--awt-cmp-well);
+    font-size: 0.8125rem;
+}
+
+.awt-loa-generate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    border: 1px solid var(--awt-cmp-hairline);
+    border-radius: var(--awt-cmp-radius);
+    background-color: var(--awt-cmp-well);
+}
+
+.awt-loa .awt-bcloa-preview {
+    max-block-size: 300px;
+    overflow: auto;
+}
+
+/* touch-action:none is load-bearing: without it a drawn stroke on a phone
+   scrolls the page instead of signing. */
+.awt-loa-pad-shell {
+    border: 1px solid var(--awt-cmp-well-border);
+    border-radius: 0.5rem;
+    background-color: var(--bs-white);
+    touch-action: none;
+}
+
+.awt-loa-pad-shell .awt-bcloa-pad {
+    display: block;
+    inline-size: 100%;
+    block-size: 160px;
+}
+
+.awt-loa-upload {
+    max-inline-size: 28rem;
+}
+
+/* ── Small screens ────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    /* The stepper becomes a column: four labels side by side on a phone are
+       four truncated labels. */
+    .awt-loa-steps {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Action buttons drop below the text rather than squeezing it. */
+    .awt-cmp-ready-row,
+    .awt-cmp-doc-row {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .awt-cmp-ready-act,
+    .awt-cmp-doc-side {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+    }
+
+    .awt-cmp-profile-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .awt-loa-generate {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* ── Compact tenant Compliance page ──────────────────────────────────── */
+
+.awt-cmp-grid--stack {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.awt-cmp-section-kicker,
+.awt-cmp-panel-title {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.awt-cmp-section-meta {
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-facts {
+    flex: 1 1 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
+    margin: 0.35rem 0 0;
+}
+
+.awt-cmp-facts dt {
+    margin: 0 0 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-facts dd {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--bs-heading-color, var(--bs-body-color));
+    overflow-wrap: anywhere;
+}
+
+.awt-cmp-hero-actions {
+    flex: 1 1 100%;
+}
+
+.awt-cmp-rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.awt-cmp-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 1rem;
+    padding: 0.875rem 0;
+    border-block-end: 1px solid var(--awt-cmp-hairline);
+}
+
+.awt-cmp-row:last-of-type {
+    border-block-end: 0;
+    padding-block-end: 0;
+}
+
+.awt-cmp-row-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.awt-cmp-row-copy {
+    min-width: 0;
+}
+
+.awt-cmp-row-title {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-cmp-row-meta {
+    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cmp-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.awt-cmp-row-upload {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.awt-cmp-row-upload .awt-cmp-dropzone--compact {
+    flex: 1 1 12rem;
+    min-width: 0;
+}
+
+.awt-cmp-services {
+    display: flex;
+    flex-direction: column;
+}
+
+.awt-cmp-service {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding: 0.8rem 0;
+    border-block-end: 1px solid var(--awt-cmp-hairline);
+    text-decoration: none;
+    color: inherit;
+}
+
+.awt-cmp-service:last-child {
+    border-block-end: 0;
+    padding-block-end: 0;
+}
+
+.awt-cmp-service:hover {
+    color: inherit;
+}
+
+.awt-cmp-service-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.awt-cmp-service-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem 0.75rem;
+    margin-inline-start: auto;
+}
+
+.awt-cmp-service-detail {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+    max-inline-size: 22rem;
+    text-align: end;
+}
+
+.awt-cmp-service-cta {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bs-primary);
+}
+
+.awt-cmp .awt-cmp-footer {
+    position: static;
+    box-shadow: none;
+    background-color: transparent;
+    border-style: dashed;
+}
+
+@media (max-width: 768px) {
+    .awt-cmp-facts {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .awt-cmp-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .awt-cmp-service-detail {
+        text-align: start;
+        max-inline-size: none;
+    }
+}
+
+/* ── Super Admin client monitor ─────────────────────────────────────── */
+
+.awt-acmp-monitor {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.awt-acmp-section {
+    margin: 0;
+}
+
+.awt-acmp-kicker {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-acmp-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
+}
+
+.awt-acmp-facts dt {
+    margin: 0 0 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-acmp-facts dd {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.awt-acmp-table {
+    font-size: 0.8125rem;
+}
+
+.awt-acmp-details > summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.awt-acmp-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.awt-acmp-monitor > .awt-cmp {
+    gap: 0;
+}
+
+@media (max-width: 768px) {
+    .awt-acmp-facts {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

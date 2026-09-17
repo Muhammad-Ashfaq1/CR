@@ -1,0 +1,418 @@
+/*
+ * E911 — the tenant's dispatchable-location panel, and the emergency alert
+ * that lands on an admin's screen when somebody dials 911.
+ *
+ * Surfaces come from awt-glass.css (.awt-glass-card + .awt-tone-*), so both
+ * pieces follow the theme the operator picked, light through dark, and no
+ * background is named here. Everything is namespaced .awt-e911-* and additive.
+ *
+ * The one deliberate exception to "follow the theme" is the alert itself. An
+ * emergency notification is the single thing in this application that must look
+ * the same and be impossible to miss whatever theme is on — so it keeps its own
+ * red, at full saturation, in both modes.
+ */
+
+.awt-e911 {
+    position: relative;
+    z-index: 1;
+    padding: 1.25rem;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+
+.awt-e911-head {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-block-end: 1rem;
+}
+
+.awt-e911-id {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1 1 18rem;
+}
+
+.awt-e911-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: 0.75rem;
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb), 1) 0%,
+        rgba(var(--awt-tone-rgb), 0.82) 100%
+    );
+    color: #fff;
+    box-shadow: 0 6px 14px -6px rgba(var(--awt-tone-rgb), 0.65);
+    font-size: 1.1875rem;
+    line-height: 1;
+}
+
+.awt-e911-title {
+    margin: 0 0 0.25rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-e911-sub {
+    margin: 0;
+    max-inline-size: 46rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--bs-secondary-color);
+    text-wrap: pretty;
+}
+
+/* ── Status badge ───────────────────────────────────────────────────── */
+
+.awt-e911-badge {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3125rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.awt-e911-badge-success {
+    border-color: rgba(var(--bs-success-rgb), 0.35);
+    background-color: rgba(var(--bs-success-rgb), 0.14);
+    color: color-mix(in srgb, rgb(var(--bs-success-rgb)) 72%, #000);
+}
+
+.awt-e911-badge-warning {
+    border-color: rgba(var(--bs-warning-rgb), 0.4);
+    background-color: rgba(var(--bs-warning-rgb), 0.16);
+    color: color-mix(in srgb, rgb(var(--bs-warning-rgb)) 62%, #000);
+}
+
+.awt-e911-badge-danger {
+    border-color: rgba(var(--bs-danger-rgb), 0.38);
+    background-color: rgba(var(--bs-danger-rgb), 0.14);
+    color: color-mix(in srgb, rgb(var(--bs-danger-rgb)) 72%, #000);
+}
+
+/* Unregistered is the one that must not look decorative: a slate pill with a
+   red edge, so it reads as "this is missing" rather than "this is off". */
+.awt-e911-badge-secondary {
+    border-color: rgba(var(--bs-danger-rgb), 0.35);
+    background-color: rgba(var(--bs-secondary-rgb), 0.12);
+    color: color-mix(in srgb, rgb(var(--bs-danger-rgb)) 70%, #000);
+}
+
+[data-bs-theme='dark'] .awt-e911-badge-success {
+    color: rgb(var(--bs-success-rgb));
+}
+
+[data-bs-theme='dark'] .awt-e911-badge-warning {
+    color: rgb(var(--bs-warning-rgb));
+}
+
+[data-bs-theme='dark'] .awt-e911-badge-danger,
+[data-bs-theme='dark'] .awt-e911-badge-secondary {
+    color: rgb(var(--bs-danger-rgb));
+}
+
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+    .awt-e911-badge-success { color: rgb(var(--bs-success-rgb)); }
+    .awt-e911-badge-warning { color: rgb(var(--bs-warning-rgb)); }
+    .awt-e911-badge-danger,
+    .awt-e911-badge-secondary { color: rgb(var(--bs-danger-rgb)); }
+}
+
+/* ── Notes ──────────────────────────────────────────────────────────── */
+
+.awt-e911-note {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-block-end: 1rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid rgba(var(--bs-secondary-rgb), 0.22);
+    border-radius: 0.625rem;
+    background-color: rgba(var(--bs-secondary-rgb), 0.07);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--bs-body-color);
+}
+
+.awt-e911-note-warning {
+    border-color: rgba(var(--bs-warning-rgb), 0.3);
+    background-color: rgba(var(--bs-warning-rgb), 0.1);
+}
+
+.awt-e911-note-danger {
+    border-color: rgba(var(--bs-danger-rgb), 0.3);
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+}
+
+.awt-e911-note i {
+    flex: 0 0 auto;
+    margin-block-start: 0.0625rem;
+}
+
+.awt-e911-current {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-block-end: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+/* ── Form ───────────────────────────────────────────────────────────── */
+
+.awt-e911-form {
+    position: relative;
+    z-index: 1;
+}
+
+.awt-e911-form .form-label {
+    margin-block-end: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--bs-secondary-color);
+}
+
+/* The inside-the-building fields, boxed so they read as one answer. */
+.awt-e911-dispatch {
+    padding: 0.75rem;
+    border: 1px dashed rgba(var(--awt-tone-rgb), 0.32);
+    border-radius: 0.75rem;
+    background-color: rgba(var(--awt-tone-rgb), 0.05);
+}
+
+.awt-e911-dispatch-label {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
+.awt-e911-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-block-start: 1.125rem;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid rgba(var(--bs-secondary-rgb), 0.18);
+}
+
+.awt-e911-hint {
+    margin: 0;
+    max-inline-size: 34rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--bs-secondary-color);
+}
+
+/* ── The emergency alert ────────────────────────────────────────────── */
+
+/*
+ * Fixed to the top-right, above everything, and NOT theme-toned. It has to be
+ * unmistakable on a pale theme and on a dark one, on a screen somebody is not
+ * currently looking at, so it keeps its own red and its own contrast.
+ */
+.awt-e911-alerts {
+    position: fixed;
+    inset-block-start: 1rem;
+    inset-inline-end: 1rem;
+    z-index: 2147483000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    inline-size: min(24rem, calc(100vw - 2rem));
+    pointer-events: none;
+}
+
+.awt-e911-alert {
+    pointer-events: auto;
+    overflow: hidden;
+    border: 1px solid #b91c1c;
+    border-radius: 0.875rem;
+    background-color: #7f1d1d;
+    background-image: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+    color: #fff;
+    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+    animation: awt-e911-in 0.2s ease-out;
+}
+
+/* The test line (933) is not an emergency. Same shape so it is obviously the
+   same system, amber so nobody runs for the door. */
+.awt-e911-alert.is-test {
+    border-color: #b45309;
+    background-image: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+    background-color: #92400e;
+}
+
+@keyframes awt-e911-in {
+    from { opacity: 0; transform: translateY(-0.5rem); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.awt-e911-alert-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    background-color: rgba(0, 0, 0, 0.22);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.awt-e911-alert-head i {
+    font-size: 1.125rem;
+}
+
+/* A slow pulse rather than a flash: it has to draw the eye across a room
+   without being the thing that makes somebody close it. */
+.awt-e911-alert-dot {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: 50%;
+    background-color: #fecaca;
+    animation: awt-e911-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes awt-e911-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+}
+
+.awt-e911-alert-close {
+    margin-inline-start: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.125rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.awt-e911-alert-close:hover {
+    color: #fff;
+}
+
+.awt-e911-alert-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+}
+
+.awt-e911-alert-caller {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.awt-e911-alert-row {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.awt-e911-alert-row-label {
+    flex: 0 0 auto;
+    /* Wide enough for "Calling from" on one line — a label that wraps costs
+       two lines of a card somebody is reading in a hurry. */
+    min-inline-size: 5.5rem;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.awt-e911-alert-address {
+    padding: 0.5rem 0.625rem;
+    border-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.24);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+/* The room number is the operative fact in the whole alert. */
+.awt-e911-alert-detail {
+    display: block;
+    margin-block-start: 0.125rem;
+    font-weight: 700;
+}
+
+.awt-e911-alert-missing {
+    padding: 0.5rem 0.625rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.awt-e911-alert-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.awt-e911-alert-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    padding: 0.125rem 0.4375rem;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.16);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+@media (max-width: 575.98px) {
+    .awt-e911-alerts {
+        inset-inline: 0.75rem;
+        inline-size: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-e911-alert {
+        animation: none;
+    }
+
+    .awt-e911-alert-dot {
+        animation: none;
+    }
+}

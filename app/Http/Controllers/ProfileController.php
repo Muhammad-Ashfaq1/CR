@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Support\AppTheme;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -56,5 +58,28 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Update user theme preference.
+     */
+    public function updateTheme(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'theme_variant' => ['nullable', 'string', 'in:sky,lake,eggplant,dark,high-contrast'],
+            'theme_mode' => ['nullable', 'string', 'in:light,dark,system'],
+        ]);
+
+        if (isset($validated['theme_variant'])) {
+            session(['theme_variant' => $validated['theme_variant']]);
+        }
+        if (isset($validated['theme_mode'])) {
+            session(['theme_mode' => $validated['theme_mode']]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'theme' => AppTheme::forUser($request->user()),
+        ]);
     }
 }

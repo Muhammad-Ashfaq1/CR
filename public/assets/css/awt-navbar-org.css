@@ -1,0 +1,90 @@
+/*
+ * The organization name beside the profile, in both agent navbars.
+ *
+ * ONE SHEET FOR TWO BARS, and it is not tidiness. The operator bar is this
+ * app's own grid shell (.tenant-agent-layout); the other is Bootstrap's, and
+ * layouts/tenant.blade.php renders it in exactly the case where
+ * tenant-agent-layout.css is NOT loaded — the two are mutually exclusive by
+ * construction (`@if($isAgentShell)` picks one navbar and the same flag gates
+ * that stylesheet). Rules for the second bar therefore cannot live in the
+ * first bar's sheet, which is where they started and where they silently did
+ * nothing. Both labels say the same thing and must look like they do, so both
+ * are defined here and this sheet is loaded unconditionally by both layouts.
+ *
+ * WHY IT IS SET LOUD: this is the answer to "whose phones am I answering?".
+ * An agent who works a shift for one client and a shift for another should not
+ * have to look twice, so it is capitals, 700, and tracked out — at the bar's
+ * full foreground colour, not the muted grey a secondary label would take.
+ *
+ * WHY IT IS GIVEN ROOM: two labels have already been removed from this navbar
+ * for truncating — .tal-navbar-brand (2026-08-06) and the agent's own name
+ * under the avatar (2026-08-07, clipped to "Ashfa…" in a 9ch box). This one
+ * gets 30ch (capitals are wider than the `0` that defines a ch), yields its
+ * width to the action buttons rather than taking theirs, carries the full
+ * string on `title`, and disappears below 768px where the burger, the docked
+ * call bar and the action group need the whole row.
+ */
+
+/* ── Operator shell: white on the primary bar, right of the avatar ─────── */
+
+.tenant-agent-layout .tal-navbar-org {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    /* Shrinkable, and the only shrinkable thing between the avatar and the
+       right-hand group — so a docked call bar squeezes this, never the
+       buttons. min-width:0 is what actually lets the span ellipsize. */
+    flex: 0 1 auto;
+    min-width: 0;
+    line-height: 1;
+}
+
+.tenant-agent-layout .tal-navbar-org i {
+    font-size: 1.05rem;
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
+.tenant-agent-layout .tal-navbar-org-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    /* Capitals run together without extra tracking — this is what keeps
+       "ALL WE TRADE" from reading as a single word. */
+    letter-spacing: 0.07em;
+    color: var(--tal-navbar-fg);
+    max-width: 30ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Non-operator shell: dark on the white bar, left of the avatar ─────── */
+
+.awt-navbar-org {
+    min-width: 0;
+}
+
+.awt-navbar-org .icon-base {
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
+.awt-navbar-org-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--bs-heading-color, var(--bs-body-color, #2f3349));
+    /* .text-truncate on the element supplies the ellipsis; this is what stops
+       a long company name pushing the avatar off the end of the row. */
+    max-width: 30ch;
+}
+
+/* Below this the burger, the docked call bar and the action group need the
+   whole row, and the company is the one thing here an agent already knows. */
+@media (max-width: 767.98px) {
+    .tenant-agent-layout .tal-navbar-org {
+        display: none;
+    }
+}

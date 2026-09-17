@@ -1,0 +1,314 @@
+/*
+ * Assignment & Activity History — the per-DID and per-agent lifecycle timeline.
+ *
+ * Wears the shared glass surface (awt-glass.css) so it follows whichever theme
+ * the admin picked. Everything here is scoped under .awt-ah so it cannot reach
+ * any other card on the number-detail page.
+ *
+ * Loaded with ?v=filemtime() everywhere it is used: this file is served from a
+ * long-max-age CDN edge, and an unversioned stylesheet on this platform keeps
+ * applying rules that were deleted weeks ago.
+ */
+
+.awt-ah {
+    --awt-ah-line: rgba(var(--bs-emphasis-color-rgb, 0, 0, 0), .12);
+}
+
+/*
+ * The glass surface supplies no padding of its own — every consumer of
+ * .awt-glass-card sets its own inset (.awt-e911 uses 1.25rem, .awt-stat-body
+ * its own). Qualified with .awt-glass-card on purpose: .awt-ah is ALSO worn by
+ * the collapsible panel inside the Users & Staff modal, which is not a card and
+ * already sits inside a padded .modal-body — padding it there would inset the
+ * timeline twice.
+ *
+ * position/z-index mirror .awt-e911: the card's decorative ::after orb is
+ * absolutely positioned, and content needs a stacking context above it.
+ */
+.awt-glass-card.awt-ah {
+    position: relative;
+    z-index: 1;
+    padding: 1.25rem;
+}
+
+.awt-ah-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.awt-ah-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.0625rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.awt-ah-sub {
+    margin: .35rem 0 0;
+    font-size: .8125rem;
+    line-height: 1.45;
+    color: var(--bs-secondary-color);
+    max-width: 62ch;
+}
+
+/* ---- The rail ---- */
+
+.awt-ah-timeline {
+    position: relative;
+    margin: 0;
+    padding: 0 0 0 1.75rem;
+    list-style: none;
+}
+
+.awt-ah-timeline::before {
+    content: '';
+    position: absolute;
+    top: .55rem;
+    bottom: .55rem;
+    left: .4375rem;
+    width: 2px;
+    background: var(--awt-ah-line);
+}
+
+.awt-ah-item {
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.awt-ah-item:last-child {
+    padding-bottom: 0;
+}
+
+.awt-ah-dot {
+    position: absolute;
+    top: .55rem;
+    left: -1.75rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid rgba(var(--bs-body-bg-rgb, 255, 255, 255), 1);
+    background: var(--bs-secondary);
+    box-shadow: 0 0 0 2px var(--awt-ah-line);
+}
+
+.awt-ah-item.is-active .awt-ah-dot {
+    background: var(--bs-success);
+    box-shadow: 0 0 0 3px rgba(var(--bs-success-rgb), .22);
+}
+
+/* ---- One tenure ---- */
+
+.awt-ah-card {
+    border: 1px solid var(--awt-ah-line);
+    border-radius: .625rem;
+    padding: .875rem 1rem;
+    background: rgba(var(--bs-body-bg-rgb, 255, 255, 255), .45);
+}
+
+.awt-ah-item.is-active .awt-ah-card {
+    border-color: rgba(var(--bs-success-rgb), .38);
+    background: rgba(var(--bs-success-rgb), .05);
+}
+
+.awt-ah-card-head {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+
+.awt-ah-avatar {
+    flex: 0 0 auto;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), .14);
+}
+
+.awt-ah-who {
+    min-width: 0;
+    flex: 1 1 12rem;
+}
+
+.awt-ah-name {
+    margin: 0;
+    font-weight: 600;
+    font-size: .9375rem;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-ah-meta {
+    margin: .1rem 0 0;
+    font-size: .75rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-ah-badge {
+    flex: 0 0 auto;
+    font-size: .6875rem;
+    font-weight: 600;
+    padding: .2rem .55rem;
+    border-radius: 999px;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+
+.awt-ah-badge-active {
+    color: var(--bs-success);
+    background: rgba(var(--bs-success-rgb), .14);
+}
+
+.awt-ah-badge-past {
+    color: var(--bs-secondary-color);
+    background: rgba(var(--bs-secondary-rgb), .14);
+}
+
+.awt-ah-tenure {
+    margin: .6rem 0 0;
+    font-size: .8125rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: wrap;
+}
+
+.awt-ah-tenure .awt-ah-days {
+    font-weight: 400;
+    color: var(--bs-secondary-color);
+}
+
+/* ---- Isolated metrics ---- */
+
+.awt-ah-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+    gap: .5rem;
+    margin-top: .75rem;
+}
+
+.awt-ah-metric {
+    border-radius: .5rem;
+    padding: .5rem .625rem;
+    background: rgba(var(--bs-secondary-rgb), .07);
+}
+
+.awt-ah-metric-value {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.awt-ah-metric-label {
+    margin: .1rem 0 0;
+    font-size: .6875rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--bs-secondary-color);
+}
+
+.awt-ah-metric-note {
+    margin: .1rem 0 0;
+    font-size: .6875rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-ah-actions {
+    margin-top: .75rem;
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+/* ---- Empty / loading ---- */
+
+.awt-ah-empty {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-size: .875rem;
+    color: var(--bs-secondary-color);
+    border: 1px dashed var(--awt-ah-line);
+    border-radius: .625rem;
+}
+
+/* ---- Drill-down table inside the activity modal ---- */
+
+.awt-ah-log {
+    font-size: .8125rem;
+}
+
+.awt-ah-log th {
+    font-size: .6875rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--bs-secondary-color);
+    font-weight: 600;
+}
+
+.awt-ah-log td,
+.awt-ah-log th {
+    padding: .4rem .5rem;
+    vertical-align: middle;
+}
+
+/* ---- Collapsible section on the Users & Staff modal ---- */
+
+.awt-ah-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    width: 100%;
+    padding: .55rem .75rem;
+    border: 1px solid var(--awt-ah-line);
+    border-radius: .5rem;
+    background: transparent;
+    font-size: .875rem;
+    font-weight: 600;
+    color: inherit;
+}
+
+.awt-ah-toggle:hover {
+    background: rgba(var(--bs-secondary-rgb), .08);
+}
+
+.awt-ah-toggle .awt-ah-chevron {
+    transition: transform .15s ease;
+}
+
+.awt-ah-toggle[aria-expanded="true"] .awt-ah-chevron {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 575.98px) {
+    /* Buy the timeline back some width on a phone without letting the content
+       reach the border — the rail's own indent is the expensive part here. */
+    .awt-glass-card.awt-ah {
+        padding: 1rem;
+    }
+
+    .awt-ah-timeline {
+        padding-left: 1.4rem;
+    }
+
+    .awt-ah-dot {
+        left: -1.4rem;
+    }
+}

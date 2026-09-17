@@ -1,0 +1,848 @@
+/**
+ * Reminders and callbacks — what an agent owes themselves.
+ *
+ * Named for the queue rather than for a page, because it no longer belongs to
+ * one: the same dialog chrome dresses the bell in the /text composer and the
+ * "Call back later" a missed call offers, and the nudge toast at the bottom can
+ * appear on any page in either shell. (It was messaging-reminders.css for one
+ * day, while a message thread was the only place a reminder could be left.)
+ *
+ * Its own stylesheet, NOT an addition to tenant-messages.css, and that is
+ * deliberate: tenant-messages.css is served from the edge with a ten-year
+ * max-age and no version query, so a rule added to it reaches a returning
+ * browser whenever the cache feels like it. Everything here is loaded with
+ * ?v=<filemtime> beside the module that uses it, so an edit lands on the next
+ * page load.
+ *
+ * Deliberately a sibling of messaging-schedule.css rather than a reuse of it:
+ * the two dialogs look like each other because they are the same shape of
+ * question ("when?"), but a reminder is warning-coloured once it is due and a
+ * scheduled message never is, and one file trying to be both would need a
+ * modifier on every rule to say which it was being.
+ *
+ * Every colour resolves from the active theme (--bs-*), so this is correct on
+ * the three light themes, dark and high-contrast without a per-theme block.
+ */
+
+/* ── The strip above the composer ────────────────────────────────────────
+ *
+ * Quiet while the reminder is in the future; warning-coloured the moment it is
+ * owed. The change of colour is the point — an agent scanning a thread should
+ * be able to tell "there is something set" from "there is something I should
+ * be doing" without reading either.
+ */
+.awt-rem-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin: 0 0 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 10px;
+    background: var(--bs-tertiary-bg, var(--bs-secondary-bg));
+    color: var(--bs-body-color);
+    font-size: 0.8125rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.awt-rem-banner:hover,
+.awt-rem-banner:focus-visible {
+    border-color: rgba(var(--bs-primary-rgb), 0.45);
+}
+
+.awt-rem-banner > .icon-base:first-child {
+    color: var(--bs-secondary-color);
+    flex: 0 0 auto;
+}
+
+.awt-rem-banner span {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-rem-banner-arrow {
+    flex: 0 0 auto;
+    opacity: 0.55;
+}
+
+.awt-rem-banner.is-due {
+    border-color: rgba(var(--bs-warning-rgb), 0.55);
+    background: rgba(var(--bs-warning-rgb), 0.12);
+    font-weight: 600;
+}
+
+.awt-rem-banner.is-due > .icon-base:first-child {
+    color: var(--bs-warning);
+}
+
+.awt-rem-banner.is-due:hover {
+    background: rgba(var(--bs-warning-rgb), 0.2);
+}
+
+/* ── The dialog ──────────────────────────────────────────────────────── */
+
+.awt-rem-content {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--bs-body-bg);
+    box-shadow: 0 24px 60px rgba(var(--bs-emphasis-color-rgb, 10, 14, 26), 0.28);
+}
+
+.awt-rem-head {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    /* Right padding leaves room for the close button, which is taken out of the
+       flow below — as a flex item it ends up flush against the dialog's rounded
+       corner, half of it outside the radius. */
+    padding: 1.25rem 3rem 0.85rem 1.35rem;
+    background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.10) 0%, rgba(var(--bs-primary-rgb), 0) 78%);
+}
+
+.awt-rem-crest {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border-radius: 12px;
+    background: rgba(var(--bs-primary-rgb), 0.14);
+    color: rgb(var(--bs-primary-rgb));
+    font-size: 1.35rem;
+}
+
+.awt-rem-headings {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.awt-rem-title {
+    margin: 0.1rem 0 0.15rem;
+    font-size: 1.0625rem;
+    font-weight: 700;
+}
+
+.awt-rem-sub {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/*
+ * The theme gives every .btn-close a `transform: translate(23px, -25px)` so it
+ * floats OUTSIDE the modal's corner, and on hover/focus/active it nudges to
+ * `translate(20px, -20px)`. This dialog has `overflow: hidden` on its content
+ * (that is what rounds the header's gradient), so a button pushed outside is
+ * sliced in half — and the hover nudge makes the X slide away from the pointer.
+ *
+ * Two classes, not one: the theme's rule is `.modal .btn-close`, which beats a
+ * single class whatever the load order. Hold transform still on hover/focus/
+ * active as well, or Vuexy's three-state rule (same specificity as our hover)
+ * wins and the button jumps.
+ */
+.awt-rem .awt-rem-close {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    margin: 0;
+    transform: none;
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
+}
+
+.awt-rem .awt-rem-close:hover,
+.awt-rem .awt-rem-close:focus,
+.awt-rem .awt-rem-close:active {
+    transform: none;
+    opacity: 0.9;
+}
+
+.awt-rem-body {
+    padding: 0.35rem 1.35rem 0.5rem;
+}
+
+.awt-rem-note {
+    margin-bottom: 0.9rem;
+    font-size: 0.875rem;
+    resize: vertical;
+}
+
+/* ── The callback dialog's own two fields ────────────────────────────────
+ *
+ * The number leads, because it is what makes this a callback rather than a
+ * note, and it is editable: a customer who rang from a switchboard wants the
+ * call back on their direct line.
+ */
+.awt-cb-number {
+    margin-bottom: 0.9rem;
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+
+.awt-cb-note-label span {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    opacity: 0.75;
+}
+
+/* A callback's toast is the one that can dial, so its primary action is the
+   accent-filled one — the row of three outlines it used to sit in gave equal
+   weight to "Call now" and "Snooze". */
+.awt-rem-toast-btn.is-call {
+    border-color: transparent;
+    background: rgb(var(--bs-primary-rgb));
+    color: #fff;
+}
+
+.awt-rem-toast-btn.is-call:hover {
+    background: rgb(var(--bs-primary-rgb));
+    filter: brightness(1.07);
+    border-color: transparent;
+}
+
+/* ── Presets ─────────────────────────────────────────────────────────── */
+
+.awt-rem-presets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 0.95rem;
+}
+
+.awt-rem-preset {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--bs-body-color);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.awt-rem-preset:hover {
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+    background: rgba(var(--bs-primary-rgb), 0.06);
+}
+
+.awt-rem-preset.is-active {
+    border-color: rgb(var(--bs-primary-rgb));
+    background: rgba(var(--bs-primary-rgb), 0.12);
+}
+
+.awt-rem-preset-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.awt-rem-preset-sub {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+/* ── Exact date and time ─────────────────────────────────────────────── */
+
+.awt-rem-when {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.awt-rem-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+}
+
+.awt-rem-input {
+    font-size: 0.875rem;
+}
+
+.awt-rem-zone {
+    margin: 0.6rem 0 0;
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-rem-error {
+    margin: 0.5rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--bs-danger);
+}
+
+/* ── What is already set on this thread ──────────────────────────────── */
+
+.awt-rem-queue {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.awt-rem-queue-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-rem-list {
+    max-height: 11rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.awt-rem-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.15rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.awt-rem-item:last-child {
+    border-bottom: 0;
+}
+
+/* The row is a button because tapping it edits the reminder; it must still
+   read as a row, so everything a button brings visually is taken back off. */
+.awt-rem-item-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.awt-rem-item-when {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+}
+
+.awt-rem-item.is-due .awt-rem-item-when {
+    color: var(--bs-warning);
+}
+
+.awt-rem-item-note {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--bs-body-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-rem-item-actions {
+    flex: 0 0 auto;
+    display: inline-flex;
+    gap: 0.15rem;
+}
+
+.awt-rem-item-btn {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+    transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.awt-rem-item-btn:hover {
+    background: rgba(var(--bs-primary-rgb), 0.12);
+    color: rgb(var(--bs-primary-rgb));
+}
+
+.awt-rem-item-btn.is-done:hover {
+    background: rgba(var(--bs-success-rgb), 0.14);
+    color: var(--bs-success);
+}
+
+.awt-rem-item-btn.is-drop:hover {
+    background: rgba(var(--bs-danger-rgb), 0.12);
+    color: var(--bs-danger);
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────── */
+
+.awt-rem-foot {
+    display: block;
+    padding: 0.5rem 1.35rem 1.3rem;
+    border-top: 0;
+}
+
+/* Bootstrap spaces .modal-footer children as a ROW; this one is a stack of
+   full-width blocks, and the inherited margin would shove each child 8px right
+   of the one above it. Same correction premium-paywall.css makes. */
+.awt-rem-foot > * {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.awt-rem-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 0;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.85) 0%, rgb(var(--bs-primary-rgb)) 70%, rgba(var(--bs-primary-rgb), 0.7) 100%);
+    box-shadow: 0 6px 16px rgba(var(--bs-primary-rgb), 0.28);
+    cursor: pointer;
+    transition: filter 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.awt-rem-cta:hover:not(:disabled) {
+    filter: brightness(1.05);
+    box-shadow: 0 8px 22px rgba(var(--bs-primary-rgb), 0.42);
+}
+
+.awt-rem-cta:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.awt-rem-cta:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.awt-rem-cancel {
+    display: block;
+    width: 100%;
+    margin-top: 0.55rem;
+    padding: 0.4rem;
+    border: 0;
+    background: transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+}
+
+.awt-rem-cancel:hover {
+    color: var(--bs-body-color);
+    text-decoration: underline;
+}
+
+/* ── A callback row's two buttons ────────────────────────────────────────
+ *
+ * Call, Snooze and Done. These kept the `awt-cb-row-*` names they were born
+ * with above the call history; the strip they were written for is gone, but
+ * the buttons are unchanged and the Callbacks tab draws them.
+ */
+.awt-cb-row-actions {
+    flex: 0 0 auto;
+    display: inline-flex;
+    gap: 0.15rem;
+}
+
+.awt-cb-row-btn {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+    transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.awt-cb-row-btn:hover {
+    background: rgba(var(--bs-primary-rgb), 0.12);
+    color: rgb(var(--bs-primary-rgb));
+}
+
+/* The one action that is the point of the row. */
+.awt-cb-row-btn.is-call {
+    background: rgba(var(--bs-primary-rgb), 0.12);
+    color: rgb(var(--bs-primary-rgb));
+}
+
+.awt-cb-row-btn.is-call:hover {
+    background: rgb(var(--bs-primary-rgb));
+    color: #fff;
+}
+
+/* ── The Callbacks tab: the whole queue ──────────────────────────────────
+ *
+ * The strip above answers "who am I supposed to be calling?" in one glance;
+ * this is the same rows with room to say who and why. Overdue reads RED here
+ * rather than the strip's warning-amber: the strip is a reminder, and a tab an
+ * agent opened on purpose is a reckoning.
+ */
+/* Same inset as .rc-calls-list, deliberately: the pane this sits in is flush
+ * (see operator-phone.css), so this is the ONLY horizontal padding between a
+ * row and the pane's edge, and Callbacks has to line up with History and
+ * Voicemail one pill away. */
+.awt-cb-list {
+    padding: 4px 6px 8px;
+    overflow-y: auto;
+}
+
+.awt-cb-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.35rem 10px 0.4rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cb-list-overdue {
+    color: var(--bs-danger);
+}
+
+/* A soft rounded row that lights up on hover, like .rc-call-item — not a
+ * bordered card. A box inside a pane that is itself a box reads as two frames
+ * around one row. */
+.awt-cb-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    margin: 1px 0;
+    transition: background .18s ease, box-shadow .18s ease;
+}
+
+.awt-cb-item:hover {
+    background: #f4f6f9;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+/* Overdue: a red tint, a red time and the word itself — no left edge. A rule
+ * down the side of a 12px-radius row renders as a crescent rather than a bar,
+ * and the row already says "Overdue" twice without it. */
+.awt-cb-item.is-overdue {
+    background: rgba(var(--bs-danger-rgb), 0.05);
+}
+
+.awt-cb-item.is-overdue:hover {
+    background: rgba(var(--bs-danger-rgb), 0.09);
+}
+
+.awt-cb-item-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.awt-cb-item-who {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-cb-item-num {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Two lines, not one. The reason is why the agent will know what the call is
+ * about before it connects, and this pane is narrow enough that one line cuts
+ * most of them off mid-sentence. */
+.awt-cb-item-reason {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-top: 0.15rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--bs-secondary-color);
+    overflow: hidden;
+}
+
+.awt-cb-item-side {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+}
+
+.awt-cb-item-when {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+}
+
+.awt-cb-item.is-overdue .awt-cb-item-when {
+    color: var(--bs-danger);
+}
+
+.awt-cb-item-flag {
+    display: inline-block;
+    margin-left: 0.25rem;
+    padding: 0.05rem 0.3rem;
+    border-radius: 4px;
+    background: rgba(var(--bs-danger-rgb), 0.12);
+    color: var(--bs-danger);
+    font-size: 0.625rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* ── "Add callback" ──────────────────────────────────────────────────────
+ * The only entry point where the agent has not already picked somebody to
+ * ring, so it says the whole verb rather than wearing a bare + icon.
+ */
+.awt-cb-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: rgba(var(--bs-primary-rgb), 0.12);
+    color: rgb(var(--bs-primary-rgb));
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.awt-cb-add:hover {
+    background: rgb(var(--bs-primary-rgb));
+    color: #fff;
+}
+
+.awt-cb-add:focus-visible {
+    outline: 2px solid rgb(var(--bs-primary-rgb));
+    outline-offset: 2px;
+}
+
+/* ── Nothing owed ────────────────────────────────────────────────────────
+ * The tab always renders this, unlike the strip, which hides: an agent who
+ * opened Callbacks asked the question, and "nothing" is the answer.
+ */
+.awt-cb-empty {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--bs-secondary-color);
+}
+
+.awt-cb-empty-icon {
+    font-size: 2rem;
+    color: var(--bs-secondary-color);
+    opacity: 0.45;
+}
+
+.awt-cb-empty h6 {
+    margin: 0.6rem 0 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
+.awt-cb-empty p {
+    margin: 0;
+    font-size: 0.8125rem;
+}
+
+/* ── The nudge toast ─────────────────────────────────────────────────────
+ *
+ * Fired from any page by reminder-nudges.js, not just /text — which is why its
+ * rules live here rather than in a page's own sheet, and why the sheet is
+ * loaded from the shell layouts.
+ *
+ * Deliberately NOT the chat toast's dark slab: that one is a preview of
+ * something somebody else did, this one is work the agent owes, and reading
+ * "you asked to be reminded" in the same box as "new message from Dana" makes
+ * both easier to ignore.
+ */
+.awt-rem-toast-wrap {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 340px;
+}
+
+.awt-rem-toast {
+    border: 1px solid rgba(var(--bs-warning-rgb), 0.55);
+    border-left-width: 4px;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    box-shadow: 0 8px 24px rgba(var(--bs-emphasis-color-rgb, 10, 14, 26), 0.24);
+    font-size: 13.5px;
+    line-height: 1.4;
+}
+
+.awt-rem-toast-head {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 2px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-warning);
+}
+
+.awt-rem-toast-note {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.awt-rem-toast-sub {
+    margin-top: 1px;
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-rem-toast-actions {
+    display: flex;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+}
+
+.awt-rem-toast-btn {
+    flex: 1 1 auto;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--bs-body-color);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.16s ease, border-color 0.16s ease;
+}
+
+.awt-rem-toast-btn:hover {
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+    background: rgba(var(--bs-primary-rgb), 0.08);
+}
+
+.awt-rem-toast-btn.is-primary {
+    border-color: rgba(var(--bs-primary-rgb), 0.55);
+    color: rgb(var(--bs-primary-rgb));
+}
+
+/* ── The AI Receptionist lead toast ───────────────────────────────────────
+   A variant of the reminder toast, not a second toast component: the two stack
+   in the same corner and reading as one family is the point. What separates
+   them is the accent — a reminder is amber because the agent asked for it and
+   it is now owed; a lead is primary because it is news. Every colour below is a
+   theme token, so both survive a theme swap and dark mode without a second
+   ruleset. */
+
+.awt-rem-toast.is-ai-lead {
+    border-color: rgba(var(--bs-primary-rgb), 0.55);
+    /* Frosted rather than opaque: this one lands unannounced over whatever the
+       agent was reading, and letting the page show through keeps it an
+       interruption rather than a hole. Degrades to the flat token background
+       wherever backdrop-filter is unsupported. */
+    background: color-mix(in srgb, var(--bs-body-bg) 86%, transparent);
+    backdrop-filter: blur(10px) saturate(1.15);
+    -webkit-backdrop-filter: blur(10px) saturate(1.15);
+}
+
+.awt-rem-toast.is-ai-lead .awt-rem-toast-head {
+    color: rgb(var(--bs-primary-rgb));
+}
+
+/* The number sits on the same line as the name and must not compete with it —
+   an agent reads who is calling first and dials second. */
+.awt-rem-toast-num {
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--bs-secondary-color);
+}
+
+/* The lead toast wraps its summary; the reminder's single-line sub-text does
+   not. A caller's actual words are the reason to pick the call up, so they are
+   worth two lines rather than an ellipsis. */
+.awt-rem-toast.is-ai-lead .awt-rem-toast-sub {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    text-overflow: initial;
+}
+
+/* On a phone the presets and the two date fields each get their own line —
+   two 140px-wide date inputs side by side are unusable with a thumb. */
+@media (max-width: 575.98px) {
+    .awt-rem-presets,
+    .awt-rem-when {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .awt-rem-toast-wrap {
+        left: 12px;
+        right: 12px;
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-rem-banner,
+    .awt-rem-preset,
+    .awt-rem-cta,
+    .awt-rem-item-btn,
+    .awt-rem-toast-btn {
+        transition: none;
+    }
+}

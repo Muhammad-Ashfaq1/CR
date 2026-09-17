@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentType;
 use App\Models\Contractor;
 use App\Models\User;
 use App\Services\ActivityLogger;
@@ -30,8 +31,11 @@ class ContractorController extends Controller
         }
 
         $contractors = $query->latest()->paginate(15)->withQueryString();
+        $users = User::where('role', 'contractor')
+            ->whereDoesntHave('contractorProfile')
+            ->get();
 
-        return view('contractors.index', compact('contractors'));
+        return view('contractors.index', compact('contractors', 'users'));
     }
 
     public function create(): View
@@ -105,13 +109,17 @@ class ContractorController extends Controller
         $totalContractSum = $projectLedgers->sum('contract_amount');
         $totalPaidSum = $projectLedgers->sum('total_paid');
         $totalRemainingSum = $totalContractSum - $totalPaidSum;
+        $paymentTypes = PaymentType::cases();
+        $workerTypes = ['Mason', 'Laborer', 'Carpenter', 'Electrician', 'Plumber', 'Steel Fixer', 'Painter', 'Welder', 'Tile Fixer', 'Supervisor', 'Other'];
 
         return view('contractors.show', compact(
             'contractor',
             'projectLedgers',
             'totalContractSum',
             'totalPaidSum',
-            'totalRemainingSum'
+            'totalRemainingSum',
+            'paymentTypes',
+            'workerTypes'
         ));
     }
 

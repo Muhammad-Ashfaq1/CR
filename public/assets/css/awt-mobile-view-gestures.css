@@ -1,0 +1,338 @@
+/*
+ * awt-mobile-view-gestures.css — the look of the touch row gestures.
+ *
+ * Companion to public/assets/js/awt-mobile-view-gestures.js. Read that file
+ * first: it explains why the zones live inside the row and why the row's own
+ * transform is the whole reveal animation.
+ *
+ * ── The isolation rule ──────────────────────────────────────────────────────
+ *
+ * EVERY rule in this file sits inside `@media (max-width: 768px)`, the same
+ * breakpoint the script gates on. Above it this stylesheet contributes nothing
+ * at all — desktop list layouts, hover states and the rc-* tables are untouched
+ * because there is no rule for the browser to apply, not because a later rule
+ * undoes one.
+ *
+ * Nothing here uses !important. The zones are new elements with new class
+ * names, so they have no existing rule to fight, and the two properties added
+ * to existing rows (`position` and `touch-action`) are inert until a finger
+ * arrives.
+ *
+ * Colours come from the theme's own variables where one exists, so dark mode
+ * follows automatically; the two gradients are stated directly because the
+ * emerald and red of a swipe zone are a fixed signal, not a themeable accent.
+ */
+
+@media (max-width: 768px) {
+
+    /* ── The row while a gesture is on it ──────────────────────────────── */
+
+    /*
+     * `position: relative` gives the zones something to anchor to, and
+     * `touch-action: pan-y` hands the browser the axis we do NOT want: it keeps
+     * vertical scrolling on its own fast path while telling it not to try to
+     * pan horizontally, which is ours. Neither has any visible effect until the
+     * script moves the row.
+     */
+    [data-mobile-gesture="true"] {
+        position: relative;
+        touch-action: pan-y;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /*
+     * The row must be opaque while it slides, or the zone behind the NEXT row
+     * shows through it. Falls back to the theme's card colour, which is what
+     * these lists already sit on.
+     */
+    [data-mobile-gesture="true"].awt-mg-dragging,
+    [data-mobile-gesture="true"].awt-mg-settling {
+        background-color: var(--bs-card-bg, var(--bs-body-bg, #fff));
+        z-index: 2;
+    }
+
+    /* Following the finger: no transition, or the row lags behind it. */
+    .awt-mg-dragging {
+        transition: none !important;
+        will-change: transform;
+    }
+
+    /* Letting go: one spring back to rest. */
+    .awt-mg-settling {
+        transition: transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    /* Held down, before the sheet opens — a small acknowledgement. */
+    .awt-mg-pressed {
+        transition: transform 160ms ease-out, background-color 160ms ease-out;
+        transform: scale(0.985);
+        background-color: rgba(var(--bs-primary-rgb, 105 108 255), 0.06);
+    }
+
+    /* ── The revealed action zones ─────────────────────────────────────── */
+
+    /*
+     * Parked immediately outside the row's edges — `right: 100%` puts the start
+     * zone entirely to the row's left, `left: 100%` puts the end zone entirely
+     * to its right. They are children, so the row's transform carries them: as
+     * the row slides right, the start zone slides into the gap it leaves. That
+     * is the entire mechanism.
+     */
+    .awt-mg-zone {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0 1.25rem;
+        color: #fff;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        pointer-events: none;   /* the gesture commits on release, not on tap */
+        overflow: hidden;
+    }
+
+    .awt-mg-zone i {
+        font-size: 1.25rem;
+    }
+
+    /* Revealed by a swipe RIGHT — the status edge. */
+    .awt-mg-zone-start {
+        right: 100%;
+        justify-content: flex-end;
+        background-image: linear-gradient(90deg, #047857 0%, #10b981 100%);
+    }
+
+    /* Revealed by a swipe LEFT — the destructive edge. */
+    .awt-mg-zone-end {
+        left: 100%;
+        justify-content: flex-start;
+        background-image: linear-gradient(90deg, #ef4444 0%, #b91c1c 100%);
+    }
+
+    /*
+     * Past the commit point the icon gives a small kick, so the threshold is
+     * felt rather than guessed at.
+     */
+    .awt-mg-armed-start .awt-mg-zone-start i,
+    .awt-mg-armed-end .awt-mg-zone-end i {
+        animation: awt-mg-pop 220ms ease-out;
+    }
+
+    @keyframes awt-mg-pop {
+        0%   { transform: scale(1); }
+        45%  { transform: scale(1.35); }
+        100% { transform: scale(1.12); }
+    }
+
+    /*
+     * Clip the parked zones so a mid-swipe row cannot widen the page sideways.
+     *
+     * Only `overflow-x` is declared. All three of these lists are already
+     * `overflow-y: auto` scroll containers, and per spec an `overflow-x:
+     * hidden` alongside a `visible` overflow-y promotes the latter to `auto`
+     * anyway — so stating overflow-y here would either be a no-op or, on some
+     * future list, silently turn it into a nested scroller. Not worth it.
+     */
+    [data-awt-gestures] {
+        overflow-x: hidden;
+    }
+
+    /* ── The floating action sheet ─────────────────────────────────────── */
+
+    /*
+     * core.css declares its display utilities !important AFTER the [hidden]
+     * reset, so a hidden element that also carries a display class stays
+     * visible. This sheet uses neither, but it states its own hidden rule
+     * anyway — it is the one property that must never lose an argument.
+     */
+    .awt-mg-sheet[hidden] {
+        display: none !important;
+    }
+
+    .awt-mg-sheet {
+        position: fixed;
+        inset: 0;
+        z-index: 1085;          /* over the master-detail sheet, under toasts */
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .awt-mg-sheet-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.42);
+        opacity: 0;
+        transition: opacity 220ms ease;
+    }
+
+    .awt-mg-sheet.is-open .awt-mg-sheet-backdrop {
+        opacity: 1;
+    }
+
+    /* The glass surface itself. */
+    .awt-mg-sheet-panel {
+        position: relative;
+        margin: 0 0.5rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+        padding: 0.5rem 0.5rem 0.75rem;
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, 0.82);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 -8px 40px rgba(15, 23, 42, 0.28);
+        transform: translate3d(0, 100%, 0);
+        transition: transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .awt-mg-sheet.is-open .awt-mg-sheet-panel {
+        transform: translate3d(0, 0, 0);
+    }
+
+    /* While a finger is dragging it down, it must track that finger exactly. */
+    .awt-mg-sheet-panel.is-dragging {
+        transition: none;
+    }
+
+    .awt-mg-sheet-grabber {
+        width: 2.25rem;
+        height: 0.25rem;
+        margin: 0.25rem auto 0.625rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.22);
+    }
+
+    .awt-mg-sheet-title {
+        padding: 0 0.75rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--bs-secondary-color, #6b7280);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .awt-mg-sheet-items {
+        display: flex;
+        flex-direction: column;
+        border-radius: 0.875rem;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .awt-mg-sheet-item {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 0;
+        background: transparent;
+        color: var(--bs-body-color, #384551);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .awt-mg-sheet-item + .awt-mg-sheet-item {
+        border-top: 1px solid rgba(15, 23, 42, 0.07);
+    }
+
+    .awt-mg-sheet-item:active {
+        background: rgba(15, 23, 42, 0.06);
+    }
+
+    .awt-mg-sheet-item i {
+        font-size: 1.125rem;
+        color: var(--bs-secondary-color, #6b7280);
+        flex: 0 0 auto;
+    }
+
+    .awt-mg-sheet-item.is-danger,
+    .awt-mg-sheet-item.is-danger i {
+        color: var(--bs-danger, #ef4444);
+    }
+
+    .awt-mg-sheet-cancel {
+        display: block;
+        width: 100%;
+        margin-top: 0.5rem;
+        padding: 0.875rem 1rem;
+        border: 0;
+        border-radius: 0.875rem;
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--bs-primary, #696cff);
+        font-size: 0.9375rem;
+        font-weight: 600;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* The page behind a modal sheet must not scroll under it. */
+    body.awt-mg-sheet-open {
+        overflow: hidden;
+    }
+
+    /* ── Dark theme ────────────────────────────────────────────────────── */
+
+    [data-bs-theme="dark"] .awt-mg-sheet-panel {
+        background: rgba(29, 33, 47, 0.86);
+        border-color: rgba(255, 255, 255, 0.09);
+        box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    [data-bs-theme="dark"] .awt-mg-sheet-grabber {
+        background: rgba(255, 255, 255, 0.28);
+    }
+
+    [data-bs-theme="dark"] .awt-mg-sheet-items {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    [data-bs-theme="dark"] .awt-mg-sheet-item + .awt-mg-sheet-item {
+        border-top-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-bs-theme="dark"] .awt-mg-sheet-item:active {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-bs-theme="dark"] .awt-mg-sheet-cancel {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Reduced motion ────────────────────────────────────────────────── */
+
+    /*
+     * The gestures still work; only the decoration stops. The row still tracks
+     * the finger — that is the gesture, not an animation — but it snaps home
+     * instead of springing, and nothing pulses.
+     */
+    @media (prefers-reduced-motion: reduce) {
+        .awt-mg-settling,
+        .awt-mg-pressed,
+        .awt-mg-sheet-backdrop,
+        .awt-mg-sheet-panel {
+            transition-duration: 1ms;
+        }
+
+        .awt-mg-armed-start .awt-mg-zone-start i,
+        .awt-mg-armed-end .awt-mg-zone-end i {
+            animation: none;
+        }
+
+        .awt-mg-pressed {
+            transform: none;
+        }
+    }
+}

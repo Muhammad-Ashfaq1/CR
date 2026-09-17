@@ -1,0 +1,438 @@
+/*
+ * Navbar calendar panel.
+ *
+ * Its own file, linked with the ?v=filemtime cache-buster the agent layout uses
+ * for every stylesheet it owns. That is not decoration: unversioned CSS on this
+ * host is served by Cloudflare with a ten-year max-age, so a rule added to a
+ * shared file can sit unapplied in a browser for a very long time.
+ *
+ * Colours come from the Bootstrap theme variables the shell already defines, so
+ * the panel follows the light/dark switch without a second palette to maintain.
+ */
+
+.tenant-agent-layout .tal-calendar {
+    position: relative;
+}
+
+/* ---------------------------------------------------------------- the panel */
+
+.tenant-agent-layout .tal-calendar-menu {
+    width: 340px;
+    max-width: calc(100vw - 1.5rem);
+    padding: 0;
+    border: 1px solid var(--bs-border-color, rgba(67, 89, 113, 0.15));
+    border-radius: 0.75rem;
+    box-shadow: 0 0.75rem 2rem rgba(20, 24, 40, 0.18);
+    overflow: hidden;
+    background: var(--bs-body-bg, #ffffff);
+    color: var(--bs-body-color, #566a7f);
+}
+
+/* --------------------------------------------------------------- the header */
+
+.tenant-agent-layout .tal-cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid var(--bs-border-color, rgba(67, 89, 113, 0.12));
+}
+
+.tenant-agent-layout .tal-cal-head-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.tenant-agent-layout .tal-cal-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--bs-heading-color, var(--bs-body-color, #2f3349));
+}
+
+/* The account line is the one thing here that can be arbitrarily long. It
+   truncates rather than wrapping, because a second line would push the grid
+   down and change the panel's height between providers. */
+.tenant-agent-layout .tal-cal-account {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tenant-agent-layout .tal-cal-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex-shrink: 0;
+}
+
+.tenant-agent-layout .tal-cal-navbtn {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    border-radius: 0.4rem;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.tenant-agent-layout .tal-cal-navbtn:hover {
+    background: rgba(var(--bs-primary-rgb, 105, 108, 255), 0.1);
+    color: var(--bs-primary, #696cff);
+}
+
+/* ------------------------------------------------------- the account switch */
+
+.tenant-agent-layout .tal-cal-switch {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.5rem 0.85rem 0;
+}
+
+.tenant-agent-layout .tal-cal-chip {
+    border: 1px solid var(--bs-border-color, rgba(67, 89, 113, 0.2));
+    background: transparent;
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.7rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tenant-agent-layout .tal-cal-chip.is-active {
+    background: var(--bs-primary, #696cff);
+    border-color: var(--bs-primary, #696cff);
+    color: #ffffff;
+}
+
+/* ----------------------------------------------------------------- the body */
+
+.tenant-agent-layout .tal-cal-body {
+    padding: 0.6rem 0.85rem 0.85rem;
+}
+
+.tenant-agent-layout .tal-cal-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 1.75rem 0;
+    font-size: 0.8rem;
+    opacity: 0.75;
+}
+
+/* ----------------------------------------------------------------- the grid */
+
+.tenant-agent-layout .tal-cal-dow,
+.tenant-agent-layout .tal-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.tenant-agent-layout .tal-cal-dow {
+    margin-bottom: 0.25rem;
+}
+
+.tenant-agent-layout .tal-cal-dow span {
+    text-align: center;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.55;
+}
+
+.tenant-agent-layout .tal-cal-cell {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    border-radius: 0.4rem;
+    /* Fixed height so a month with events and one without are the same size —
+       a panel that resizes as you page through months reads as broken. */
+    height: 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.tenant-agent-layout .tal-cal-cell.is-pad {
+    cursor: default;
+    pointer-events: none;
+}
+
+.tenant-agent-layout .tal-cal-cell:hover:not(.is-pad) {
+    background: rgba(var(--bs-primary-rgb, 105, 108, 255), 0.1);
+}
+
+.tenant-agent-layout .tal-cal-num {
+    font-size: 0.78rem;
+    line-height: 1;
+}
+
+.tenant-agent-layout .tal-cal-cell.is-today .tal-cal-num {
+    font-weight: 700;
+    color: var(--bs-primary, #696cff);
+}
+
+.tenant-agent-layout .tal-cal-cell.is-selected {
+    background: var(--bs-primary, #696cff);
+    color: #ffffff;
+}
+
+.tenant-agent-layout .tal-cal-cell.is-selected .tal-cal-num,
+.tenant-agent-layout .tal-cal-cell.is-selected .tal-cal-dot {
+    color: #ffffff;
+}
+
+/* The dot row is a fixed 6px whether or not it holds anything, so a day with
+   events and a day without keep their numbers on the same baseline. */
+.tenant-agent-layout .tal-cal-dot {
+    font-size: 0.5rem;
+    line-height: 6px;
+    height: 6px;
+    letter-spacing: 0.5px;
+    color: var(--bs-primary, #696cff);
+}
+
+/* --------------------------------------------------------- the day's events */
+
+.tenant-agent-layout .tal-cal-day {
+    margin-top: 0.7rem;
+    border-top: 1px solid var(--bs-border-color, rgba(67, 89, 113, 0.12));
+    padding-top: 0.6rem;
+}
+
+.tenant-agent-layout .tal-cal-day-head {
+    font-size: 0.72rem;
+    font-weight: 600;
+    opacity: 0.75;
+    margin-bottom: 0.4rem;
+}
+
+.tenant-agent-layout .tal-cal-events {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    /* A busy day scrolls inside the panel instead of growing it past the
+       viewport. */
+    max-height: 190px;
+    overflow-y: auto;
+}
+
+.tenant-agent-layout .tal-cal-event {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.35rem 0.15rem;
+    border-radius: 0.4rem;
+}
+
+.tenant-agent-layout .tal-cal-event + .tal-cal-event {
+    border-top: 1px solid var(--bs-border-color, rgba(67, 89, 113, 0.08));
+}
+
+.tenant-agent-layout .tal-cal-event-time {
+    flex: 0 0 auto;
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+    padding-top: 0.1rem;
+    min-width: 62px;
+}
+
+.tenant-agent-layout .tal-cal-event-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+.tenant-agent-layout .tal-cal-event-title {
+    font-size: 0.78rem;
+    line-height: 1.25;
+    /* Two lines then ellipsis: a long meeting subject must not push the rest of
+       the day off the panel. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tenant-agent-layout .tal-cal-event-meta {
+    font-size: 0.68rem;
+    opacity: 0.6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tenant-agent-layout .tal-cal-event-open {
+    flex: 0 0 auto;
+    color: inherit;
+    opacity: 0.5;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding-top: 0.15rem;
+}
+
+.tenant-agent-layout .tal-cal-event-open:hover {
+    opacity: 1;
+    color: var(--bs-primary, #696cff);
+}
+
+.tenant-agent-layout .tal-cal-none {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    padding: 0.35rem 0.15rem;
+}
+
+/* ------------------------------------------- disconnected / broken / no data */
+
+.tenant-agent-layout .tal-cal-empty {
+    text-align: center;
+    padding: 1.25rem 0.5rem 0.75rem;
+}
+
+.tenant-agent-layout .tal-cal-empty-icon {
+    font-size: 1.6rem;
+    opacity: 0.35;
+}
+
+.tenant-agent-layout .tal-cal-empty-text {
+    font-size: 0.8rem;
+    margin: 0.5rem 0 0.75rem;
+    opacity: 0.8;
+}
+
+.tenant-agent-layout .tal-cal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.tenant-agent-layout .tal-cal-connect {
+    display: block;
+    border: 1px solid var(--bs-primary, #696cff);
+    color: var(--bs-primary, #696cff);
+    border-radius: 0.45rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.78rem;
+    text-decoration: none;
+}
+
+.tenant-agent-layout .tal-cal-connect:hover {
+    background: var(--bs-primary, #696cff);
+    color: #ffffff;
+}
+
+/* ---------------------------------------------------------------- on a phone */
+
+@media (max-width: 575.98px) {
+    .tenant-agent-layout .tal-calendar-menu {
+        width: calc(100vw - 1rem);
+    }
+
+    .tenant-agent-layout .tal-cal-events {
+        max-height: 150px;
+    }
+}
+
+/* ------------------------------------------------ the "no calendar" strip */
+
+/* Shown ABOVE the grid rather than instead of it: an operator with callbacks
+   and no Google account gets their callbacks and the offer, not one or the
+   other. */
+.tenant-agent-layout .tal-cal-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.7rem;
+    background: rgba(var(--bs-warning-rgb, 255, 171, 0), 0.12);
+    color: var(--bs-body-color, #566a7f);
+    border-bottom: 1px solid var(--bs-border-color, rgba(67, 89, 113, 0.12));
+}
+
+.tenant-agent-layout .tal-cal-note-link {
+    flex-shrink: 0;
+    color: var(--bs-primary, #696cff);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.tenant-agent-layout .tal-cal-note-link:hover {
+    text-decoration: underline;
+}
+
+/* -------------------------------------------------------- what a row IS */
+
+/* One pip per row, coloured by kind, so the grid distinguishes "three
+   meetings" from "a meeting and two calls I promised to make". */
+.tenant-agent-layout .tal-cal-dot {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    justify-content: center;
+}
+
+.tenant-agent-layout .tal-cal-pip {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    display: inline-block;
+    background: var(--bs-primary, #696cff);
+}
+
+.tenant-agent-layout .tal-cal-pip.is-callback {
+    background: var(--bs-success, #71dd37);
+}
+
+.tenant-agent-layout .tal-cal-pip.is-reminder {
+    background: var(--bs-warning, #ffab00);
+}
+
+.tenant-agent-layout .tal-cal-pip.is-meeting {
+    background: var(--bs-info, #03c3ec);
+}
+
+/* A selected cell inverts to the primary fill, so every pip on it has to go
+   white or it disappears into the background. */
+.tenant-agent-layout .tal-cal-cell.is-selected .tal-cal-pip {
+    background: #ffffff;
+}
+
+.tenant-agent-layout .tal-cal-event-icon {
+    flex: 0 0 auto;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding-top: 0.2rem;
+    opacity: 0.75;
+}
+
+.tenant-agent-layout .tal-cal-event.is-event .tal-cal-event-icon {
+    color: var(--bs-primary, #696cff);
+}
+
+.tenant-agent-layout .tal-cal-event.is-callback .tal-cal-event-icon {
+    color: var(--bs-success, #71dd37);
+}
+
+.tenant-agent-layout .tal-cal-event.is-reminder .tal-cal-event-icon {
+    color: var(--bs-warning, #ffab00);
+}
+
+.tenant-agent-layout .tal-cal-event.is-meeting .tal-cal-event-icon {
+    color: var(--bs-info, #03c3ec);
+}

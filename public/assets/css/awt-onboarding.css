@@ -1,0 +1,539 @@
+/* ==========================================================================
+   Migration onboarding — dashboard banner + savings calculator
+   ==========================================================================
+
+   Theme-aware hero surface sitting on top of dashboard.
+   Seamlessly adapts to selected palette (Sky, Lake, Eggplant, Dark) and
+   toggles gracefully between Light and Dark mode.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Local [hidden] guard.
+   -------------------------------------------------------------------------- */
+.awt-migrate-banner [hidden],
+.awt-savings-modal [hidden] {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Banner
+   ========================================================================== */
+
+.awt-migrate-banner {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 1.75rem;
+    background-color: rgba(255, 255, 255, 0.82);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.12) 0%,
+        rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.03) 45%,
+        rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0) 75%
+    );
+    border: 1px solid rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.2);
+    border-radius: 0.875rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--bs-heading-color, #1f1c2c);
+    overflow: hidden;
+    box-shadow:
+        0 12px 32px -16px rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.35),
+        0 1px 2px rgba(47, 43, 61, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Accent wash, keyed to the tone class on the element so it inherits the
+   organization's theme colour rather than hard-coding a brand blue. */
+.awt-migrate-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 140% at 100% 0%,
+            rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.18) 0%,
+            rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.04) 45%,
+            rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0) 72%);
+}
+
+[data-bs-theme="dark"] .awt-migrate-banner,
+html.awt-theme-dark .awt-migrate-banner,
+html.dark-style .awt-migrate-banner {
+    background-color: rgba(15, 23, 42, 0.85);
+    background-image: linear-gradient(
+        135deg,
+        rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.2) 0%,
+        rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.05) 50%,
+        rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0) 75%
+    );
+    border-color: rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.28);
+    color: #f8fafc;
+    box-shadow:
+        0 18px 40px -24px rgba(0, 0, 0, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.awt-migrate-banner > * {
+    position: relative;
+}
+
+.awt-migrate-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--bs-secondary-color, #94a3b8);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.awt-migrate-close:hover,
+.awt-migrate-close:focus-visible {
+    background: rgba(var(--bs-primary-rgb, 105, 108, 255), 0.12);
+    color: var(--bs-heading-color, #f8fafc);
+}
+
+[data-bs-theme="dark"] .awt-migrate-close,
+html.awt-theme-dark .awt-migrate-close,
+html.dark-style .awt-migrate-close {
+    color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .awt-migrate-close:hover,
+html.awt-theme-dark .awt-migrate-close:hover,
+html.dark-style .awt-migrate-close:hover {
+    background: rgba(248, 250, 252, 0.1);
+    color: #f8fafc;
+}
+
+.awt-migrate-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 1.75rem;
+    align-items: center;
+}
+
+@media (max-width: 991.98px) {
+    .awt-migrate-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+    }
+}
+
+.awt-migrate-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    background: rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.12);
+    border: 1px solid rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.3);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .awt-migrate-eyebrow,
+html.awt-theme-dark .awt-migrate-eyebrow,
+html.dark-style .awt-migrate-eyebrow {
+    background: rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.2);
+    border-color: rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.4);
+    color: #93c5fd;
+}
+
+.awt-migrate-title {
+    margin-bottom: 0.5rem;
+    color: var(--bs-heading-color, #1f1c2c);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+[data-bs-theme="dark"] .awt-migrate-title,
+html.awt-theme-dark .awt-migrate-title,
+html.dark-style .awt-migrate-title {
+    color: #f8fafc;
+}
+
+.awt-migrate-sub {
+    margin-bottom: 0;
+    color: var(--bs-secondary-color, #5d5a6f);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    max-width: 46ch;
+}
+
+[data-bs-theme="dark"] .awt-migrate-sub,
+html.awt-theme-dark .awt-migrate-sub,
+html.dark-style .awt-migrate-sub {
+    color: #94a3b8;
+}
+
+.awt-migrate-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.awt-migrate-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    color: var(--bs-heading-color, #2f2b3d);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+[data-bs-theme="dark"] .awt-migrate-label,
+html.awt-theme-dark .awt-migrate-label,
+html.dark-style .awt-migrate-label {
+    color: #cbd5e1;
+}
+
+/* The select has to be legible in both light and dark themes */
+.awt-migrate-select.form-select {
+    background-color: var(--bs-paper-bg, #ffffff);
+    border-color: var(--bs-border-color, rgba(148, 163, 184, 0.28));
+    color: var(--bs-body-color, #2f2b3d);
+}
+
+.awt-migrate-select.form-select:focus {
+    background-color: var(--bs-paper-bg, #ffffff);
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.15rem rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.25);
+    color: var(--bs-body-color, #2f2b3d);
+}
+
+.awt-migrate-select.form-select option {
+    background-color: var(--bs-paper-bg, #ffffff);
+    color: var(--bs-body-color, #2f2b3d);
+}
+
+[data-bs-theme="dark"] .awt-migrate-select.form-select,
+html.awt-theme-dark .awt-migrate-select.form-select,
+html.dark-style .awt-migrate-select.form-select {
+    background-color: rgba(15, 23, 42, 0.85);
+    border-color: rgba(148, 163, 184, 0.28);
+    color: #f8fafc;
+}
+
+[data-bs-theme="dark"] .awt-migrate-select.form-select:focus,
+html.awt-theme-dark .awt-migrate-select.form-select:focus,
+html.dark-style .awt-migrate-select.form-select:focus {
+    background-color: rgba(15, 23, 42, 0.95);
+    border-color: rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.75);
+    color: #f8fafc;
+}
+
+[data-bs-theme="dark"] .awt-migrate-select.form-select option,
+html.awt-theme-dark .awt-migrate-select.form-select option,
+html.dark-style .awt-migrate-select.form-select option {
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+.awt-migrate-blurb {
+    display: block;
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    background: rgba(var(--awt-tone-rgb, var(--bs-primary-rgb)), 0.08);
+    border-left: 3px solid var(--bs-primary);
+    color: var(--bs-body-color, #2f2b3d);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
+[data-bs-theme="dark"] .awt-migrate-blurb,
+html.awt-theme-dark .awt-migrate-blurb,
+html.dark-style .awt-migrate-blurb {
+    background: rgba(148, 163, 184, 0.1);
+    color: #cbd5e1;
+}
+
+.awt-migrate-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.awt-migrate-port.btn-outline-primary {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.awt-migrate-port.btn-outline-primary:hover {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .awt-migrate-port.btn-outline-primary,
+html.awt-theme-dark .awt-migrate-port.btn-outline-primary,
+html.dark-style .awt-migrate-port.btn-outline-primary {
+    border-color: rgba(226, 232, 240, 0.35);
+    color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .awt-migrate-port.btn-outline-primary:hover,
+html.awt-theme-dark .awt-migrate-port.btn-outline-primary:hover,
+html.dark-style .awt-migrate-port.btn-outline-primary:hover {
+    background: rgba(226, 232, 240, 0.12);
+    border-color: rgba(226, 232, 240, 0.55);
+    color: #f8fafc;
+}
+
+.awt-migrate-skip.btn-link {
+    color: var(--bs-secondary-color, #5d5a6f);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.awt-migrate-skip.btn-link:hover {
+    color: var(--bs-primary);
+    text-decoration: underline;
+}
+
+[data-bs-theme="dark"] .awt-migrate-skip.btn-link,
+html.awt-theme-dark .awt-migrate-skip.btn-link,
+html.dark-style .awt-migrate-skip.btn-link {
+    color: #94a3b8;
+}
+
+[data-bs-theme="dark"] .awt-migrate-skip.btn-link:hover,
+html.awt-theme-dark .awt-migrate-skip.btn-link:hover,
+html.dark-style .awt-migrate-skip.btn-link:hover {
+    color: #e2e8f0;
+}
+
+/* Dismissal animates out rather than snapping, then the script removes it. */
+.awt-migrate-banner.is-dismissing {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-migrate-banner.is-dismissing {
+        transition: none;
+    }
+}
+
+/* ==========================================================================
+   Savings calculator
+   ========================================================================== */
+
+.awt-dropzone {
+    display: block;
+    width: 100%;
+    padding: 1.75rem 1rem;
+    text-align: center;
+    border: 2px dashed var(--bs-border-color, rgba(148, 163, 184, 0.5));
+    border-radius: 0.75rem;
+    background: rgba(var(--bs-primary-rgb), 0.02);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.awt-dropzone:hover,
+.awt-dropzone:focus-visible,
+.awt-dropzone.is-dragging {
+    border-color: rgba(var(--bs-primary-rgb), 0.7);
+    background: rgba(var(--bs-primary-rgb), 0.06);
+    outline: none;
+}
+
+.awt-dropzone-icon {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    color: rgba(var(--bs-primary-rgb), 0.8);
+}
+
+.awt-dropzone-title {
+    font-weight: 600;
+}
+
+.awt-dropzone-hint {
+    color: var(--bs-secondary-color, #94a3b8);
+    font-size: 0.8125rem;
+}
+
+.awt-savings-note {
+    margin: 0.625rem 0 0;
+    color: var(--bs-secondary-color, #94a3b8);
+    font-size: 0.75rem;
+}
+
+.awt-savings-result {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--bs-border-color, rgba(148, 163, 184, 0.3));
+}
+
+.awt-savings-compare {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    gap: 0.75rem;
+}
+
+@media (max-width: 575.98px) {
+    .awt-savings-compare {
+        grid-template-columns: 1fr;
+    }
+
+    .awt-savings-arrow {
+        transform: rotate(90deg);
+    }
+}
+
+.awt-savings-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    border: 1px solid var(--bs-border-color, rgba(148, 163, 184, 0.3));
+}
+
+.awt-savings-side--current {
+    background: rgba(var(--bs-secondary-rgb), 0.06);
+}
+
+.awt-savings-side--awt {
+    background: rgba(var(--bs-success-rgb), 0.08);
+    border-color: rgba(var(--bs-success-rgb), 0.35);
+}
+
+.awt-savings-side-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-secondary-color, #94a3b8);
+}
+
+.awt-savings-side-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    /* Tabular figures so the two columns line up digit for digit. */
+    font-variant-numeric: tabular-nums;
+}
+
+.awt-savings-side--awt .awt-savings-side-value {
+    color: var(--bs-success);
+}
+
+.awt-savings-side-unit {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color, #94a3b8);
+}
+
+.awt-savings-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bs-secondary-color, #94a3b8);
+    font-size: 1.25rem;
+}
+
+.awt-savings-headline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    background: rgba(var(--bs-success-rgb), 0.1);
+    border: 1px solid rgba(var(--bs-success-rgb), 0.3);
+}
+
+.awt-savings-headline-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-secondary-color, #94a3b8);
+}
+
+.awt-savings-headline-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--bs-success);
+    font-variant-numeric: tabular-nums;
+}
+
+.awt-savings-headline-sub {
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color, #94a3b8);
+}
+
+.awt-savings-nosaving {
+    display: block;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background: rgba(var(--bs-info-rgb), 0.08);
+    border: 1px solid rgba(var(--bs-info-rgb), 0.3);
+    font-size: 0.875rem;
+}
+
+.awt-savings-breakdown-title {
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.awt-savings-breakdown {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.awt-savings-breakdown li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--bs-border-color, rgba(148, 163, 184, 0.2));
+    font-size: 0.875rem;
+}
+
+.awt-savings-breakdown li:last-child {
+    border-bottom: 0;
+}
+
+.awt-savings-breakdown .awt-savings-breakdown-detail {
+    display: block;
+    color: var(--bs-secondary-color, #94a3b8);
+    font-size: 0.75rem;
+}
+
+.awt-savings-breakdown .awt-savings-breakdown-amount {
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.awt-savings-smallprint {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    color: var(--bs-secondary-color, #94a3b8);
+    font-size: 0.75rem;
+    line-height: 1.5;
+}

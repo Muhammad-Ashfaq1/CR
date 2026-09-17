@@ -3,34 +3,38 @@
 @section('title', 'Payment Voucher #' . str_pad($payment->id, 5, '0', STR_PAD_LEFT) . ' — ' . config('app.name'))
 
 @section('content')
-<div class="cst-page-header d-print-none">
-    <div>
-        <h1 class="cst-page-title">Payment Voucher #{{ str_pad($payment->id, 5, '0', STR_PAD_LEFT) }}</h1>
-        <p class="cst-page-subtitle">Official payment disbursement voucher and project balance snapshot.</p>
-    </div>
-    <div class="d-flex gap-2">
-        <button type="button" class="btn btn-outline-secondary" onclick="window.print();">
-            <i class="ti ti-printer me-1"></i> Print Voucher
-        </button>
-        <a href="{{ route('contractor-payments.index') }}" class="btn btn-outline-primary">
-            &larr; Back to Payments
-        </a>
+<div class="pos-glass-intro pos-tone-primary mb-4 d-print-none">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h4 class="pos-glass-intro-title mb-1">
+                <i class="icon-base ti tabler-receipt me-2 text-primary"></i> Payment Voucher #{{ str_pad($payment->id, 5, '0', STR_PAD_LEFT) }}
+            </h4>
+            <div class="pos-glass-intro-sub">Official payment disbursement voucher and project balance snapshot.</div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" onclick="window.print();">
+                <i class="icon-base ti tabler-printer me-1"></i> Print Voucher
+            </button>
+            <a href="{{ route('contractor-payments.index') }}" class="btn btn-outline-primary">
+                <i class="icon-base ti tabler-arrow-left me-1"></i> Back to Payments
+            </a>
+        </div>
     </div>
 </div>
 
 <div class="row justify-content-center">
     <div class="col-lg-9">
-        <div class="cst-card p-5 border shadow-sm">
+        <div class="card border-0 shadow-sm p-5">
             @if($payment->is_voided)
                 <div class="alert alert-danger text-center fw-bold py-2 mb-4">
-                    <i class="ti ti-ban me-1"></i> THIS PAYMENT VOUCHER HAS BEEN VOIDED / CANCELLED
+                    <i class="icon-base ti tabler-ban me-1"></i> THIS PAYMENT VOUCHER HAS BEEN VOIDED / CANCELLED
                 </div>
             @endif
 
             {{-- Voucher Header --}}
             <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
                 <div>
-                    <h3 class="fw-bold text-dark mb-1"><i class="ti ti-building-skyscraper text-warning me-2"></i>{{ config('app.name', 'Construction Ready') }}</h3>
+                    <h3 class="fw-bold text-dark mb-1"><i class="icon-base ti tabler-building-skyscraper text-primary me-2"></i>{{ config('app.name', 'Construction Ready') }}</h3>
                     <div class="text-muted">Payment Disbursement Voucher</div>
                 </div>
                 <div class="text-end">
@@ -74,9 +78,9 @@
                                 <div class="small text-muted">{{ $payment->notes ?? 'Payment recorded for agreed contract services.' }}</div>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border">{{ $payment->payment_type->label() }}</span>
+                                <span class="badge bg-label-info">{{ $payment->payment_type->label() }}</span>
                             </td>
-                            <td>{{ $payment->reference ?? '—' }}</td>
+                            <td><code>{{ $payment->reference ?? '—' }}</code></td>
                             <td class="text-end fs-5 fw-bold text-success">
                                 PKR {{ number_format($payment->amount, 2) }}
                             </td>

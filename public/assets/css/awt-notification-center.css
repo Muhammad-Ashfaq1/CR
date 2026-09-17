@@ -1,0 +1,600 @@
+/*
+ * Notification centre — glass dropdown + compact toast.
+ *
+ * Wears the surface established in awt-glass.css (translucent fill, blurred
+ * backdrop, accent-tinted shadow) rather than restating it, and reads the same
+ * --awt-tone-rgb / Bootstrap theme variables, so a theme change carries here
+ * too. No !important except where SweetAlert2's own popup styles have to be
+ * overridden — everything else is built from the theme's classes.
+ *
+ * Purely presentational: no rule here changes what the bell does.
+ */
+
+.awt-notif {
+    --awt-notif-tone: var(--bs-primary-rgb);
+}
+
+/* ── Bell trigger ───────────────────────────────────────────────────── */
+
+.awt-notif-toggle {
+    position: relative;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.awt-notif-toggle:hover {
+    background-color: rgba(var(--awt-notif-tone), 0.08);
+}
+
+.awt-notif-toggle:active {
+    transform: scale(0.94);
+}
+
+/* Badge sits tight to the bell and pulses once when it appears. */
+.awt-notif-badge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0.22em 0.42em;
+    min-width: 1.15em;
+    box-shadow: 0 0 0 2px var(--bs-body-bg);
+    animation: awtNotifPop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes awtNotifPop {
+    from { transform: translate(-50%, -50%) scale(0); }
+    to   { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ── Dropdown surface ───────────────────────────────────────────────── */
+
+.awt-notif-menu {
+    width: min(23rem, calc(100vw - 1.5rem));
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(var(--awt-notif-tone), 0.14);
+    border-radius: 1.125rem;
+    background-color: rgba(255, 255, 255, 0.98);
+    background-image: linear-gradient(
+        160deg,
+        rgba(var(--awt-notif-tone), 0.08) 0%,
+        rgba(var(--awt-notif-tone), 0.02) 38%,
+        rgba(var(--awt-notif-tone), 0) 70%
+    );
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow:
+        0 18px 40px -18px rgba(var(--awt-notif-tone), 0.42),
+        0 2px 6px rgba(47, 43, 61, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Bootstrap toggles .show; animate from that rather than from a JS hook. */
+.awt-notif-menu.show {
+    animation: awtNotifIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes awtNotifIn {
+    from { opacity: 0; transform: translateY(-0.5rem) scale(0.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.awt-notif-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem 0.7rem;
+    border-bottom: 1px solid rgba(var(--awt-notif-tone), 0.1);
+}
+
+.awt-notif-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-notif-pill {
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0.3em 0.6em;
+    border-radius: 999px;
+    color: rgb(var(--awt-notif-tone));
+    background-color: rgba(var(--awt-notif-tone), 0.12);
+}
+
+.awt-notif-scroll {
+    max-height: min(24rem, 60vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+/* ── Notification card ──────────────────────────────────────────────── */
+
+.awt-notif-item {
+    position: relative;
+    display: flex;
+    gap: 0.7rem;
+    padding: 0.8rem 1rem 0.8rem 0.9rem;
+    border-bottom: 1px solid rgba(var(--bs-body-color-rgb), 0.06);
+    transition: background-color 0.18s ease, transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.awt-notif-item:last-child {
+    border-bottom: 0;
+}
+
+.awt-notif-item:hover {
+    background-color: rgba(var(--awt-notif-tone), 0.06);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -12px rgba(var(--awt-notif-tone), 0.5);
+}
+
+/* Unread: accent rail down the left, a warmer fill, and a dot on the avatar. */
+.awt-notif-item.is-unread {
+    background-color: rgba(var(--awt-notif-tone), 0.055);
+    box-shadow: inset 0.1875rem 0 0 rgb(var(--awt-notif-tone));
+}
+
+.awt-notif-item.is-unread:hover {
+    background-color: rgba(var(--awt-notif-tone), 0.1);
+    box-shadow:
+        inset 0.1875rem 0 0 rgb(var(--awt-notif-tone)),
+        0 6px 16px -12px rgba(var(--awt-notif-tone), 0.5);
+}
+
+/* Dismiss — quiet until the row is hovered, but always reachable by keyboard
+   and always present on touch, where there is no hover to reveal it. */
+.awt-notif-dismiss {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    color: rgba(var(--bs-body-color-rgb), 0.55);
+    background-color: rgba(var(--bs-body-color-rgb), 0.07);
+    transition: opacity 0.18s ease, color 0.18s ease, background-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.awt-notif-item:hover .awt-notif-dismiss,
+.awt-notif-dismiss:focus-visible {
+    opacity: 1;
+}
+
+.awt-notif-dismiss:hover {
+    color: rgb(var(--bs-danger-rgb));
+    background-color: rgba(var(--bs-danger-rgb), 0.12);
+    transform: scale(1.08);
+}
+
+@media (hover: none) {
+    .awt-notif-dismiss { opacity: 1; }
+}
+
+/* Optimistic removal — collapse the row rather than letting it vanish. */
+.awt-notif-item.is-removing {
+    opacity: 0;
+    transform: translateX(0.75rem);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    pointer-events: none;
+}
+
+/* Keep the View pill clear of the dismiss button on narrow cards. */
+.awt-notif-item .awt-notif-text {
+    padding-right: 1.35rem;
+}
+
+.awt-notif-avatar {
+    position: relative;
+    flex: 0 0 auto;
+    width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1;
+    color: rgb(var(--awt-notif-tone));
+    background-color: rgba(var(--awt-notif-tone), 0.14);
+    box-shadow: inset 0 0 0 1px rgba(var(--awt-notif-tone), 0.16);
+}
+
+.awt-notif-dot {
+    position: absolute;
+    top: -0.05rem;
+    right: -0.05rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: rgb(var(--awt-notif-tone));
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.awt-notif-body {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.awt-notif-text {
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--bs-body-color);
+}
+
+.awt-notif-name {
+    font-weight: 600;
+}
+
+.awt-notif-feature {
+    font-weight: 600;
+    color: rgb(var(--awt-notif-tone));
+}
+
+/* Quoted agent message — indented, muted, clipped to two lines. */
+.awt-notif-quote {
+    margin-top: 0.3rem;
+    padding-left: 0.55rem;
+    border-left: 2px solid rgba(var(--bs-body-color-rgb), 0.14);
+    font-size: 0.775rem;
+    font-style: italic;
+    line-height: 1.4;
+    color: rgba(var(--bs-body-color-rgb), 0.68);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.awt-notif-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.45rem;
+}
+
+.awt-notif-time {
+    font-size: 0.7rem;
+    letter-spacing: 0.01em;
+    color: rgba(var(--bs-body-color-rgb), 0.55);
+}
+
+.awt-notif-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    color: rgb(var(--awt-notif-tone));
+    background-color: rgba(var(--awt-notif-tone), 0.1);
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.awt-notif-view:hover {
+    color: rgb(var(--awt-notif-tone));
+    background-color: rgba(var(--awt-notif-tone), 0.2);
+    transform: translateX(1px);
+}
+
+/*
+ * Approve — the one action in this dropdown that costs the organization money,
+ * so it is the only filled control here. Success-toned rather than the row's
+ * accent: this is a yes, not a navigation.
+ */
+.awt-notif-approve {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.25rem 0.6rem;
+    border: 0;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #fff;
+    background-color: rgb(var(--bs-success-rgb));
+    transition: filter 0.18s ease, opacity 0.18s ease;
+}
+
+.awt-notif-approve:hover:not(:disabled) {
+    filter: brightness(1.06);
+    color: #fff;
+}
+
+.awt-notif-approve:disabled,
+.awt-notif-approve.is-busy {
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────── */
+
+.awt-notif-empty {
+    padding: 2.25rem 1rem;
+    text-align: center;
+}
+
+.awt-notif-empty-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0 auto 0.6rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: rgb(var(--awt-notif-tone));
+    background-color: rgba(var(--awt-notif-tone), 0.1);
+}
+
+.awt-notif-empty-title {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
+.awt-notif-empty-sub {
+    font-size: 0.75rem;
+    color: rgba(var(--bs-body-color-rgb), 0.55);
+}
+
+/* ── Toast ──────────────────────────────────────────────────────────── */
+
+/*
+ * SweetAlert2 ships its own popup background, padding and width; those need
+ * overriding for the toast to read as a compact macOS-style card rather than a
+ * dialog. Scoped to .awt-notif-toast so no other Swal in the app is touched.
+ */
+.swal2-popup.awt-notif-toast {
+    /* Anchor for the absolutely-positioned close button. */
+    position: relative;
+    width: min(21rem, calc(100vw - 1.5rem));
+    padding: 0.8rem 0.9rem !important;
+    gap: 0;
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.16);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.98) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow:
+        0 16px 36px -16px rgba(var(--bs-primary-rgb), 0.4),
+        0 2px 6px rgba(47, 43, 61, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+.swal2-popup.awt-notif-toast.swal2-show {
+    animation: awtToastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.swal2-popup.awt-notif-toast.swal2-hide {
+    animation: awtToastOut 0.2s ease-in forwards;
+}
+
+@keyframes awtToastIn {
+    from { opacity: 0; transform: translateY(-0.75rem) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes awtToastOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to   { opacity: 0; transform: translateY(-0.4rem) scale(0.98); }
+}
+
+/* Swal's own icon/title/close are replaced by the html block below. */
+.swal2-popup.awt-notif-toast .swal2-icon,
+.swal2-popup.awt-notif-toast .swal2-title,
+.swal2-popup.awt-notif-toast .swal2-actions {
+    display: none !important;
+}
+
+.swal2-popup.awt-notif-toast .swal2-html-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0.8rem;
+    text-align: left;
+    color: var(--bs-body-color);
+}
+
+.awt-toast-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+}
+
+/* Dismiss — always visible here (unlike the dropdown's hover-reveal): a toast
+   is transient, so the way out has to be obvious without hunting for it. */
+.awt-toast-close {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    line-height: 1;
+    cursor: pointer;
+    color: rgba(var(--bs-body-color-rgb), 0.5);
+    background-color: rgba(var(--bs-body-color-rgb), 0.07);
+    transition: color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.awt-toast-close:hover {
+    color: rgb(var(--bs-danger-rgb));
+    background-color: rgba(var(--bs-danger-rgb), 0.12);
+    transform: scale(1.08);
+}
+
+/* Keep the eyebrow clear of the close button. */
+.awt-toast-eyebrow {
+    padding-right: 1.3rem;
+}
+
+.awt-toast-icon {
+    flex: 0 0 auto;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    color: rgb(var(--bs-primary-rgb));
+    background-color: rgba(var(--bs-primary-rgb), 0.12);
+}
+
+.awt-toast-body {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.awt-toast-eyebrow {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--bs-primary-rgb));
+}
+
+.awt-toast-title {
+    margin-top: 0.1rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: var(--bs-body-color);
+}
+
+.awt-toast-quote {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    font-style: italic;
+    line-height: 1.35;
+    color: rgba(var(--bs-body-color-rgb), 0.65);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.awt-toast-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.55rem;
+}
+
+.awt-toast-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.7rem;
+    border: 0;
+    border-radius: 999px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    background-color: rgb(var(--bs-primary-rgb));
+    transition: filter 0.18s ease, transform 0.18s ease;
+}
+
+.awt-toast-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.swal2-popup.awt-notif-toast .swal2-timer-progress-bar {
+    background: rgba(var(--bs-primary-rgb), 0.45);
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────── */
+
+[data-bs-theme="dark"] .awt-notif-menu {
+    border-color: rgba(var(--awt-notif-tone), 0.24);
+    background-color: rgba(38, 39, 56, 0.98);
+    box-shadow:
+        0 18px 40px -18px rgba(0, 0, 0, 0.7),
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .awt-notif-dot {
+    box-shadow: 0 0 0 2px rgba(38, 39, 56, 0.95);
+}
+
+[data-bs-theme="dark"] .swal2-popup.awt-notif-toast {
+    border-color: rgba(var(--bs-primary-rgb), 0.3);
+    background: rgba(38, 39, 56, 0.98) !important;
+    box-shadow:
+        0 16px 36px -16px rgba(0, 0, 0, 0.75),
+        0 2px 6px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ── Small screens ──────────────────────────────────────────────────── */
+
+@media (max-width: 575.98px) {
+    .awt-notif-menu {
+        width: calc(100vw - 1.25rem);
+    }
+
+    .awt-notif-scroll {
+        max-height: 55vh;
+    }
+
+    .swal2-popup.awt-notif-toast {
+        width: calc(100vw - 1.25rem);
+    }
+}
+
+/* Honour reduced-motion: keep the styling, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+    .awt-notif-menu.show,
+    .swal2-popup.awt-notif-toast.swal2-show,
+    .swal2-popup.awt-notif-toast.swal2-hide,
+    .awt-notif-badge {
+        animation: none;
+    }
+
+    .awt-notif-item,
+    .awt-notif-view,
+    .awt-notif-dismiss,
+    .awt-toast-btn,
+    .awt-toast-close,
+    .awt-notif-toggle {
+        transition: none;
+    }
+
+    .awt-notif-item:hover,
+    .awt-notif-view:hover,
+    .awt-notif-dismiss:hover,
+    .awt-toast-close:hover,
+    .awt-toast-btn:hover {
+        transform: none;
+    }
+}

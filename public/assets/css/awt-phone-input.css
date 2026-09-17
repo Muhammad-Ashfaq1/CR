@@ -1,0 +1,28 @@
+/* Shared intl-tel-input chrome for <x-awt-phone-input>. */
+
+.awt-phone-input-wrap .iti {
+    width: 100%;
+    display: block;
+}
+
+.awt-phone-input-wrap .iti__country-list {
+    z-index: 1100;
+    max-height: 240px;
+    border-radius: 0.5rem;
+    box-shadow: 0 8px 24px rgba(47, 43, 61, 0.16);
+}
+
+.awt-phone-input-wrap .form-control.is-invalid {
+    border-color: var(--bs-form-invalid-border-color, #ff3e1d);
+}
+
+.awt-phone-field [data-awt-phone-error]:not([hidden]) {
+    margin-top: 0.35rem;
+    font-size: 0.8125rem;
+}
+
+/* Ensure flag sprites resolve from the vendored CSS location. */
+.iti {
+    --iti-path-flags-1x: url("../vendor/intl-tel-input/img/flags.webp");
+    --iti-path-flags-2x: url("../vendor/intl-tel-input/img/flags@2x.webp");
+}

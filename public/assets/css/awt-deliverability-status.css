@@ -1,0 +1,811 @@
+/*
+ * Navbar deliverability indicator — the dot and its dropdown.
+ *
+ * Wears the same glass surface as the notification bell beside it
+ * (awt-notification-center.css), because they are two controls in one cluster
+ * and a second dropdown material in the same bar would read as a bug. What is
+ * different is the trigger: the bell counts, this one rates, so the badge is
+ * replaced by a tone-carrying dot.
+ *
+ * Purely presentational: no rule here changes what the widget does.
+ */
+
+.awt-deliv,
+.awt-deliv-upsell,
+.awt-deliv-menu {
+    --awt-deliv-tone: var(--bs-primary-rgb);
+}
+
+/* ── Trigger (Enabled State) ────────────────────────────────────────── */
+
+.awt-deliv-toggle {
+    position: relative;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.55rem;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.awt-deliv-toggle:hover {
+    background-color: rgba(var(--bs-primary-rgb, 115, 103, 240), 0.08);
+}
+
+.awt-deliv-toggle:active {
+    transform: scale(0.94);
+}
+
+.awt-deliv-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.awt-deliv-wifi-icon {
+    font-size: 1.35rem;
+    color: var(--bs-heading-color, #2f2b3d);
+    line-height: 1;
+}
+
+.awt-deliv-dot {
+    position: absolute;
+    top: -3px;
+    right: -5px;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2.5px var(--bs-body-bg, #ffffff), 0 0 8px rgba(var(--bs-primary-rgb), 0.35);
+    background-color: rgba(var(--bs-secondary-rgb), 0.9);
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.awt-deliv-dot-success {
+    background-color: rgb(var(--bs-success-rgb));
+}
+
+.awt-deliv-dot-info {
+    background-color: rgb(var(--bs-info-rgb));
+}
+
+.awt-deliv-dot-warning {
+    background-color: rgb(var(--bs-warning-rgb));
+}
+
+.awt-deliv-dot-primary {
+    background-color: rgb(var(--bs-primary-rgb));
+}
+
+.awt-deliv-dot-secondary {
+    background-color: rgba(var(--bs-secondary-rgb), 0.9);
+}
+
+/*
+ * Danger is the one state that moves. Everything else on this widget is a
+ * standing to be glanced at; a number being labelled on handsets today is the
+ * one that has to survive not being looked for. One slow pulse, not a flash —
+ * it sits on every page an admin opens.
+ */
+.awt-deliv-dot-danger {
+    background-color: rgb(var(--bs-danger-rgb));
+    animation: awtDelivPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes awtDelivPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 2px var(--bs-body-bg), 0 0 0 0 rgba(var(--bs-danger-rgb), 0.55);
+    }
+
+    70% {
+        box-shadow: 0 0 0 2px var(--bs-body-bg), 0 0 0 0.32rem rgba(var(--bs-danger-rgb), 0);
+    }
+}
+
+/* Nothing known yet — the cache was cold and the first poll is in flight. */
+.awt-deliv-dot-checking {
+    background-color: rgba(var(--bs-secondary-rgb), 0.55);
+    animation: awtDelivBreathe 1.4s ease-in-out infinite;
+}
+
+@keyframes awtDelivBreathe {
+
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* An admin who has asked for less motion gets none of it; the colour alone
+   still carries the state, and the dropdown still spells it out in words. */
+@media (prefers-reduced-motion: reduce) {
+
+    .awt-deliv-dot-danger,
+    .awt-deliv-dot-checking {
+        animation: none;
+    }
+}
+
+/* ── Dropdown surface ───────────────────────────────────────────────── */
+
+.awt-deliv-menu {
+    width: min(24rem, calc(100vw - 1.5rem));
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(var(--awt-deliv-tone), 0.14);
+    border-radius: 1.125rem;
+    background-color: rgba(255, 255, 255, 0.98);
+    background-image: linear-gradient(160deg,
+            rgba(var(--awt-deliv-tone), 0.08) 0%,
+            rgba(var(--awt-deliv-tone), 0.02) 38%,
+            rgba(var(--awt-deliv-tone), 0) 70%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow:
+        0 18px 40px -18px rgba(var(--awt-deliv-tone), 0.42),
+        0 2px 6px rgba(47, 43, 61, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Bootstrap toggles .show; animate from that rather than from a JS hook. */
+.awt-deliv-menu.show {
+    animation: awtDelivIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes awtDelivIn {
+    from {
+        opacity: 0;
+        transform: translateY(-0.5rem) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.awt-deliv-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem 0.7rem;
+    border-bottom: 1px solid rgba(var(--awt-deliv-tone), 0.1);
+}
+
+.awt-deliv-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-deliv-summary {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: rgba(var(--bs-body-color-rgb), 0.75);
+}
+
+/* ── What needs attention ───────────────────────────────────────────── */
+
+.awt-deliv-list {
+    max-height: min(20rem, 50vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+.awt-deliv-item {
+    padding: 0.7rem 1rem;
+    border-top: 1px solid rgba(var(--bs-body-color-rgb), 0.06);
+}
+
+/* A left edge in the signal's own tone, so the worst rows are findable while
+   scrolling past the titles rather than only after reading them. */
+.awt-deliv-item-bad {
+    box-shadow: inset 0.1875rem 0 0 rgb(var(--bs-danger-rgb));
+}
+
+.awt-deliv-item-neutral {
+    box-shadow: inset 0.1875rem 0 0 rgba(var(--bs-secondary-rgb), 0.5);
+}
+
+.awt-deliv-item-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.awt-deliv-item-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-deliv-item-action {
+    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: rgba(var(--bs-body-color-rgb), 0.65);
+}
+
+.awt-deliv-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.7rem 1rem 0.9rem;
+    font-size: 0.8125rem;
+    color: rgba(var(--bs-body-color-rgb), 0.6);
+}
+
+.awt-deliv-empty-icon {
+    color: rgb(var(--bs-success-rgb));
+}
+
+/* ── Foot: freshness + the auto-refresh switch ──────────────────────── */
+
+.awt-deliv-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid rgba(var(--awt-deliv-tone), 0.1);
+}
+
+.awt-deliv-checked {
+    font-size: 0.72rem;
+    color: rgba(var(--bs-body-color-rgb), 0.55);
+}
+
+.awt-deliv-auto {
+    margin: 0;
+    min-height: auto;
+}
+
+.awt-deliv-auto .form-check-label {
+    font-size: 0.72rem;
+    color: rgba(var(--bs-body-color-rgb), 0.65);
+}
+
+.awt-deliv-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem 0.9rem;
+}
+
+/* ── Dark theme ─────────────────────────────────────────────────────── */
+
+[data-bs-theme="dark"] .awt-deliv-menu,
+html.awt-theme-dark .awt-deliv-menu,
+html.dark-style .awt-deliv-menu {
+    border-color: rgba(var(--awt-deliv-tone, var(--bs-primary-rgb)), 0.24);
+    background-color: var(--bs-secondary-bg, rgba(38, 39, 56, 0.98));
+    box-shadow:
+        0 18px 40px -18px rgba(0, 0, 0, 0.7),
+        0 2px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.awt-deliv-toggle:active {
+    transform: scale(0.94);
+}
+
+/* ── PRO Badge & Upsell Trigger (Theme-Aware Capsule Design) ───────────────────── */
+.layout-navbar .navbar-nav .nav-item .awt-nav-upsell-trigger,
+.awt-nav-upsell-trigger {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.85rem !important;
+    background: rgba(var(--bs-primary-rgb, 115, 103, 240), 0.12) !important;
+    border: 2px solid var(--bs-primary, #7367f0) !important;
+    border-radius: 9999px !important;
+    padding: 0.2rem 0.25rem 0.2rem 0.8rem !important;
+    margin: 0 !important;
+    height: 38px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    box-shadow: 0 0 12px rgba(var(--bs-primary-rgb, 115, 103, 240), 0.3) !important;
+    transition: all 0.25s ease-in-out !important;
+}
+
+.layout-navbar .navbar-nav .nav-item .awt-nav-upsell-trigger:hover,
+.awt-nav-upsell-trigger:hover {
+    background: rgba(var(--bs-primary-rgb, 115, 103, 240), 0.22) !important;
+    border-color: var(--bs-primary, #7367f0) !important;
+    box-shadow: 0 0 18px rgba(var(--bs-primary-rgb, 115, 103, 240), 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+.layout-navbar .navbar-nav .nav-item .awt-nav-upsell-trigger .awt-nav-wifi-icon,
+.awt-nav-upsell-trigger .awt-nav-wifi-icon {
+    font-size: 1.25rem !important;
+    color: var(--bs-primary, #7367f0) !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.awt-badge-pro {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.4rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--bs-primary, #7367f0) 0%, rgba(var(--bs-primary-rgb, 115, 103, 240), 0.85) 100%) !important;
+    border-radius: 9999px !important;
+    padding: 0.35rem 0.9rem !important;
+    line-height: 1 !important;
+    box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb, 115, 103, 240), 0.45) !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    transition: transform 0.2s ease !important;
+}
+
+.awt-nav-upsell-trigger:hover .awt-badge-pro {
+    transform: scale(1.02) !important;
+}
+
+.awt-badge-pro i {
+    font-size: 1.05rem !important;
+    color: #ffffff !important;
+    line-height: 1 !important;
+}
+
+.awt-deliv-upsell-menu {
+    width: min(22rem, calc(100vw - 1.5rem)) !important;
+}
+
+/*
+ * The upsell card. Gold is this product's colour for "this is sold" — the same
+ * crest, eyebrow and button the Add-Ons hub uses for Enable — so the offer in
+ * the navbar reads as the same purchase the hub completes.
+ */
+.awt-deliv-upsell-menu {
+    --awt-gold-1: 250, 204, 21;
+    --awt-gold-2: 217, 154, 11;
+
+    border-color: rgba(var(--awt-gold-1), 0.35);
+}
+
+.awt-upsell-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.125rem 1.125rem 0.875rem;
+    background:
+        radial-gradient(110% 120% at 0% 0%, rgba(var(--awt-gold-1), 0.24), transparent 65%),
+        linear-gradient(180deg, rgba(var(--awt-gold-1), 0.07), transparent);
+    border-bottom: 1px solid rgba(var(--awt-gold-2), 0.14);
+}
+
+.awt-upsell-crest {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: 0.875rem;
+    background-image: linear-gradient(135deg, rgb(var(--awt-gold-1)), rgb(var(--awt-gold-2)));
+    color: #3b2600;
+    font-size: 1.375rem;
+    box-shadow: 0 8px 20px -10px rgba(var(--awt-gold-2), 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.awt-upsell-heading {
+    min-width: 0;
+}
+
+.awt-upsell-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0 0 0.125rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #a16207;
+}
+
+.awt-upsell-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-upsell-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.875rem 1.125rem 1.125rem;
+}
+
+.awt-upsell-pitch {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--bs-secondary-color);
+}
+
+.awt-upsell-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.awt-upsell-benefits li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--bs-body-color);
+}
+
+.awt-upsell-benefits .ti {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+    margin-top: 0.0625rem;
+    border-radius: 50%;
+    background-color: rgba(var(--awt-gold-1), 0.22);
+    color: #a16207;
+    font-size: 0.75rem;
+}
+
+.awt-upsell-price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed rgba(var(--bs-emphasis-color-rgb), 0.12);
+}
+
+.awt-upsell-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+.awt-upsell-unit {
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-upsell-price-note {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+.awt-upsell-cta {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: 1px solid rgba(var(--awt-gold-2), 0.55);
+    border-radius: 999px;
+    background-image: linear-gradient(135deg, rgb(var(--awt-gold-1)) 0%, rgb(var(--awt-gold-2)) 100%);
+    color: #3b2600;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 8px 18px -10px rgba(var(--awt-gold-2), 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.awt-upsell-cta .ti {
+    font-size: 1.05rem;
+}
+
+.awt-upsell-cta::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: -60%;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+}
+
+.awt-upsell-cta:hover,
+.awt-upsell-cta:focus-visible {
+    color: #2b1b00;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px -12px rgba(var(--awt-gold-2), 1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.awt-upsell-cta:hover::after,
+.awt-upsell-cta:focus-visible::after {
+    left: 120%;
+    transition: left 0.7s ease;
+}
+
+.awt-upsell-cta:focus-visible {
+    outline: 2px solid rgba(var(--awt-gold-2), 0.9);
+    outline-offset: 2px;
+}
+
+.awt-upsell-foot {
+    margin: -0.25rem 0 0;
+    text-align: center;
+    font-size: 0.6875rem;
+    color: var(--bs-secondary-color);
+}
+
+[data-bs-theme="dark"] .awt-upsell-eyebrow,
+html.awt-theme-dark .awt-upsell-eyebrow,
+html.dark-style .awt-upsell-eyebrow,
+[data-bs-theme="dark"] .awt-upsell-benefits .ti,
+html.awt-theme-dark .awt-upsell-benefits .ti,
+html.dark-style .awt-upsell-benefits .ti {
+    color: #f5c451;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .awt-upsell-cta,
+    .awt-upsell-cta:hover::after {
+        transition: none;
+    }
+
+    .awt-upsell-cta::after {
+        display: none;
+    }
+}
+
+[data-bs-theme="dark"] .awt-deliv-dot,
+html.awt-theme-dark .awt-deliv-dot,
+html.dark-style .awt-deliv-dot {
+    box-shadow: 0 0 0 2px rgba(38, 39, 56, 0.95);
+}
+
+[data-bs-theme="dark"] .awt-deliv-dot-danger,
+html.awt-theme-dark .awt-deliv-dot-danger,
+html.dark-style .awt-deliv-dot-danger {
+    animation-name: awtDelivPulseDark;
+}
+
+@keyframes awtDelivPulseDark {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 2px rgba(38, 39, 56, 0.95), 0 0 0 0 rgba(var(--bs-danger-rgb), 0.55);
+    }
+
+    70% {
+        box-shadow: 0 0 0 2px rgba(38, 39, 56, 0.95), 0 0 0 0.32rem rgba(var(--bs-danger-rgb), 0);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * COVERAGE — the three protection dimensions, and the gauge that rates them.
+ *
+ * ON THE TAILWIND SPEC THIS WAS BRIEFED WITH. The design called for
+ * `bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl
+ * rounded-2xl p-4 w-80 sm:w-96`. None of those class names do anything on a
+ * tenant page — layouts/tenant.blade.php @vite's `resources/js/app.js` only,
+ * and `resources/css/app.css` (the sole `@import 'tailwindcss'`) is never
+ * loaded. The same brief was tried on the dashboard and reverted for the same
+ * reason; the note at the top of tenant-dashboard.css records it so nobody
+ * spends the afternoon twice.
+ *
+ * The second reason is that `slate-900` is a DARK colour and this app has six
+ * themes, only one of which is dark. A hard-coded dark card would be a black
+ * hole in the light, sky, lake and eggplant navbars.
+ *
+ * So the intent is honoured in the theme's own vocabulary — the surface above
+ * already is a translucent, blurred, hairline-bordered, deeply-shadowed card at
+ * `min(24rem, ...)`, which is `sm:w-96` and `rounded-2xl` in every way except
+ * the class name, and it adapts to all six themes instead of one.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── The gauge pill ─────────────────────────────────────────────────── */
+
+.awt-deliv-gauge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-inline-start: auto;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+    border: 1px solid rgba(var(--awt-deliv-gauge-rgb, var(--bs-secondary-rgb)), 0.28);
+    background-color: rgba(var(--awt-deliv-gauge-rgb, var(--bs-secondary-rgb)), 0.1);
+    color: rgb(var(--awt-deliv-gauge-rgb, var(--bs-secondary-rgb)));
+}
+
+.awt-deliv-gauge-success {
+    --awt-deliv-gauge-rgb: var(--bs-success-rgb);
+}
+
+.awt-deliv-gauge-warning {
+    --awt-deliv-gauge-rgb: var(--bs-warning-rgb);
+}
+
+.awt-deliv-gauge-danger {
+    --awt-deliv-gauge-rgb: var(--bs-danger-rgb);
+}
+
+.awt-deliv-gauge-info {
+    --awt-deliv-gauge-rgb: var(--bs-info-rgb);
+}
+
+.awt-deliv-gauge-secondary {
+    --awt-deliv-gauge-rgb: var(--bs-secondary-rgb);
+}
+
+.awt-deliv-gauge-dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+/* ── Coverage rows ──────────────────────────────────────────────────── */
+
+.awt-deliv-coverage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.25rem 0.875rem 0.5rem;
+}
+
+.awt-deliv-cov {
+    padding: 0.5rem 0.625rem;
+    border-radius: 0.625rem;
+    /* A tint rather than a border: three bordered boxes stacked inside an
+       already-bordered card reads as a table, and this is a summary. */
+    background-color: rgba(var(--awt-deliv-tone), 0.045);
+}
+
+.awt-deliv-cov-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.awt-deliv-cov-icon {
+    font-size: 0.9375rem;
+    color: rgba(var(--awt-deliv-tone), 0.75);
+    flex-shrink: 0;
+}
+
+.awt-deliv-cov-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--bs-heading-color, var(--bs-body-color));
+}
+
+/* Pushed right and never wrapped: the label can truncate, the figure is the
+   part being looked for. */
+.awt-deliv-cov-value {
+    margin-inline-start: auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: rgba(var(--bs-body-color-rgb), 0.85);
+}
+
+.awt-deliv-cov-meta {
+    margin: 0.125rem 0 0;
+    padding-inline-start: 1.3375rem;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: rgba(var(--bs-body-color-rgb), 0.6);
+}
+
+/* An empty meta line must not leave a gap — several of these are conditional. */
+.awt-deliv-cov-meta:empty {
+    display: none;
+}
+
+/* The registry receipt: monospaced because it is an identifier people read
+   character by character when quoting it to support, and clipped rather than
+   wrapped so one long id cannot double the height of the card. */
+.awt-deliv-cov-ref {
+    font-family: var(--bs-font-monospace);
+    font-size: 0.65rem;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── The way out ────────────────────────────────────────────────────── */
+
+.awt-deliv-manage {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.625rem 0.875rem;
+    border-top: 1px solid rgba(var(--awt-deliv-tone), 0.12);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: rgb(var(--bs-primary-rgb));
+    transition: background-color 0.15s ease;
+}
+
+.awt-deliv-manage:hover,
+.awt-deliv-manage:focus-visible {
+    background-color: rgba(var(--bs-primary-rgb), 0.07);
+    color: rgb(var(--bs-primary-rgb));
+}
+
+.awt-deliv-manage-chevron {
+    margin-inline-start: auto;
+    font-size: 0.875rem;
+}
+
+/* ── Dark ───────────────────────────────────────────────────────────── */
+
+[data-bs-theme="dark"] .awt-deliv-cov,
+html.awt-theme-dark .awt-deliv-cov,
+html.dark-style .awt-deliv-cov {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+[data-bs-theme="dark"] .awt-deliv-manage,
+html.awt-theme-dark .awt-deliv-manage,
+html.dark-style .awt-deliv-manage {
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+/*
+ * The header now carries three things where it carried two, and the title grew
+ * from "Call & SMS deliverability" to "Deliverability & Reputation". At the
+ * card's narrowest (calc(100vw - 1.5rem) on a small phone) title + gauge +
+ * badge can exceed the line, and the default flex behaviour would push the
+ * badge out of the card rather than shrink the title.
+ *
+ * This bar has lost a label to truncation twice before (see the navbar org
+ * name). The title is the part that can afford to clip — the gauge and the
+ * badge are both figures, and half a figure is worse than half a word.
+ */
+.awt-deliv-head .awt-deliv-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.awt-deliv-head .awt-deliv-gauge,
+.awt-deliv-head .badge {
+    flex-shrink: 0;
+}

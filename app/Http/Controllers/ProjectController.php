@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentType;
 use App\Enums\ProjectStatus;
 use App\Models\Contractor;
+use App\Models\ExpenseCategory;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\ActivityLogger;
@@ -45,8 +47,10 @@ class ProjectController extends Controller
 
         $projects = $query->latest()->paginate(10)->withQueryString();
         $statuses = ProjectStatus::cases();
+        $owners = User::where('role', 'owner')->orWhere('role', 'admin')->get();
+        $contractors = Contractor::where('is_active', true)->get();
 
-        return view('projects.index', compact('projects', 'statuses'));
+        return view('projects.index', compact('projects', 'statuses', 'owners', 'contractors'));
     }
 
     public function create(): View
@@ -145,6 +149,10 @@ class ProjectController extends Controller
         $availableContractors = Contractor::where('is_active', true)
             ->whereNotIn('id', $project->contractors->pluck('id'))
             ->get();
+        $categories = ExpenseCategory::active()->get();
+        $paymentTypes = PaymentType::cases();
+        $paymentMethods = ['Cash', 'Bank Transfer', 'Cheque', 'Online Payment', 'Other'];
+        $statuses = ProjectStatus::cases();
 
         return view('projects.show', compact(
             'project',
@@ -160,7 +168,11 @@ class ProjectController extends Controller
             'totalProjectOutlay',
             'recentExpenses',
             'recentPayments',
-            'availableContractors'
+            'availableContractors',
+            'categories',
+            'paymentTypes',
+            'paymentMethods',
+            'statuses'
         ));
     }
 
