@@ -125,16 +125,5 @@
                 <div data-i18n="Audit Trail">Audit Trail</div>
             </a>
         </li>
-
-        <li class="menu-header small">
-            <span class="menu-header-text" data-i18n="Application">App</span>
-        </li>
-
-        <li class="menu-item">
-            <a href="javascript:void(0);" onclick="window.triggerPwaInstall()" class="menu-link text-warning">
-                <i class="menu-icon icon-base ti tabler-download text-warning" aria-hidden="true"></i>
-                <div data-i18n="Install App">Install App</div>
-            </a>
-        </li>
     </ul>
 </aside>

@@ -111,17 +111,3 @@
   color: #a855f7;
 }
 
-/* Install Banner Toast / Navbar Button */
-.pwa-install-badge {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #ffffff !important;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
-  border: none;
-  animation: pulse-glow 2.5s infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.92; transform: scale(1.03); }
-}
