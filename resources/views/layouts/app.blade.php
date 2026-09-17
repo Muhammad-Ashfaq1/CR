@@ -87,11 +87,11 @@
             @include('layouts.partials.sidebar')
 
             <div class="layout-page">
-                @include('layouts.partials.impersonation-banner')
                 @include('layouts.partials.navbar')
 
                 <div class="content-wrapper">
                     <div class="container-fluid flex-grow-1 container-p-y">
+                        @include('layouts.partials.impersonation-banner')
                         @if (session('success'))
                             <div class="alert alert-success alert-dismissible fade show mb-4 d-flex align-items-center shadow-sm" role="alert" style="border-left: 4px solid var(--bs-success); border-radius: 0.75rem;">
                                 <i class="icon-base ti tabler-circle-check fs-4 me-2 text-success"></i>

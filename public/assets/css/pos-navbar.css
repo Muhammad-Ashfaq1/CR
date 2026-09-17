@@ -10,6 +10,8 @@
  */
 
 .layout-navbar.navbar-detached.pos-navbar {
+    position: relative;
+    z-index: 1050;
     --pos-tone-rgb: var(--bs-primary-rgb);
     border: 1px solid rgba(255, 255, 255, 0.85);
     border-radius: var(--pos-glass-radius, 1rem);
@@ -144,6 +146,7 @@
 
 /* Account dropdown — glass rim, opaque enough to hide page content behind */
 .pos-navbar-dropdown {
+    z-index: 1060;
     --pos-tone-rgb: var(--bs-primary-rgb);
     min-width: 16.5rem;
     padding: 0.5rem;
