@@ -53,9 +53,9 @@
     <link rel="stylesheet" href="{{ asset('assets/css/awt-listing.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/awt-table.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/awt-menu.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/awt-navbar-org.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/pos-glass.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/pos-listing.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/css/pos-navbar.css') }}" />
 
     @stack('styles')
 
@@ -90,7 +90,7 @@
                 @include('layouts.partials.navbar')
 
                 <div class="content-wrapper">
-                    <div class="container-fluid flex-grow-1 container-p-y">
+                    <div class="container-xxl flex-grow-1 container-p-y">
                         @include('layouts.partials.impersonation-banner')
                         @yield('content')
                     </div>

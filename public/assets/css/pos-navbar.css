@@ -10,7 +10,6 @@
  */
 
 .layout-navbar.navbar-detached.pos-navbar {
-    position: relative;
     z-index: 1050;
     --pos-tone-rgb: var(--bs-primary-rgb);
     border: 1px solid rgba(255, 255, 255, 0.85);

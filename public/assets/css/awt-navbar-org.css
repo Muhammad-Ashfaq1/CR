@@ -84,7 +84,33 @@
 /* Below this the burger, the docked call bar and the action group need the
    whole row, and the company is the one thing here an agent already knows. */
 @media (max-width: 767.98px) {
-    .tenant-agent-layout .tal-navbar-org {
-        display: none;
+    .tenant-agent-layout .tal-navbar-org,
+    .awt-navbar-org {
+        display: none !important;
+    }
+}
+
+/* ── Product branding in navbar ─────────────────────────────────────── */
+
+.layout-navbar .awt-navbar-product,
+.layout-navbar .awt-navbar-product .nav-item {
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
+.layout-navbar .awt-navbar-product-name {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--bs-heading-color, #2f3349);
+}
+
+@media (max-width: 575.98px) {
+    .layout-navbar .awt-navbar-product-name {
+        font-size: 0.875rem;
     }
 }
