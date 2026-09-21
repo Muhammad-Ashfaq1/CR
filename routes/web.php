@@ -99,6 +99,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::post('attendance/daily', [AttendanceController::class, 'storeDaily'])->name('attendance.store-daily');
     Route::get('attendance/history', [AttendanceController::class, 'history'])->name('attendance.history');
+    Route::post('attendance/pay-all', [AttendanceController::class, 'payAll'])->name('attendance.pay-all');
     Route::delete('attendance/{attendance}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
 
     // Expenses

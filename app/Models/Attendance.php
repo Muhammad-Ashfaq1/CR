@@ -22,6 +22,10 @@ class Attendance extends Model
         'wage_at_time',
         'payable_amount',
         'notes',
+        'is_paid',
+        'paid_at',
+        'payment_method',
+        'payment_reference',
     ];
 
     protected function casts(): array
@@ -31,7 +35,19 @@ class Attendance extends Model
             'status' => AttendanceStatus::class,
             'wage_at_time' => 'decimal:2',
             'payable_amount' => 'decimal:2',
+            'is_paid' => 'boolean',
+            'paid_at' => 'datetime',
         ];
+    }
+
+    public function scopeUnpaid($query)
+    {
+        return $query->where('is_paid', false);
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->where('is_paid', true);
     }
 
     public function worker(): BelongsTo
