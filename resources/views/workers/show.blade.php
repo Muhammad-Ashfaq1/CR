@@ -73,14 +73,14 @@
 <div class="row g-4 mb-4">
     {{-- Attendance Log --}}
     <div class="col-lg-7">
-        <div class="pos-listing">
-            <div class="pos-listing-toolbar d-flex justify-content-between align-items-center">
-                <h5 class="pos-listing-title mb-0"><i class="icon-base ti tabler-calendar-check me-2 text-primary"></i> Recent Attendance History</h5>
+        <div class="card awt-table-card awt-tone-secondary mb-4 mb-lg-0">
+            <div class="awt-listing-toolbar d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-semibold"><i class="icon-base ti tabler-calendar-check me-2 text-primary"></i> Recent Attendance History</h5>
                 <a href="{{ route('attendance.history', ['worker_id' => $worker->id]) }}" class="btn btn-sm btn-outline-primary">Full History</a>
             </div>
             <div class="table-responsive">
-                <table class="table align-middle table-sm mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
                         <tr>
                             <th>Date</th>
                             <th>Project</th>
@@ -115,15 +115,15 @@
 
     {{-- Wage History Timeline --}}
     <div class="col-lg-5">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="icon-base ti tabler-history me-2 text-info"></i> Wage Revision History</h5>
+        <div class="card awt-glass-card awt-tone-secondary h-100">
+            <div class="awt-listing-toolbar d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-semibold"><i class="icon-base ti tabler-history me-2 text-info"></i> Wage Revision History</h5>
                 <a href="{{ route('workers.edit', $worker) }}" class="btn btn-sm btn-outline-secondary">Revise Rate</a>
             </div>
             <div class="card-body p-3">
-                <div class="list-group list-group-flush">
+                <div class="list-group list-group-flush bg-transparent">
                     @forelse($worker->wageHistory as $history)
-                        <div class="list-group-item px-0 py-3 border-bottom">
+                        <div class="list-group-item bg-transparent px-0 py-3 border-bottom border-light">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="fw-bold fs-6 text-primary">PKR {{ number_format($history->daily_wage, 0) }}/day</span>
                                 <span class="badge bg-label-secondary">Effective: {{ $history->effective_from->format('d M Y') }}</span>

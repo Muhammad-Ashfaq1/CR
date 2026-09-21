@@ -28,109 +28,113 @@
     </div>
 </div>
 
-{{-- Quick Work-Week Date Presets --}}
-<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-    <span class="small fw-bold text-uppercase text-muted me-1">Quick Ranges:</span>
-    <a href="{{ route('attendance.history', array_merge(request()->except(['preset', 'from_date', 'to_date', 'page']), ['preset' => 'this_work_week'])) }}"
-       class="btn btn-sm {{ request('preset') === 'this_work_week' ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
-        <i class="icon-base ti tabler-calendar-week me-1"></i> This Week (Sat – Thu)
-    </a>
-    <a href="{{ route('attendance.history', array_merge(request()->except(['preset', 'from_date', 'to_date', 'page']), ['preset' => 'last_work_week'])) }}"
-       class="btn btn-sm {{ request('preset') === 'last_work_week' ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
-        <i class="icon-base ti tabler-history me-1"></i> Last Week (Sat – Thu)
-    </a>
-    <a href="{{ route('attendance.history', array_merge(request()->except(['preset', 'from_date', 'to_date', 'page']), ['preset' => 'this_month'])) }}"
-       class="btn btn-sm {{ request('preset') === 'this_month' ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
-        <i class="icon-base ti tabler-calendar-month me-1"></i> This Month
-    </a>
-    @if(request()->hasAny(['preset', 'from_date', 'to_date', 'project_id', 'worker_id', 'contractor_id', 'status', 'payment_status']))
-        <a href="{{ route('attendance.history') }}" class="btn btn-sm btn-link text-muted ms-auto">
-            <i class="icon-base ti tabler-x me-1"></i> Clear All Filters
-        </a>
-    @endif
-</div>
-
-{{-- Filter Strip --}}
-<div class="awt-listing-filter-strip awt-tone-secondary mb-4">
-    <form method="GET" action="{{ route('attendance.history') }}" class="row g-3 align-items-end">
-        @if(request('preset') && !request('from_date'))
-            <input type="hidden" name="preset" value="{{ request('preset') }}">
+{{-- Filter & Presets Panel --}}
+<div class="card awt-table-card awt-tone-secondary mb-4">
+    <div class="p-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2 bg-light bg-opacity-25">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="small fw-bold text-uppercase text-muted me-1"><i class="icon-base ti tabler-calendar-week me-1"></i> Quick Ranges:</span>
+            <a href="{{ route('attendance.history', array_merge(request()->except(['preset', 'from_date', 'to_date', 'page']), ['preset' => 'this_work_week'])) }}"
+               class="btn btn-sm {{ request('preset') === 'this_work_week' ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
+                This Week (Sat – Thu)
+            </a>
+            <a href="{{ route('attendance.history', array_merge(request()->except(['preset', 'from_date', 'to_date', 'page']), ['preset' => 'last_work_week'])) }}"
+               class="btn btn-sm {{ request('preset') === 'last_work_week' ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
+                Last Week (Sat – Thu)
+            </a>
+            <a href="{{ route('attendance.history', array_merge(request()->except(['preset', 'from_date', 'to_date', 'page']), ['preset' => 'this_month'])) }}"
+               class="btn btn-sm {{ request('preset') === 'this_month' ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
+                This Month
+            </a>
+        </div>
+        @if(request()->hasAny(['preset', 'from_date', 'to_date', 'project_id', 'worker_id', 'contractor_id', 'status', 'payment_status']))
+            <a href="{{ route('attendance.history') }}" class="btn btn-sm btn-link text-danger text-decoration-none">
+                <i class="icon-base ti tabler-x me-1"></i> Clear Filters
+            </a>
         @endif
+    </div>
 
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold text-muted text-uppercase">Project</label>
-            <select name="project_id" class="form-select">
-                <option value="">All Projects</option>
-                @foreach($projects as $p)
-                    <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>
-                        {{ $p->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+    {{-- Filter Strip --}}
+    <div class="awt-listing-filter-strip">
+        <form method="GET" action="{{ route('attendance.history') }}" class="row g-3 align-items-end">
+            @if(request('preset') && !request('from_date'))
+                <input type="hidden" name="preset" value="{{ request('preset') }}">
+            @endif
 
-        <div class="col-md-2">
-            <label class="form-label small fw-semibold text-muted text-uppercase">Contractor</label>
-            <select name="contractor_id" class="form-select">
-                <option value="">All Contractors</option>
-                @foreach($contractors as $c)
-                    <option value="{{ $c->id }}" {{ request('contractor_id') == $c->id ? 'selected' : '' }}>
-                        {{ $c->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted text-uppercase">Project</label>
+                <select name="project_id" class="form-select">
+                    <option value="">All Projects</option>
+                    @foreach($projects as $p)
+                        <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>
+                            {{ $p->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-        <div class="col-md-2">
-            <label class="form-label small fw-semibold text-muted text-uppercase">Worker</label>
-            <select name="worker_id" class="form-select">
-                <option value="">All Workers</option>
-                @foreach($workers as $w)
-                    <option value="{{ $w->id }}" {{ request('worker_id') == $w->id ? 'selected' : '' }}>
-                        {{ $w->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted text-uppercase">Contractor</label>
+                <select name="contractor_id" class="form-select">
+                    <option value="">All Contractors</option>
+                    @foreach($contractors as $c)
+                        <option value="{{ $c->id }}" {{ request('contractor_id') == $c->id ? 'selected' : '' }}>
+                            {{ $c->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-        <div class="col-md-2">
-            <label class="form-label small fw-semibold text-muted text-uppercase">Shift Status</label>
-            <select name="status" class="form-select">
-                <option value="">All Statuses</option>
-                @foreach($statuses as $st)
-                    <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>
-                        {{ $st->label() }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted text-uppercase">Worker</label>
+                <select name="worker_id" class="form-select">
+                    <option value="">All Workers</option>
+                    @foreach($workers as $w)
+                        <option value="{{ $w->id }}" {{ request('worker_id') == $w->id ? 'selected' : '' }}>
+                            {{ $w->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold text-muted text-uppercase">Payment State</label>
-            <select name="payment_status" class="form-select">
-                <option value="all" {{ request('payment_status', 'all') === 'all' ? 'selected' : '' }}>All Shifts (Paid & Unpaid)</option>
-                <option value="unpaid" {{ request('payment_status') === 'unpaid' ? 'selected' : '' }}>Unpaid Wages Only</option>
-                <option value="paid" {{ request('payment_status') === 'paid' ? 'selected' : '' }}>Paid Wages Only</option>
-            </select>
-        </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted text-uppercase">Shift Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    @foreach($statuses as $st)
+                        <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>
+                            {{ $st->label() }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold text-muted text-uppercase">From Date</label>
-            <input type="date" name="from_date" class="form-control" value="{{ $fromDate }}">
-        </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted text-uppercase">Payment State</label>
+                <select name="payment_status" class="form-select">
+                    <option value="all" {{ request('payment_status', 'all') === 'all' ? 'selected' : '' }}>All Shifts (Paid & Unpaid)</option>
+                    <option value="unpaid" {{ request('payment_status') === 'unpaid' ? 'selected' : '' }}>Unpaid Wages Only</option>
+                    <option value="paid" {{ request('payment_status') === 'paid' ? 'selected' : '' }}>Paid Wages Only</option>
+                </select>
+            </div>
 
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold text-muted text-uppercase">To Date</label>
-            <input type="date" name="to_date" class="form-control" value="{{ $toDate }}">
-        </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted text-uppercase">From Date</label>
+                <input type="date" name="from_date" class="form-control" value="{{ $fromDate }}">
+            </div>
 
-        <div class="col-md-6 d-flex gap-2">
-            <button type="submit" class="btn btn-primary px-4 flex-grow-1">
-                <i class="icon-base ti tabler-filter me-1"></i> Apply Filters
-            </button>
-            <a href="{{ route('attendance.history') }}" class="btn btn-outline-secondary px-3">Reset</a>
-        </div>
-    </form>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted text-uppercase">To Date</label>
+                <input type="date" name="to_date" class="form-control" value="{{ $toDate }}">
+            </div>
+
+            <div class="col-md-6 d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4 flex-grow-1">
+                    <i class="icon-base ti tabler-filter me-1"></i> Apply Filters
+                </button>
+                <a href="{{ route('attendance.history') }}" class="btn btn-outline-secondary px-3">Reset</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 {{-- Summary Glass KPIs --}}
@@ -189,38 +193,40 @@
 </div>
 
 {{-- Navigation Tabs for Collection Summary vs Individual Shifts --}}
-<ul class="nav nav-tabs nav-fill mb-3" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active fw-semibold d-flex align-items-center justify-content-center gap-2" id="collection-tab" data-bs-toggle="tab" data-bs-target="#collectionPane" type="button" role="tab">
-            <i class="icon-base ti tabler-users-group"></i>
-            <span>Worker Wage Collection ({{ $workerCollection->count() }})</span>
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link fw-semibold d-flex align-items-center justify-content-center gap-2" id="shifts-tab" data-bs-toggle="tab" data-bs-target="#shiftsPane" type="button" role="tab">
-            <i class="icon-base ti tabler-list-details"></i>
-            <span>Detailed Shift Log ({{ $records->total() }})</span>
-        </button>
-    </li>
-</ul>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+    <ul class="nav nav-pills p-1 rounded-pill border d-inline-flex mb-0" role="tablist" style="background: rgba(var(--bs-primary-rgb), 0.05) !important;">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 py-2 fw-semibold d-flex align-items-center gap-2" id="collection-tab" data-bs-toggle="tab" data-bs-target="#collectionPane" type="button" role="tab">
+                <i class="icon-base ti tabler-users-group"></i>
+                <span>Worker Wage Collection ({{ $workerCollection->count() }})</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 py-2 fw-semibold d-flex align-items-center gap-2" id="shifts-tab" data-bs-toggle="tab" data-bs-target="#shiftsPane" type="button" role="tab">
+                <i class="icon-base ti tabler-list-details"></i>
+                <span>Detailed Shift Log ({{ $records->total() }})</span>
+            </button>
+        </li>
+    </ul>
+</div>
 
 <div class="tab-content p-0 border-0">
     {{-- TAB 1: WORKER WAGE COLLECTION --}}
     <div class="tab-pane fade show active" id="collectionPane" role="tabpanel">
-        <div class="awt-table-card awt-tone-secondary">
+        <div class="card awt-table-card awt-tone-secondary">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="border-bottom">
+                    <thead>
                         <tr>
-                            <th class="text-uppercase small fw-semibold text-muted ps-3">Worker & Trade</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Contractor</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-center">Full Days</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-center">Half Days</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-center">Absent</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-center">Total Shifts</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-end">Total Earned</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-end">Unpaid (Due)</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-center pe-3">Payout Status</th>
+                            <th>Worker &amp; Trade</th>
+                            <th>Contractor</th>
+                            <th class="text-center">Full Days</th>
+                            <th class="text-center">Half Days</th>
+                            <th class="text-center">Absent</th>
+                            <th class="text-center">Total Shifts</th>
+                            <th class="text-end">Total Earned</th>
+                            <th class="text-end">Unpaid (Due)</th>
+                            <th class="text-center">Payout Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -231,7 +237,7 @@
                                 $isPartiallyPaid = (float) $item->paid_amount > 0 && ! $isFullyPaid;
                             @endphp
                             <tr>
-                                <td class="ps-3">
+                                <td>
                                     <a href="{{ $worker ? route('workers.show', $worker) : 'javascript:void(0)' }}" class="fw-semibold text-primary text-decoration-none d-block">
                                         {{ $worker?->name ?? 'Unknown Worker' }}
                                     </a>
@@ -254,7 +260,7 @@
                                 <td class="text-end fw-bold {{ (float) $item->unpaid_amount > 0 ? 'text-danger' : 'text-muted' }}">
                                     PKR {{ number_format($item->unpaid_amount, 2) }}
                                 </td>
-                                <td class="text-center pe-3">
+                                <td class="text-center">
                                     @if($isFullyPaid)
                                         <span class="badge bg-label-success d-inline-flex align-items-center gap-1">
                                             <i class="icon-base ti tabler-check fs-6"></i> Paid in Full
@@ -291,25 +297,25 @@
 
     {{-- TAB 2: DETAILED SHIFTS LOG --}}
     <div class="tab-pane fade" id="shiftsPane" role="tabpanel">
-        <div class="awt-table-card awt-tone-secondary">
+        <div class="card awt-table-card awt-tone-secondary">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="border-bottom">
+                    <thead>
                         <tr>
-                            <th class="text-uppercase small fw-semibold text-muted ps-3">Date</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Worker</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Project</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Status</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Wage at Time</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Calculated Payable</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Payment Status</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Actions</th>
+                            <th>Date</th>
+                            <th>Worker</th>
+                            <th>Project</th>
+                            <th>Status</th>
+                            <th>Wage at Time</th>
+                            <th>Calculated Payable</th>
+                            <th>Payment Status</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($records as $rec)
                             <tr>
-                                <td class="ps-3 fw-medium">{{ $rec->attendance_date->format('d M Y') }}</td>
+                                <td class="fw-medium">{{ $rec->attendance_date->format('d M Y') }}</td>
                                 <td>
                                     <a href="{{ $rec->worker ? route('workers.show', $rec->worker) : 'javascript:void(0)' }}" class="fw-semibold text-primary text-decoration-none d-block">
                                         {{ $rec->worker?->name }}
@@ -340,7 +346,7 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="text-end pe-3">
+                                <td class="text-end">
                                     <form id="delAttForm_{{ $rec->id }}" action="{{ route('attendance.destroy', $rec) }}" method="POST" class="d-inline-block">
                                         @csrf
                                         @method('DELETE')
@@ -368,13 +374,19 @@
             </div>
 
             @if($records->hasPages())
-                <div class="p-3 border-top">
-                    {{ $records->links() }}
+                <div class="card-footer d-flex flex-wrap justify-content-between align-items-center">
+                    <div class="small text-muted">
+                        Showing {{ $records->firstItem() }} to {{ $records->lastItem() }} of {{ $records->total() }} records
+                    </div>
+                    <div>
+                        {{ $records->links() }}
+                    </div>
                 </div>
             @endif
         </div>
     </div>
 </div>
+
 
 {{-- MODAL: PAY ALL WAGES --}}
 @if((auth()->user()->isOwner() || auth()->user()->isAdmin()) && $unpaidWages > 0)

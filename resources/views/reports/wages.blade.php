@@ -86,22 +86,22 @@
 <div class="awt-table-card awt-tone-secondary">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="border-bottom">
+            <thead>
                 <tr>
-                    <th class="text-uppercase small fw-semibold text-muted ps-3">Worker</th>
-                    <th class="text-uppercase small fw-semibold text-muted">Trade</th>
-                    <th class="text-uppercase small fw-semibold text-muted">Contractor</th>
-                    <th class="text-uppercase small fw-semibold text-muted text-center">Full Days</th>
-                    <th class="text-uppercase small fw-semibold text-muted text-center">Half Days</th>
-                    <th class="text-uppercase small fw-semibold text-muted text-center">Absent</th>
-                    <th class="text-uppercase small fw-semibold text-muted text-center">Total Shifts</th>
-                    <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Total Wage Earned</th>
+                    <th>Worker</th>
+                    <th>Trade</th>
+                    <th>Contractor</th>
+                    <th class="text-center">Full Days</th>
+                    <th class="text-center">Half Days</th>
+                    <th class="text-center">Absent</th>
+                    <th class="text-center">Total Shifts</th>
+                    <th class="text-end">Total Wage Earned</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($workerSummary as $row)
                     <tr>
-                        <td class="ps-3">
+                        <td>
                             <a href="{{ route('workers.show', $row['worker']) }}" class="fw-semibold text-primary text-decoration-none">
                                 {{ $row['worker']->name }}
                             </a>
@@ -113,7 +113,7 @@
                         <td class="text-center"><span class="badge bg-label-warning">{{ $row['half_days'] }}</span></td>
                         <td class="text-center"><span class="badge bg-label-danger">{{ $row['absent'] }}</span></td>
                         <td class="text-center fw-bold">{{ $row['total_days'] }}</td>
-                        <td class="text-end pe-3 fw-bold text-success fs-6">
+                        <td class="text-end fw-bold text-success fs-6">
                             PKR {{ number_format($row['total_pay'], 2) }}
                         </td>
                     </tr>
@@ -134,8 +134,8 @@
             @if($workerSummary->isNotEmpty())
                 <tfoot class="border-top">
                     <tr>
-                        <th colspan="7" class="text-end fw-bold ps-3">Total Payable Wages:</th>
-                        <th class="text-end fw-bold fs-6 text-success pe-3">PKR {{ number_format($totalWages, 2) }}</th>
+                        <th colspan="7" class="text-end fw-bold">Total Payable Wages:</th>
+                        <th class="text-end fw-bold fs-6 text-success">PKR {{ number_format($totalWages, 2) }}</th>
                     </tr>
                 </tfoot>
             @endif

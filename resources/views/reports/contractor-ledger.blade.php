@@ -106,27 +106,27 @@
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="border-bottom">
+                <thead>
                     <tr>
-                        <th class="text-uppercase small fw-semibold text-muted ps-3">Date</th>
-                        <th class="text-uppercase small fw-semibold text-muted">Project</th>
-                        <th class="text-uppercase small fw-semibold text-muted">Payment Type</th>
-                        <th class="text-uppercase small fw-semibold text-muted">Reference / Notes</th>
-                        <th class="text-uppercase small fw-semibold text-muted text-end">Paid Amount (Dr)</th>
-                        <th class="text-uppercase small fw-semibold text-muted text-end">Running Balance Due</th>
-                        <th class="text-uppercase small fw-semibold text-muted text-end pe-3 d-print-none">Voucher</th>
+                        <th>Date</th>
+                        <th>Project</th>
+                        <th>Payment Type</th>
+                        <th>Reference / Notes</th>
+                        <th class="text-end">Paid Amount (Dr)</th>
+                        <th class="text-end">Running Balance Due</th>
+                        <th class="text-end d-print-none">Voucher</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr class="bg-body-tertiary">
-                        <td colspan="4" class="fw-bold ps-3">Initial Contract Total</td>
+                        <td colspan="4" class="fw-bold">Initial Contract Total</td>
                         <td class="text-end">—</td>
                         <td class="text-end fw-bold">PKR {{ number_format($totalContract, 2) }}</td>
-                        <td class="d-print-none pe-3"></td>
+                        <td class="d-print-none"></td>
                     </tr>
                     @forelse($ledgerEntries as $entry)
                         <tr>
-                            <td class="ps-3">{{ $entry['date']->format('d M Y') }}</td>
+                            <td>{{ $entry['date']->format('d M Y') }}</td>
                             <td class="fw-semibold text-body">{{ $entry['project'] }}</td>
                             <td><span class="badge bg-label-secondary">{{ $entry['type'] }}</span></td>
                             <td>
@@ -139,7 +139,7 @@
                             <td class="text-end fw-bold text-danger">
                                 PKR {{ number_format($entry['running_balance'], 2) }}
                             </td>
-                            <td class="text-end pe-3 d-print-none">
+                            <td class="text-end d-print-none">
                                 <a href="{{ route('contractor-payments.show', $entry['payment']) }}" class="btn btn-sm btn-outline-primary">
                                     #{{ str_pad($entry['payment']->id, 4, '0', STR_PAD_LEFT) }}
                                 </a>
@@ -158,10 +158,10 @@
                 </tbody>
                 <tfoot class="border-top">
                     <tr>
-                        <th colspan="4" class="text-end fw-bold ps-3">Final Outstanding Balance:</th>
+                        <th colspan="4" class="text-end fw-bold">Final Outstanding Balance:</th>
                         <th class="text-end fw-bold text-success">PKR {{ number_format($totalPaid, 2) }}</th>
                         <th class="text-end fw-bold fs-6 text-danger">PKR {{ number_format($remaining, 2) }}</th>
-                        <th class="d-print-none pe-3"></th>
+                        <th class="d-print-none"></th>
                     </tr>
                 </tfoot>
             </table>

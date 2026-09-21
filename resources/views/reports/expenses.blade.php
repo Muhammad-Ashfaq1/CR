@@ -109,20 +109,20 @@
 <div class="awt-table-card awt-tone-secondary">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="border-bottom">
+            <thead>
                 <tr>
-                    <th class="text-uppercase small fw-semibold text-muted ps-3">Date</th>
-                    <th class="text-uppercase small fw-semibold text-muted">Project</th>
-                    <th class="text-uppercase small fw-semibold text-muted">Category</th>
-                    <th class="text-uppercase small fw-semibold text-muted">Vendor / Description</th>
-                    <th class="text-uppercase small fw-semibold text-muted">Payment Mode</th>
-                    <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Amount (PKR)</th>
+                    <th>Date</th>
+                    <th>Project</th>
+                    <th>Category</th>
+                    <th>Vendor / Description</th>
+                    <th>Payment Mode</th>
+                    <th class="text-end">Amount (PKR)</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($expenses as $exp)
                     <tr>
-                        <td class="ps-3">{{ $exp->expense_date->format('d M Y') }}</td>
+                        <td>{{ $exp->expense_date->format('d M Y') }}</td>
                         <td>{{ $exp->project?->name }}</td>
                         <td>
                             <span class="badge" style="background-color: {{ $exp->category?->color }}20; color: {{ $exp->category?->color }};">
@@ -136,7 +136,7 @@
                         <td>
                             <span class="badge bg-label-secondary">{{ $exp->payment_method ?? 'Cash' }}</span>
                         </td>
-                        <td class="text-end pe-3 fw-bold text-body">
+                        <td class="text-end fw-bold text-body">
                             {{ number_format($exp->amount, 2) }}
                         </td>
                     </tr>
@@ -157,8 +157,8 @@
             @if($expenses->isNotEmpty())
                 <tfoot class="border-top">
                     <tr>
-                        <th colspan="5" class="text-end fw-bold ps-3">Grand Total:</th>
-                        <th class="text-end fw-bold fs-6 text-primary pe-3">PKR {{ number_format($totalAmount, 2) }}</th>
+                        <th colspan="5" class="text-end fw-bold">Grand Total:</th>
+                        <th class="text-end fw-bold fs-6 text-primary">PKR {{ number_format($totalAmount, 2) }}</th>
                     </tr>
                 </tfoot>
             @endif

@@ -128,13 +128,13 @@
 
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="border-bottom">
+                    <thead>
                         <tr>
-                            <th class="text-uppercase small fw-semibold text-muted ps-3">Contractor</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Contract</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Paid</th>
-                            <th class="text-uppercase small fw-semibold text-muted">Balance Due</th>
-                            <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Actions</th>
+                            <th>Contractor</th>
+                            <th>Contract</th>
+                            <th>Paid</th>
+                            <th>Balance Due</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -146,7 +146,7 @@
                                 $percent = $cAmount > 0 ? min(100, round(($cPaid / $cAmount) * 100)) : 0;
                             @endphp
                             <tr>
-                                <td class="ps-3">
+                                <td>
                                     <a href="{{ route('contractors.show', $contractor) }}" class="fw-semibold text-primary text-decoration-none">
                                         {{ $contractor->name }}
                                     </a>
@@ -163,7 +163,7 @@
                                     </div>
                                 </td>
                                 <td class="text-danger fw-semibold">PKR {{ number_format($cRemaining, 0) }}</td>
-                                <td class="text-end pe-3">
+                                <td class="text-end">
                                     <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#payContractorModal_{{ $contractor->id }}" title="Record Payment">
                                         <i class="icon-base ti tabler-cash"></i> Pay
                                     </button>

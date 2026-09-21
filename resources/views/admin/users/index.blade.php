@@ -62,20 +62,20 @@
 <div class="awt-table-card awt-tone-secondary">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="border-bottom">
+            <thead>
                 <tr>
-                    <th class="text-uppercase small fw-semibold text-muted ps-3">User Profile</th>
+                    <th class="text-uppercase small fw-semibold text-muted">User Profile</th>
                     <th class="text-uppercase small fw-semibold text-muted">Role</th>
                     <th class="text-uppercase small fw-semibold text-muted">Phone</th>
                     <th class="text-uppercase small fw-semibold text-muted">Status</th>
                     <th class="text-uppercase small fw-semibold text-muted">Joined</th>
-                    <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Actions</th>
+                    <th class="text-uppercase small fw-semibold text-muted text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($users as $u)
                     <tr>
-                        <td class="ps-3">
+                        <td>
                             <div class="d-flex align-items-center">
                                 <div class="avatar avatar-sm me-3">
                                     <span class="avatar-initial rounded-circle bg-label-primary fw-semibold">
@@ -102,7 +102,7 @@
                             @endif
                         </td>
                         <td>{{ $u->created_at->format('d M Y') }}</td>
-                        <td class="text-end pe-3">
+                        <td class="text-end">
                             @if($u->id !== auth()->id() && !$u->isAdmin())
                                 <form id="impUsrForm_{{ $u->id }}" action="{{ route('impersonate.user', $u) }}" method="POST" class="d-inline-block">
                                     @csrf
@@ -133,7 +133,7 @@
         </table>
     </div>
     @if($users->hasPages())
-        <div class="p-3 border-top">
+        <div class="card-footer">
             {{ $users->links() }}
         </div>
     @endif

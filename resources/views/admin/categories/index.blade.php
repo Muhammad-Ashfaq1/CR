@@ -25,21 +25,21 @@
 <div class="awt-table-card awt-tone-secondary">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="border-bottom">
+            <thead>
                 <tr>
-                    <th class="text-uppercase small fw-semibold text-muted ps-3">Category</th>
+                    <th class="text-uppercase small fw-semibold text-muted">Category</th>
                     <th class="text-uppercase small fw-semibold text-muted">Type</th>
                     <th class="text-uppercase small fw-semibold text-muted">Icon</th>
                     <th class="text-uppercase small fw-semibold text-muted">Expenses Recorded</th>
                     <th class="text-uppercase small fw-semibold text-muted">Status</th>
                     <th class="text-uppercase small fw-semibold text-muted">Sort Order</th>
-                    <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Actions</th>
+                    <th class="text-uppercase small fw-semibold text-muted text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($categories as $cat)
                     <tr>
-                        <td class="ps-3">
+                        <td>
                             <div class="d-flex align-items-center">
                                 <div class="rounded-3 d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px; background-color: {{ $cat->color }}20; color: {{ $cat->color }};">
                                     <i class="icon-base ti {{ $cat->icon ?? 'tabler-receipt' }}"></i>
@@ -62,7 +62,7 @@
                             @endif
                         </td>
                         <td>{{ $cat->sort_order }}</td>
-                        <td class="text-end pe-3">
+                        <td class="text-end">
                             <button type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#editCategoryModal_{{ $cat->id }}" title="Edit Category">
                                 <i class="icon-base ti tabler-edit"></i>
                             </button>

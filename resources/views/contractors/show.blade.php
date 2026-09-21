@@ -86,13 +86,13 @@
 <div class="row g-4 mb-4">
     {{-- Project Agreements Breakdown --}}
     <div class="col-lg-7">
-        <div class="pos-listing mb-4">
-            <div class="pos-listing-toolbar">
-                <h5 class="pos-listing-title mb-0"><i class="icon-base ti tabler-building-skyscraper me-2 text-primary"></i> Project Agreements & Statement</h5>
+        <div class="card awt-table-card awt-tone-secondary mb-4">
+            <div class="awt-listing-toolbar">
+                <h5 class="mb-0 fw-semibold"><i class="icon-base ti tabler-building-skyscraper me-2 text-primary"></i> Project Agreements & Statement</h5>
             </div>
             <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
                         <tr>
                             <th>Project Site</th>
                             <th>Contract Amount</th>
@@ -133,69 +133,66 @@
         </div>
 
         {{-- Payment History Vouchers --}}
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent border-bottom">
-                <h5 class="card-title mb-0"><i class="icon-base ti tabler-history me-2 text-primary"></i> Payment Transaction Log</h5>
+        <div class="card awt-table-card awt-tone-secondary mb-4">
+            <div class="awt-listing-toolbar">
+                <h5 class="mb-0 fw-semibold"><i class="icon-base ti tabler-history me-2 text-primary"></i> Payment Transaction Log</h5>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table align-middle table-sm mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Project</th>
-                                <th>Type</th>
-                                <th>Reference</th>
-                                <th class="text-end">Amount</th>
-                                <th class="text-end">Voucher</th>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Project</th>
+                            <th>Type</th>
+                            <th>Reference</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-end">Voucher</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($contractor->payments as $payment)
+                            <tr class="{{ $payment->is_voided ? 'text-decoration-line-through text-muted' : '' }}">
+                                <td>{{ $payment->payment_date->format('d M Y') }}</td>
+                                <td>{{ $payment->project?->name }}</td>
+                                <td><span class="badge bg-label-info">{{ $payment->payment_type->label() }}</span></td>
+                                <td>{{ $payment->reference ?? '—' }}</td>
+                                <td class="text-end fw-semibold text-success">PKR {{ number_format($payment->amount, 0) }}</td>
+                                <td class="text-end">
+                                    <a href="{{ route('contractor-payments.show', $payment) }}" class="btn btn-xs btn-outline-secondary">
+                                        #{{ str_pad($payment->id, 4, '0', STR_PAD_LEFT) }}
+                                    </a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($contractor->payments as $payment)
-                                <tr class="{{ $payment->is_voided ? 'text-decoration-line-through text-muted' : '' }}">
-                                    <td>{{ $payment->payment_date->format('d M Y') }}</td>
-                                    <td>{{ $payment->project?->name }}</td>
-                                    <td><span class="badge bg-label-info">{{ $payment->payment_type->label() }}</span></td>
-                                    <td>{{ $payment->reference ?? '—' }}</td>
-                                    <td class="text-end fw-semibold text-success">PKR {{ number_format($payment->amount, 0) }}</td>
-                                    <td class="text-end">
-                                        <a href="{{ route('contractor-payments.show', $payment) }}" class="btn btn-xs btn-outline-secondary">
-                                            #{{ str_pad($payment->id, 4, '0', STR_PAD_LEFT) }}
-                                        </a>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center py-3 text-muted">No payment records found.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-3 text-muted">No payment records found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     {{-- Workforce managed by this contractor --}}
     <div class="col-lg-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="icon-base ti tabler-hammer me-2 text-info"></i> Contractor Workforce</h5>
+        <div class="card awt-table-card awt-tone-secondary mb-4">
+            <div class="awt-listing-toolbar d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-semibold"><i class="icon-base ti tabler-hammer me-2 text-info"></i> Contractor Workforce</h5>
                 <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createWorkerModal">
                     <i class="icon-base ti tabler-plus me-1"></i> Add Worker
                 </button>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table align-middle table-sm mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Worker</th>
-                                <th>Trade</th>
-                                <th>Wage/Day</th>
-                                <th class="text-end">Status</th>
-                            </tr>
-                        </thead>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Worker</th>
+                            <th>Trade</th>
+                            <th>Wage/Day</th>
+                            <th class="text-end">Status</th>
+                        </tr>
+                    </thead>
                         <tbody>
                             @forelse($contractor->workers as $worker)
                                 <tr>
@@ -224,7 +221,6 @@
             </div>
         </div>
     </div>
-</div>
 
 {{-- Global Payment Modal --}}
 <div class="modal fade" id="createPaymentModal" tabindex="-1" aria-hidden="true">

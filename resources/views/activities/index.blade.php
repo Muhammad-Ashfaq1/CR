@@ -58,61 +58,65 @@
     </div>
 </div>
 
-<div class="cst-card">
-    <div class="cst-card-body p-0">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-light">
+<div class="card awt-table-card awt-tone-secondary">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Event</th>
+                    <th>Project</th>
+                    <th>Description / Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($logs as $log)
                     <tr>
-                        <th>Time</th>
-                        <th>User</th>
-                        <th>Event</th>
-                        <th>Project</th>
-                        <th>Description / Details</th>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ $log->created_at->format('d M Y') }}</div>
+                            <div class="small text-muted">{{ $log->created_at->format('h:i A') }} ({{ $log->created_at->diffForHumans() }})</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ $log->user?->name ?? 'System' }}</div>
+                            <div class="small text-muted">{{ $log->user?->role?->label() }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-label-info">{{ str_replace('_', ' ', Str::title($log->event)) }}</span>
+                        </td>
+                        <td>
+                            @if($log->project)
+                                <a href="{{ route('projects.show', $log->project) }}" class="text-primary text-decoration-none fw-semibold">
+                                    {{ $log->project->name }}
+                                </a>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            <div class="text-dark">{{ $log->description ?? 'No description' }}</div>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @forelse($logs as $log)
-                        <tr>
-                            <td>
-                                <div class="fw-semibold text-dark">{{ $log->created_at->format('d M Y') }}</div>
-                                <div class="small text-muted">{{ $log->created_at->format('h:i A') }} ({{ $log->created_at->diffForHumans() }})</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $log->user?->name ?? 'System' }}</div>
-                                <div class="small text-muted">{{ $log->user?->role?->label() }}</div>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark border">{{ str_replace('_', ' ', Str::title($log->event)) }}</span>
-                            </td>
-                            <td>
-                                @if($log->project)
-                                    <a href="{{ route('projects.show', $log->project) }}" class="text-primary text-decoration-none">
-                                        {{ $log->project->name }}
-                                    </a>
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="text-dark">{{ $log->description ?? 'No description' }}</div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
-                                <i class="icon-base ti tabler-activity-heartbeat fs-1 d-block mb-2 opacity-50"></i>
-                                <p>No activity logs found.</p>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                @empty
+                    <tr>
+                        <td colspan="5" class="p-0">
+                            <div class="awt-empty-state text-center py-5">
+                                <div class="awt-empty-state-icon text-muted mb-2">
+                                    <i class="icon-base ti tabler-activity-heartbeat fs-1"></i>
+                                </div>
+                                <h6 class="fw-semibold mb-1">No activity logs found</h6>
+                                <p class="text-muted small mb-0">System events and user actions will be recorded here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
     @if($logs->hasPages())
-        <div class="cst-card-footer p-3">
-            {{ $logs->links() }}
+        <div class="card-footer d-flex flex-wrap justify-content-between align-items-center">
+            <div class="small text-muted">Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} entries</div>
+            <div>{{ $logs->links() }}</div>
         </div>
     @endif
 </div>

@@ -104,53 +104,53 @@
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="border-bottom">
+                        <thead>
                             <tr>
-                                <th class="text-uppercase small fw-semibold text-muted ps-3">Expense Classification</th>
-                                <th class="text-uppercase small fw-semibold text-muted text-end pe-3">Amount (PKR)</th>
+                                <th>Expense Classification</th>
+                                <th class="text-end">Amount (PKR)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="ps-3">
+                                <td>
                                     <div class="fw-semibold text-body">Contractor Payments Cleared</div>
-                                    <div class="small text-muted">Milestone & advance disbursements</div>
+                                    <div class="small text-muted">Milestone &amp; advance disbursements</div>
                                 </td>
-                                <td class="text-end pe-3 fw-bold text-success">PKR {{ number_format($stats['contractorPaid'], 2) }}</td>
+                                <td class="text-end fw-bold text-success">PKR {{ number_format($stats['contractorPaid'], 2) }}</td>
                             </tr>
                             <tr>
-                                <td class="ps-3">
-                                    <div class="fw-semibold text-body">Building & Construction Materials</div>
+                                <td>
+                                    <div class="fw-semibold text-body">Building &amp; Construction Materials</div>
                                     <div class="small text-muted">Cement, Bricks, Steel, Sand, Crush, Gravel, etc.</div>
                                 </td>
-                                <td class="text-end pe-3 fw-bold text-body">PKR {{ number_format($stats['materials'], 2) }}</td>
+                                <td class="text-end fw-bold text-body">PKR {{ number_format($stats['materials'], 2) }}</td>
                             </tr>
                             <tr>
-                                <td class="ps-3">
-                                    <div class="fw-semibold text-body">Labor & Direct Site Wages</div>
+                                <td>
+                                    <div class="fw-semibold text-body">Labor &amp; Direct Site Wages</div>
                                     <div class="small text-muted">Direct wages and petty daily labor expenses</div>
                                 </td>
-                                <td class="text-end pe-3 fw-bold text-body">PKR {{ number_format($stats['labor'], 2) }}</td>
+                                <td class="text-end fw-bold text-body">PKR {{ number_format($stats['labor'], 2) }}</td>
                             </tr>
                             <tr>
-                                <td class="ps-3">
-                                    <div class="fw-semibold text-body">Machinery & Equipment Rental</div>
+                                <td>
+                                    <div class="fw-semibold text-body">Machinery &amp; Equipment Rental</div>
                                     <div class="small text-muted">Mixer machines, excavators, scaffolding, etc.</div>
                                 </td>
-                                <td class="text-end pe-3 fw-bold text-body">PKR {{ number_format($stats['equipment'], 2) }}</td>
+                                <td class="text-end fw-bold text-body">PKR {{ number_format($stats['equipment'], 2) }}</td>
                             </tr>
                             <tr>
-                                <td class="ps-3">
-                                    <div class="fw-semibold text-body">Utilities, Fuel & Admin Overhead</div>
+                                <td>
+                                    <div class="fw-semibold text-body">Utilities, Fuel &amp; Admin Overhead</div>
                                     <div class="small text-muted">Water tankers, electricity, generator fuel, tea, food</div>
                                 </td>
-                                <td class="text-end pe-3 fw-bold text-body">PKR {{ number_format($stats['utilities'] + $stats['misc'], 2) }}</td>
+                                <td class="text-end fw-bold text-body">PKR {{ number_format($stats['utilities'] + $stats['misc'], 2) }}</td>
                             </tr>
                         </tbody>
                         <tfoot class="border-top">
                             <tr>
-                                <th class="fw-bold fs-6 ps-3">Grand Total Spent to Date:</th>
-                                <th class="text-end pe-3 fw-bold fs-5 text-primary">PKR {{ number_format($stats['grandTotalSpent'], 2) }}</th>
+                                <th class="fw-bold fs-6">Grand Total Spent to Date:</th>
+                                <th class="text-end fw-bold fs-5 text-primary">PKR {{ number_format($stats['grandTotalSpent'], 2) }}</th>
                             </tr>
                         </tfoot>
                     </table>

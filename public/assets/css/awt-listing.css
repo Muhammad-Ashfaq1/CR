@@ -86,74 +86,121 @@
     background-color: rgba(255, 255, 255, 0.02);
 }
 
-/* ── Table Inside Glass Panel ────────────────────────────────────────── */
+/* ── Unified Glass Table System ─────────────────────────────────────── */
 
 .awt-table-responsive,
 .awt-listing-table,
 .pos-listing-table,
+.table-responsive,
 .awt-table-card .table-responsive,
 .pos-listing-panel .table-responsive {
     position: relative;
     z-index: 1;
-    padding-inline: 1rem;
+    padding-inline: 0 !important;
+    margin: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
+.table,
 .awt-table-card .table,
 .pos-listing-panel .table,
 .awt-listing-table .table,
 .awt-team-table .table {
     --bs-table-bg: transparent;
     --bs-table-striped-bg: transparent;
+    width: 100%;
     margin-bottom: 0;
     vertical-align: middle;
 }
 
+/* Header typography and borders */
+.table > thead th,
 .awt-table-card .table > thead th,
 .pos-listing-panel .table > thead th,
 .awt-listing-table .table > thead th {
-    padding-top: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.18);
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    padding-inline: 0.85rem;
+    border-bottom: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.16);
     background-color: transparent !important;
     color: var(--bs-secondary-color);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    white-space: nowrap;
+    vertical-align: middle;
 }
 
+.table > thead.bg-light th,
+.table > thead.table-light th {
+    background-color: rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.04) !important;
+}
+
+/* Table body cell spacing and subtle borders */
+.table > tbody td,
+.awt-table-card .table > tbody td,
+.pos-listing-panel .table > tbody td,
+.awt-listing-table .table > tbody td {
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+    padding-inline: 0.85rem;
+    border-bottom: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.08);
+    vertical-align: middle;
+}
+
+/* Edge safety padding: pads the first and last column away from card border radiuses without breaking table-responsive */
+.table > thead > tr > th:first-child,
+.table > tbody > tr > td:first-child,
+.table > tfoot > tr > td:first-child {
+    padding-inline-start: 1.25rem !important;
+}
+
+.table > thead > tr > th:last-child,
+.table > tbody > tr > td:last-child,
+.table > tfoot > tr > td:last-child {
+    padding-inline-end: 1.25rem !important;
+}
+
+/* Row Hover */
+.table-hover > tbody > tr,
 .awt-table-card .table > tbody > tr,
 .pos-listing-panel .table > tbody > tr,
 .awt-listing-table .table > tbody > tr {
     transition: background-color 0.15s ease-in-out;
 }
 
-.awt-table-card .table > tbody > tr:hover,
-.pos-listing-panel .table > tbody > tr:hover,
-.awt-listing-table .table > tbody > tr:hover {
+.table-hover > tbody > tr:hover > *,
+.awt-table-card .table > tbody > tr:hover > *,
+.pos-listing-panel .table > tbody > tr:hover > *,
+.awt-listing-table .table > tbody > tr:hover > * {
     background-color: rgba(var(--bs-primary-rgb), 0.04) !important;
+    --bs-table-accent-bg: transparent;
 }
 
-[data-bs-theme="dark"] .awt-table-card .table > tbody > tr:hover,
-[data-bs-theme="dark"] .pos-listing-panel .table > tbody > tr:hover,
-[data-bs-theme="dark"] .awt-listing-table .table > tbody > tr:hover {
+[data-bs-theme="dark"] .table-hover > tbody > tr:hover > *,
+[data-bs-theme="dark"] .awt-table-card .table > tbody > tr:hover > *,
+[data-bs-theme="dark"] .pos-listing-panel .table > tbody > tr:hover > *,
+[data-bs-theme="dark"] .awt-listing-table .table > tbody > tr:hover > * {
     background-color: rgba(255, 255, 255, 0.04) !important;
 }
 
+/* Remove bottom border on final row inside card to prevent double line */
+.table > tbody > tr:last-child > td,
+.table > tbody > tr:last-child > th,
 .awt-table-card .table > tbody tr:last-child td,
 .pos-listing-panel .table > tbody tr:last-child td,
 .awt-listing-table .table > tbody tr:last-child td {
     border-bottom: 0;
-    padding-bottom: 1rem;
 }
 
-.awt-table-card .table > tbody td,
-.pos-listing-panel .table > tbody td,
-.awt-listing-table .table > tbody td {
-    padding-top: 0.85rem;
-    padding-bottom: 0.85rem;
-    border-bottom: 1px solid rgba(var(--awt-tone-rgb, var(--bs-secondary-rgb)), 0.1);
+/* Tabular figures for numeric alignment */
+.table td.text-end,
+.table th.text-end {
+    font-variant-numeric: tabular-nums;
 }
+
 
 /* ── Action Buttons & Badges ─────────────────────────────────────────── */
 
