@@ -16,7 +16,7 @@
             <div class="pos-glass-intro-sub">
                 Contractor: <strong>{{ $worker->contractor?->name }}</strong> &bull;
                 Phone: {{ $worker->phone ?? '—' }} &bull;
-                Current Base Rate: <span class="fw-bold text-dark">PKR {{ number_format($worker->daily_wage, 0) }}/day</span>
+                Current Base Rate: <span class="fw-bold text-heading">PKR {{ number_format($worker->daily_wage, 0) }}/day</span>
             </div>
         </div>
         <div class="d-flex gap-2">

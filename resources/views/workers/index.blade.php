@@ -94,7 +94,7 @@
                             <span class="badge bg-label-info">{{ $worker->worker_type }}</span>
                         </td>
                         <td>
-                            <a href="{{ route('contractors.show', $worker->contractor) }}" class="text-dark text-decoration-none">
+                            <a href="{{ route('contractors.show', $worker->contractor) }}" class="text-heading text-decoration-none">
                                 {{ $worker->contractor?->name }}
                             </a>
                         </td>

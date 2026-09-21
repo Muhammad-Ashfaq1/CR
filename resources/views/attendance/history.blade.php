@@ -184,7 +184,7 @@
                 </div>
             </div>
             <div class="d-flex align-items-baseline gap-2 mb-1">
-                <span class="awt-kpi-value text-dark mb-0">{{ $fullDaysCount }}</span>
+                <span class="awt-kpi-value text-heading mb-0">{{ $fullDaysCount }}</span>
                 <small class="text-muted">Full / {{ $halfDaysCount }} Half</small>
             </div>
             <div class="awt-kpi-footer text-muted">{{ $absentCount }} Absences Recorded</div>
@@ -254,7 +254,7 @@
                                 <td class="text-center fw-medium">{{ $item->half_days }}</td>
                                 <td class="text-center text-muted">{{ $item->absent_days }}</td>
                                 <td class="text-center fw-bold">{{ $item->total_shifts }}</td>
-                                <td class="text-end fw-bold text-dark">
+                                <td class="text-end fw-bold text-heading">
                                     PKR {{ number_format($item->total_payable, 2) }}
                                 </td>
                                 <td class="text-end fw-bold {{ (float) $item->unpaid_amount > 0 ? 'text-danger' : 'text-muted' }}">
@@ -452,7 +452,7 @@
                                         <div class="d-flex align-items-start gap-2">
                                             <input type="radio" name="payment_destination" value="direct_pay" class="form-check-input mt-1" checked>
                                             <div>
-                                                <div class="fw-bold text-dark mb-1">
+                                                <div class="fw-bold text-heading mb-1">
                                                     <i class="icon-base ti tabler-users text-success me-1"></i> Direct Pay
                                                 </div>
                                                 <small class="text-muted d-block">
@@ -467,7 +467,7 @@
                                         <div class="d-flex align-items-start gap-2">
                                             <input type="radio" name="payment_destination" value="contractor_pay" class="form-check-input mt-1">
                                             <div>
-                                                <div class="fw-bold text-dark mb-1">
+                                                <div class="fw-bold text-heading mb-1">
                                                     <i class="icon-base ti tabler-building text-info me-1"></i> Pay to Contractor(s)
                                                 </div>
                                                 <small class="text-muted d-block">

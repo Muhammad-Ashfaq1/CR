@@ -52,7 +52,7 @@
                     <span class="pos-stat-icon"><i class="icon-base ti tabler-briefcase" aria-hidden="true"></i></span>
                     <h6 class="pos-stat-label">Contract Commitments</h6>
                 </div>
-                <p class="pos-stat-value fs-4 fw-bold text-dark">PKR {{ number_format($totalContractSum, 0) }}</p>
+                <p class="pos-stat-value fs-4 fw-bold text-heading">PKR {{ number_format($totalContractSum, 0) }}</p>
                 <div class="pos-stat-sub text-muted">Across all assigned projects</div>
             </div>
         </div>
@@ -197,13 +197,13 @@
                             @forelse($contractor->workers as $worker)
                                 <tr>
                                     <td>
-                                        <a href="{{ route('workers.show', $worker) }}" class="fw-semibold text-dark text-decoration-none">
+                                        <a href="{{ route('workers.show', $worker) }}" class="fw-semibold text-heading text-decoration-none">
                                             {{ $worker->name }}
                                         </a>
                                         <div class="small text-muted">{{ $worker->phone ?? '—' }}</div>
                                     </td>
                                     <td>{{ $worker->worker_type }}</td>
-                                    <td class="fw-semibold text-dark">PKR {{ number_format($worker->daily_wage, 0) }}</td>
+                                    <td class="fw-semibold text-heading">PKR {{ number_format($worker->daily_wage, 0) }}</td>
                                     <td class="text-end">
                                         <span class="badge {{ $worker->status === 'active' ? 'bg-label-success' : 'bg-label-secondary' }}">
                                             {{ ucfirst($worker->status) }}

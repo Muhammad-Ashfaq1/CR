@@ -204,33 +204,33 @@
                     <div class="col-6 col-md-3">
                         <div class="p-3 rounded bg-light border">
                             <div class="small text-muted">Materials</div>
-                            <div class="fw-bold fs-6 text-dark">PKR {{ number_format($materialExpenses, 0) }}</div>
+                            <div class="fw-bold fs-6 text-heading">PKR {{ number_format($materialExpenses, 0) }}</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 rounded bg-light border">
                             <div class="small text-muted">Labor / Wages</div>
-                            <div class="fw-bold fs-6 text-dark">PKR {{ number_format($laborExpenses, 0) }}</div>
+                            <div class="fw-bold fs-6 text-heading">PKR {{ number_format($laborExpenses, 0) }}</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 rounded bg-light border">
                             <div class="small text-muted">Machinery & Rent</div>
-                            <div class="fw-bold fs-6 text-dark">PKR {{ number_format($equipmentExpenses, 0) }}</div>
+                            <div class="fw-bold fs-6 text-heading">PKR {{ number_format($equipmentExpenses, 0) }}</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 rounded bg-light border">
                             <div class="small text-muted">Utilities & Fuel</div>
-                            <div class="fw-bold fs-6 text-dark">PKR {{ number_format($utilitiesExpenses + $otherExpenses, 0) }}</div>
+                            <div class="fw-bold fs-6 text-heading">PKR {{ number_format($utilitiesExpenses + $otherExpenses, 0) }}</div>
                         </div>
                     </div>
                 </div>
 
                 <h6 class="fw-semibold mb-2 mt-4">Recent Site Expenses</h6>
                 <div class="table-responsive">
-                    <table class="table align-middle table-sm mb-0">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
                             <tr>
                                 <th>Date</th>
                                 <th>Category</th>
@@ -249,11 +249,11 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="fw-semibold text-dark">{{ $exp->vendor ?? '—' }}</div>
+                                        <div class="fw-semibold text-heading">{{ $exp->vendor ?? '—' }}</div>
                                         <div class="small text-muted">{{ Str::limit($exp->description, 40) }}</div>
                                     </td>
                                     <td><span class="badge bg-label-secondary">{{ $exp->payment_method ?? 'Cash' }}</span></td>
-                                    <td class="text-end fw-semibold text-dark">PKR {{ number_format($exp->amount, 0) }}</td>
+                                    <td class="text-end fw-semibold text-heading">PKR {{ number_format($exp->amount, 0) }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -278,11 +278,11 @@
             <div class="card-body p-3">
                 <div class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded">
                     <div>
-                        <div class="fs-4 fw-bold text-dark">{{ $project->workers->count() }}</div>
+                        <div class="fs-4 fw-bold text-heading">{{ $project->workers->count() }}</div>
                         <div class="small text-muted">Active Workers on Site</div>
                     </div>
                     <div>
-                        <a href="{{ route('attendance.index', ['project_id' => $project->id]) }}" class="btn btn-warning btn-sm text-dark fw-semibold">
+                        <a href="{{ route('attendance.index', ['project_id' => $project->id]) }}" class="btn btn-warning btn-sm text-heading fw-semibold">
                             <i class="icon-base ti tabler-calendar-check me-1"></i> Today's Sheet
                         </a>
                     </div>
@@ -292,7 +292,7 @@
                     @forelse($project->workers->take(5) as $w)
                         <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                             <div>
-                                <a href="{{ route('workers.show', $w) }}" class="fw-semibold text-dark text-decoration-none">{{ $w->name }}</a>
+                                <a href="{{ route('workers.show', $w) }}" class="fw-semibold text-heading text-decoration-none">{{ $w->name }}</a>
                                 <div class="small text-muted">{{ $w->worker_type }} &bull; {{ $w->contractor?->name }}</div>
                             </div>
                             <span class="badge bg-label-secondary">PKR {{ number_format($w->daily_wage, 0) }}/day</span>

@@ -95,7 +95,7 @@
                 <h5 class="fw-bold text-body mb-1">Workforce & Wages</h5>
                 <p class="text-muted small">Audit daily attendance, full/half day shifts, and cumulative wage liabilities per worker.</p>
             </div>
-            <a href="{{ route('reports.wages') }}" class="btn btn-outline-warning text-dark btn-sm mt-3">
+            <a href="{{ route('reports.wages') }}" class="btn btn-outline-warning btn-sm mt-3">
                 Open Report <i class="icon-base ti tabler-arrow-right ms-1"></i>
             </a>
         </div>
@@ -125,7 +125,7 @@
                 <h5 class="fw-bold text-body mb-1">Project Cost Rollup</h5>
                 <p class="text-muted small">Comprehensive executive project cost rollups comparing contracts, direct materials, and labor.</p>
             </div>
-            <a href="{{ route('reports.project-summary') }}" class="btn btn-outline-info text-dark btn-sm mt-3">
+            <a href="{{ route('reports.project-summary') }}" class="btn btn-outline-info btn-sm mt-3">
                 Open Report <i class="icon-base ti tabler-arrow-right ms-1"></i>
             </a>
         </div>
