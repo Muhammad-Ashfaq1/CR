@@ -102,13 +102,17 @@
                 @forelse($workerSummary as $row)
                     <tr>
                         <td>
-                            <a href="{{ route('workers.show', $row['worker']) }}" class="fw-semibold text-primary text-decoration-none">
-                                {{ $row['worker']->name }}
-                            </a>
-                            <div class="small text-muted">{{ $row['worker']->phone ?? '—' }}</div>
+                            @if($row['worker'])
+                                <a href="{{ route('workers.show', $row['worker']) }}" class="fw-semibold text-primary text-decoration-none">
+                                    {{ $row['worker']->name }}
+                                </a>
+                                <div class="small text-muted">{{ $row['worker']->phone ?? '—' }}</div>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
                         </td>
-                        <td><span class="badge bg-label-secondary">{{ $row['worker']->worker_type }}</span></td>
-                        <td>{{ $row['worker']->contractor?->name ?? '—' }}</td>
+                        <td><span class="badge bg-label-secondary">{{ $row['worker']?->worker_type ?? '—' }}</span></td>
+                        <td>{{ $row['worker']?->contractor?->name ?? '—' }}</td>
                         <td class="text-center"><span class="badge bg-label-success">{{ $row['full_days'] }}</span></td>
                         <td class="text-center"><span class="badge bg-label-warning">{{ $row['half_days'] }}</span></td>
                         <td class="text-center"><span class="badge bg-label-danger">{{ $row['absent'] }}</span></td>

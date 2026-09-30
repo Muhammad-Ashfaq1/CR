@@ -94,9 +94,13 @@
                             <span class="badge bg-label-info">{{ $worker->worker_type }}</span>
                         </td>
                         <td>
-                            <a href="{{ route('contractors.show', $worker->contractor) }}" class="text-heading text-decoration-none">
-                                {{ $worker->contractor?->name }}
-                            </a>
+                            @if($worker->contractor)
+                                <a href="{{ route('contractors.show', $worker->contractor) }}" class="text-heading text-decoration-none">
+                                    {{ $worker->contractor->name }}
+                                </a>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
                         </td>
                         <td>{{ $worker->project?->name ?? 'General / Any Site' }}</td>
                         <td class="fw-bold text-heading">

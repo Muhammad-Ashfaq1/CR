@@ -104,9 +104,13 @@
                     <tr>
                         <td>{{ $exp->expense_date->format('d M Y') }}</td>
                         <td>
-                            <a href="{{ route('projects.show', $exp->project) }}" class="fw-semibold text-primary text-decoration-none">
-                                {{ $exp->project?->name }}
-                            </a>
+                            @if($exp->project)
+                                <a href="{{ route('projects.show', $exp->project) }}" class="fw-semibold text-primary text-decoration-none">
+                                    {{ $exp->project->name }}
+                                </a>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
                         </td>
                         <td>
                             <span class="badge" style="background-color: {{ $exp->category?->color }}20; color: {{ $exp->category?->color }};">

@@ -112,14 +112,22 @@
                         </td>
                         <td>{{ $payment->payment_date->format('d M Y') }}</td>
                         <td>
-                            <a href="{{ route('projects.show', $payment->project) }}" class="text-primary text-decoration-none fw-semibold">
-                                {{ $payment->project?->name }}
-                            </a>
+                            @if($payment->project)
+                                <a href="{{ route('projects.show', $payment->project) }}" class="text-primary text-decoration-none fw-semibold">
+                                    {{ $payment->project->name }}
+                                </a>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
                         </td>
                         <td>
-                            <a href="{{ route('contractors.show', $payment->contractor) }}" class="text-heading text-decoration-none">
-                                {{ $payment->contractor?->name }}
-                            </a>
+                            @if($payment->contractor)
+                                <a href="{{ route('contractors.show', $payment->contractor) }}" class="text-heading text-decoration-none">
+                                    {{ $payment->contractor->name }}
+                                </a>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
                         </td>
                         <td>
                             <span class="badge bg-label-info">{{ $payment->payment_type->label() }}</span>
