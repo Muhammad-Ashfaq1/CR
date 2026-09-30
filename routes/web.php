@@ -100,6 +100,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('attendance/daily', [AttendanceController::class, 'storeDaily'])->name('attendance.store-daily');
     Route::get('attendance/history', [AttendanceController::class, 'history'])->name('attendance.history');
     Route::post('attendance/pay-all', [AttendanceController::class, 'payAll'])->name('attendance.pay-all');
+    Route::patch('attendance/{attendance}/payment-status', [AttendanceController::class, 'togglePaymentStatus'])->name('attendance.toggle-payment-status');
+    Route::post('attendance/bulk-payment-status', [AttendanceController::class, 'bulkPaymentStatus'])->name('attendance.bulk-payment-status');
     Route::delete('attendance/{attendance}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
 
     // Expenses

@@ -499,6 +499,129 @@ class AttendanceController extends Controller
         );
     }
 
+    /**
+     * Direct toggle or update of payment status for a single attendance record.
+     */
+    public function togglePaymentStatus(Request $request, Attendance $attendance): RedirectResponse
+    {
+        $user = auth()->user();
+        if (! $user->isOwner() && ! $user->isAdmin()) {
+            abort(403, 'Unauthorized to modify wage payment status.');
+        }
+
+        if ($user->isOwner() && $attendance->project && $attendance->project->owner_id !== $user->id) {
+            abort(403, 'Unauthorized access to this project attendance.');
+        }
+
+        $targetStatus = $request->input('status');
+        $newIsPaid = $targetStatus !== null ? ($targetStatus === 'paid' || $targetStatus === '1' || $targetStatus === true) : ! $attendance->is_paid;
+
+        if ($newIsPaid) {
+            $attendance->update([
+                'is_paid' => true,
+                'paid_at' => now(),
+                'payment_method' => $attendance->payment_method ?: 'manual',
+                'payment_reference' => $attendance->payment_reference ?: 'MANUAL-'.now()->format('YmdHi'),
+            ]);
+            $statusLabel = 'Paid';
+        } else {
+            $attendance->update([
+                'is_paid' => false,
+                'paid_at' => null,
+                'payment_method' => null,
+                'payment_reference' => null,
+            ]);
+            $statusLabel = 'Unpaid';
+        }
+
+        ActivityLogger::log([
+            'project_id' => $attendance->project_id,
+            'event' => 'attendance_payment_status_updated',
+            'description' => "Marked attendance for {$attendance->worker?->name} on {$attendance->attendance_date->format('d M Y')} as {$statusLabel}",
+            'properties' => [
+                'attendance_id' => $attendance->id,
+                'worker_id' => $attendance->worker_id,
+                'is_paid' => $newIsPaid,
+            ],
+        ], $attendance);
+
+        return redirect()->back()
+            ->with('active_tab', 'shiftsPane')
+            ->with('success', "Attendance record for {$attendance->worker?->name} marked as {$statusLabel}.");
+    }
+
+    /**
+     * Bulk update payment status for multiple selected attendance records.
+     */
+    public function bulkPaymentStatus(Request $request): RedirectResponse
+    {
+        $user = auth()->user();
+        if (! $user->isOwner() && ! $user->isAdmin()) {
+            abort(403, 'Unauthorized to modify wage payment status.');
+        }
+
+        $validated = $request->validate([
+            'attendance_ids' => ['required', 'array', 'min:1'],
+            'attendance_ids.*' => ['required', 'integer', 'exists:attendance,id'],
+            'status' => ['required', 'string', 'in:paid,unpaid'],
+        ]);
+
+        $query = Attendance::whereIn('id', $validated['attendance_ids']);
+
+        if ($user->isOwner()) {
+            $ownerProjectIds = Project::where('owner_id', $user->id)->pluck('id');
+            $query->whereIn('project_id', $ownerProjectIds);
+        }
+
+        $records = $query->with('worker')->get();
+
+        if ($records->isEmpty()) {
+            return redirect()->back()
+                ->with('active_tab', 'shiftsPane')
+                ->with('error', 'No accessible attendance records found to update.');
+        }
+
+        $isPaid = $validated['status'] === 'paid';
+        $statusLabel = $isPaid ? 'Paid' : 'Unpaid';
+        $count = $records->count();
+
+        DB::transaction(function () use ($records, $isPaid): void {
+            foreach ($records as $record) {
+                if ($isPaid) {
+                    $record->update([
+                        'is_paid' => true,
+                        'paid_at' => now(),
+                        'payment_method' => $record->payment_method ?: 'bulk_manual',
+                        'payment_reference' => $record->payment_reference ?: 'BULK-'.now()->format('YmdHi'),
+                    ]);
+                } else {
+                    $record->update([
+                        'is_paid' => false,
+                        'paid_at' => null,
+                        'payment_method' => null,
+                        'payment_reference' => null,
+                    ]);
+                }
+            }
+        });
+
+        ActivityLogger::log([
+            'project_id' => $records->first()?->project_id,
+            'event' => 'attendance_bulk_payment_status_updated',
+            'description' => "Bulk updated payment status to {$statusLabel} for {$count} attendance record(s)",
+            'properties' => [
+                'count' => $count,
+                'status' => $statusLabel,
+                'is_paid' => $isPaid,
+                'attendance_ids' => $records->pluck('id')->all(),
+            ],
+        ]);
+
+        return redirect()->back()
+            ->with('active_tab', 'shiftsPane')
+            ->with('success', "Successfully marked {$count} attendance record(s) as {$statusLabel}.");
+    }
+
     public function destroy(Attendance $attendance): RedirectResponse
     {
         $date = $attendance->attendance_date->format('d M Y');

@@ -3,6 +3,9 @@
 @section('title', 'Attendance History & Wage Settlement — ' . config('app.name'))
 
 @section('content')
+@php
+    $canManagePayments = auth()->user()->isOwner() || auth()->user()->isAdmin();
+@endphp
 <div class="awt-glass-card awt-tone-primary mb-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div class="d-flex align-items-center gap-3">
@@ -298,10 +301,45 @@
     {{-- TAB 2: DETAILED SHIFTS LOG --}}
     <div class="tab-pane fade" id="shiftsPane" role="tabpanel">
         <div class="card awt-table-card awt-tone-secondary">
+            @if($canManagePayments)
+                {{-- Bulk Action Bar (Visible when 1+ rows selected) --}}
+                <div id="shiftsBulkActionBar" class="card-header bg-light d-none align-items-center justify-content-between flex-wrap gap-2 py-2 px-3 border-bottom">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="badge bg-primary rounded-pill px-2.5 py-1.5" id="selectedShiftsCountBadge">0</span>
+                        <span class="fw-semibold text-heading small" id="selectedShiftsCountText">records selected</span>
+                        <div class="vr mx-1 d-none d-sm-inline-block" style="height: 18px;"></div>
+                        <button type="button" class="btn btn-xs btn-label-secondary" id="btnDeselectAllShifts">
+                            <i class="icon-base ti tabler-square-x me-1"></i> Deselect All
+                        </button>
+                        <button type="button" class="btn btn-xs btn-label-primary" id="btnSelectAllShiftsAction">
+                            <i class="icon-base ti tabler-checkbox me-1"></i> Select Page ({{ $records->count() }})
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted d-none d-md-inline">Bulk Payment Status:</span>
+                        <button type="button" class="btn btn-sm btn-success d-flex align-items-center gap-1 shadow-sm" id="btnBulkMarkPaid">
+                            <i class="icon-base ti tabler-circle-check"></i>
+                            <span>Mark Paid</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-label-warning d-flex align-items-center gap-1 shadow-sm" id="btnBulkMarkUnpaid">
+                            <i class="icon-base ti tabler-clock-pause"></i>
+                            <span>Mark Unpaid</span>
+                        </button>
+                    </div>
+                </div>
+            @endif
+
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
+                            @if($canManagePayments)
+                                <th style="width: 44px;" class="text-center px-2">
+                                    <div class="form-check d-flex justify-content-center m-0">
+                                        <input type="checkbox" class="form-check-input" id="selectAllShifts" title="Select or Deselect all visible rows">
+                                    </div>
+                                </th>
+                            @endif
                             <th>Date</th>
                             <th>Worker</th>
                             <th>Project</th>
@@ -314,7 +352,19 @@
                     </thead>
                     <tbody>
                         @forelse($records as $rec)
-                            <tr>
+                            <tr id="shiftRow_{{ $rec->id }}">
+                                @if($canManagePayments)
+                                    <td class="text-center px-2">
+                                        <div class="form-check d-flex justify-content-center m-0">
+                                            <input type="checkbox" 
+                                                   class="form-check-input shift-select-checkbox" 
+                                                   value="{{ $rec->id }}" 
+                                                   data-is-paid="{{ $rec->is_paid ? '1' : '0' }}"
+                                                   data-worker="{{ $rec->worker?->name }}"
+                                                   data-date="{{ $rec->attendance_date->format('d M Y') }}">
+                                        </div>
+                                    </td>
+                                @endif
                                 <td class="fw-medium">{{ $rec->attendance_date->format('d M Y') }}</td>
                                 <td>
                                     <a href="{{ $rec->worker ? route('workers.show', $rec->worker) : 'javascript:void(0)' }}" class="fw-semibold text-primary text-decoration-none d-block">
@@ -333,20 +383,55 @@
                                     PKR {{ number_format($rec->payable_amount, 2) }}
                                 </td>
                                 <td>
-                                    @if($rec->is_paid)
-                                        <span class="badge bg-label-success d-inline-flex align-items-center gap-1" title="Paid on {{ $rec->paid_at?->format('d M Y') }}">
-                                            <i class="icon-base ti tabler-check fs-6"></i> Paid
-                                            @if($rec->payment_reference)
-                                                <small class="text-muted ms-1">({{ $rec->payment_reference }})</small>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        @if($rec->is_paid)
+                                            <span class="badge bg-label-success d-inline-flex align-items-center gap-1" title="Paid on {{ $rec->paid_at?->format('d M Y') }}">
+                                                <i class="icon-base ti tabler-check fs-6"></i> Paid
+                                                @if($rec->payment_reference)
+                                                    <small class="text-muted ms-1">({{ $rec->payment_reference }})</small>
+                                                @endif
+                                            </span>
+                                            @if($canManagePayments)
+                                                <button type="button" 
+                                                        class="btn btn-xs btn-label-warning d-inline-flex align-items-center gap-1" 
+                                                        title="Directly mark this shift as Unpaid" 
+                                                        onclick="confirmDirectStatusUpdate('{{ $rec->id }}', 'unpaid', '{{ addslashes($rec->worker?->name ?? 'Worker') }}', '{{ $rec->attendance_date->format('d M Y') }}')">
+                                                    <i class="icon-base ti tabler-clock-pause"></i> Mark Unpaid
+                                                </button>
                                             @endif
-                                        </span>
-                                    @else
-                                        <span class="badge bg-label-warning d-inline-flex align-items-center gap-1">
-                                            <i class="icon-base ti tabler-clock fs-6"></i> Unpaid
-                                        </span>
-                                    @endif
+                                        @else
+                                            <span class="badge bg-label-warning d-inline-flex align-items-center gap-1">
+                                                <i class="icon-base ti tabler-clock fs-6"></i> Unpaid
+                                            </span>
+                                            @if($canManagePayments)
+                                                <button type="button" 
+                                                        class="btn btn-xs btn-label-success d-inline-flex align-items-center gap-1" 
+                                                        title="Directly mark this shift as Paid" 
+                                                        onclick="confirmDirectStatusUpdate('{{ $rec->id }}', 'paid', '{{ addslashes($rec->worker?->name ?? 'Worker') }}', '{{ $rec->attendance_date->format('d M Y') }}')">
+                                                    <i class="icon-base ti tabler-check"></i> Mark Paid
+                                                </button>
+                                            @endif
+                                        @endif
+                                    </div>
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end text-nowrap">
+                                    @if($canManagePayments)
+                                        @if($rec->is_paid)
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-icon btn-text-warning rounded-pill" 
+                                                    title="Mark Unpaid"
+                                                    onclick="confirmDirectStatusUpdate('{{ $rec->id }}', 'unpaid', '{{ addslashes($rec->worker?->name ?? 'Worker') }}', '{{ $rec->attendance_date->format('d M Y') }}')">
+                                                <i class="icon-base ti tabler-clock-pause"></i>
+                                            </button>
+                                        @else
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-icon btn-text-success rounded-pill" 
+                                                    title="Mark Paid"
+                                                    onclick="confirmDirectStatusUpdate('{{ $rec->id }}', 'paid', '{{ addslashes($rec->worker?->name ?? 'Worker') }}', '{{ $rec->attendance_date->format('d M Y') }}')">
+                                                <i class="icon-base ti tabler-circle-check"></i>
+                                            </button>
+                                        @endif
+                                    @endif
                                     <form id="delAttForm_{{ $rec->id }}" action="{{ route('attendance.destroy', $rec) }}" method="POST" class="d-inline-block">
                                         @csrf
                                         @method('DELETE')
@@ -358,7 +443,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="p-0">
+                                <td colspan="{{ $canManagePayments ? 9 : 8 }}" class="p-0">
                                     <div class="awt-empty-state text-center py-5">
                                         <div class="awt-empty-state-icon text-muted mb-2">
                                             <i class="icon-base ti tabler-calendar-off fs-1"></i>
@@ -373,9 +458,24 @@
                 </table>
             </div>
 
+            @if($canManagePayments)
+                {{-- Hidden Forms for Direct Single and Bulk Actions --}}
+                <form id="directStatusToggleForm" method="POST" class="d-none">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="status" id="directStatusInput" value="">
+                </form>
+
+                <form id="bulkPaymentStatusForm" action="{{ route('attendance.bulk-payment-status') }}" method="POST" class="d-none">
+                    @csrf
+                    <input type="hidden" name="status" id="bulkStatusInput" value="">
+                    <div id="bulkAttendanceIdsContainer"></div>
+                </form>
+            @endif
+
             @if($records->hasPages())
                 <div class="card-footer">
-                    {{ $records->links() }}
+                    {{ $records->fragment('shiftsPane')->links() }}
                 </div>
             @endif
         </div>
@@ -519,4 +619,270 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Tab Persistence (remember active tab across reloads)
+    var shiftsTabBtn = document.getElementById('shifts-tab');
+    var collectionTabBtn = document.getElementById('collection-tab');
+
+    function switchTab(tabId) {
+        if (tabId === 'shiftsPane' && shiftsTabBtn && window.bootstrap && window.bootstrap.Tab) {
+            bootstrap.Tab.getOrCreateInstance(shiftsTabBtn).show();
+        } else if (tabId === 'collectionPane' && collectionTabBtn && window.bootstrap && window.bootstrap.Tab) {
+            bootstrap.Tab.getOrCreateInstance(collectionTabBtn).show();
+        }
+    }
+
+    var serverActiveTab = @json(session('active_tab'));
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlTab = urlParams.get('tab');
+    var hash = window.location.hash ? window.location.hash.replace('#', '') : null;
+    var savedTab = sessionStorage.getItem('attendance_active_tab');
+
+    if (serverActiveTab) {
+        switchTab(serverActiveTab);
+        sessionStorage.setItem('attendance_active_tab', serverActiveTab);
+    } else if (hash === 'shiftsPane' || urlTab === 'shifts' || urlTab === 'shiftsPane') {
+        switchTab('shiftsPane');
+    } else if (savedTab) {
+        switchTab(savedTab);
+    }
+
+    if (shiftsTabBtn) {
+        shiftsTabBtn.addEventListener('shown.bs.tab', function () {
+            sessionStorage.setItem('attendance_active_tab', 'shiftsPane');
+            if (history.replaceState) {
+                history.replaceState(null, null, '#shiftsPane');
+            }
+        });
+    }
+    if (collectionTabBtn) {
+        collectionTabBtn.addEventListener('shown.bs.tab', function () {
+            sessionStorage.setItem('attendance_active_tab', 'collectionPane');
+            if (history.replaceState) {
+                history.replaceState(null, null, '#collectionPane');
+            }
+        });
+    }
+
+    // Generic confirmation helper using AwtConfirm -> Swal -> native confirm
+    function askConfirmation(options) {
+        var title = options.title || 'Confirm Action';
+        var message = options.message || 'Are you sure you want to proceed?';
+        var confirmText = options.confirmText || 'Yes, Proceed';
+        var tone = options.tone || 'primary';
+
+        if (window.AwtConfirm && typeof window.AwtConfirm.open === 'function') {
+            return window.AwtConfirm.open({
+                title: title,
+                message: message,
+                confirmText: confirmText,
+                tone: tone
+            });
+        }
+
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire({
+                title: title,
+                text: message,
+                icon: tone === 'danger' || tone === 'warning' ? 'warning' : 'question',
+                showCancelButton: true,
+                confirmButtonColor: tone === 'danger' ? '#ea5455' : (tone === 'warning' ? '#ff9f43' : '#7367f0'),
+                cancelButtonColor: '#a8aaae',
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Cancel'
+            }).then(function (result) {
+                return result.isConfirmed;
+            });
+        }
+
+        return Promise.resolve(window.confirm(message));
+    }
+
+    // Direct Status Update function
+    window.confirmDirectStatusUpdate = function (attendanceId, newStatus, workerName, dateStr) {
+        var isPaid = newStatus === 'paid';
+        var statusLabel = isPaid ? 'Paid' : 'Unpaid';
+        var actionVerb = isPaid ? 'mark as Paid' : 'revert to Unpaid';
+        var tone = isPaid ? 'primary' : 'warning';
+
+        var title = isPaid ? 'Mark Attendance as Paid?' : 'Revert Attendance to Unpaid?';
+        var message = 'Are you sure you want to ' + actionVerb + ' the shift for ' + workerName + ' on ' + dateStr + '?';
+
+        askConfirmation({
+            title: title,
+            message: message,
+            confirmText: 'Yes, ' + statusLabel,
+            tone: tone
+        }).then(function (confirmed) {
+            if (confirmed) {
+                sessionStorage.setItem('attendance_active_tab', 'shiftsPane');
+                var form = document.getElementById('directStatusToggleForm');
+                var statusInput = document.getElementById('directStatusInput');
+                if (form && statusInput) {
+                    form.action = '/attendance/' + attendanceId + '/payment-status';
+                    statusInput.value = newStatus;
+                    form.submit();
+                }
+            }
+        });
+    };
+
+    // Bulk Actions & Checkbox Management
+    var selectAllCheckbox = document.getElementById('selectAllShifts');
+    var rowCheckboxes = document.querySelectorAll('.shift-select-checkbox');
+    var bulkActionBar = document.getElementById('shiftsBulkActionBar');
+    var countBadge = document.getElementById('selectedShiftsCountBadge');
+    var countText = document.getElementById('selectedShiftsCountText');
+    var btnDeselectAll = document.getElementById('btnDeselectAllShifts');
+    var btnSelectAllAction = document.getElementById('btnSelectAllShiftsAction');
+    var btnBulkMarkPaid = document.getElementById('btnBulkMarkPaid');
+    var btnBulkMarkUnpaid = document.getElementById('btnBulkMarkUnpaid');
+
+    function getSelectedCheckboxes() {
+        return Array.from(document.querySelectorAll('.shift-select-checkbox:checked'));
+    }
+
+    function updateBulkToolbarState() {
+        var selected = getSelectedCheckboxes();
+        var total = rowCheckboxes.length;
+        var selectedCount = selected.length;
+
+        if (countBadge) countBadge.textContent = selectedCount;
+        if (countText) {
+            countText.textContent = selectedCount === 1 ? '1 record selected' : selectedCount + ' records selected';
+        }
+
+        if (selectedCount > 0) {
+            if (bulkActionBar) {
+                bulkActionBar.classList.remove('d-none');
+                bulkActionBar.classList.add('d-flex');
+            }
+        } else {
+            if (bulkActionBar) {
+                bulkActionBar.classList.add('d-none');
+                bulkActionBar.classList.remove('d-flex');
+            }
+        }
+
+        // Update master selectAll checkbox
+        if (selectAllCheckbox) {
+            if (selectedCount === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedCount === total && total > 0) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+
+        // Update row highlight
+        rowCheckboxes.forEach(function (cb) {
+            var row = document.getElementById('shiftRow_' + cb.value);
+            if (row) {
+                if (cb.checked) {
+                    row.classList.add('table-active');
+                } else {
+                    row.classList.remove('table-active');
+                }
+            }
+        });
+    }
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            var isChecked = this.checked;
+            rowCheckboxes.forEach(function (cb) {
+                cb.checked = isChecked;
+            });
+            updateBulkToolbarState();
+        });
+    }
+
+    rowCheckboxes.forEach(function (cb) {
+        cb.addEventListener('change', updateBulkToolbarState);
+    });
+
+    if (btnDeselectAll) {
+        btnDeselectAll.addEventListener('click', function () {
+            rowCheckboxes.forEach(function (cb) {
+                cb.checked = false;
+            });
+            updateBulkToolbarState();
+        });
+    }
+
+    if (btnSelectAllAction) {
+        btnSelectAllAction.addEventListener('click', function () {
+            rowCheckboxes.forEach(function (cb) {
+                cb.checked = true;
+            });
+            updateBulkToolbarState();
+        });
+    }
+
+    function executeBulkStatusChange(targetStatus) {
+        var selected = getSelectedCheckboxes();
+        if (selected.length === 0) {
+            return;
+        }
+
+        var count = selected.length;
+        var isPaid = targetStatus === 'paid';
+        var statusLabel = isPaid ? 'Paid' : 'Unpaid';
+        var title = isPaid
+            ? 'Mark ' + count + ' Record(s) as Paid?'
+            : 'Revert ' + count + ' Record(s) to Unpaid?';
+        var message = 'Are you sure you want to mark ' + count + ' selected attendance record(s) as ' + statusLabel + '? This will update their payout tracking.';
+
+        askConfirmation({
+            title: title,
+            message: message,
+            confirmText: 'Yes, Mark ' + statusLabel,
+            tone: isPaid ? 'primary' : 'warning'
+        }).then(function (confirmed) {
+            if (confirmed) {
+                sessionStorage.setItem('attendance_active_tab', 'shiftsPane');
+                var bulkForm = document.getElementById('bulkPaymentStatusForm');
+                var bulkStatusInput = document.getElementById('bulkStatusInput');
+                var container = document.getElementById('bulkAttendanceIdsContainer');
+
+                if (bulkForm && bulkStatusInput && container) {
+                    bulkStatusInput.value = targetStatus;
+                    container.innerHTML = '';
+                    selected.forEach(function (cb) {
+                        var hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'attendance_ids[]';
+                        hiddenInput.value = cb.value;
+                        container.appendChild(hiddenInput);
+                    });
+                    bulkForm.submit();
+                }
+            }
+        });
+    }
+
+    if (btnBulkMarkPaid) {
+        btnBulkMarkPaid.addEventListener('click', function () {
+            executeBulkStatusChange('paid');
+        });
+    }
+
+    if (btnBulkMarkUnpaid) {
+        btnBulkMarkUnpaid.addEventListener('click', function () {
+            executeBulkStatusChange('unpaid');
+        });
+    }
+
+    // Initial check
+    updateBulkToolbarState();
+});
+</script>
+@endpush
 
