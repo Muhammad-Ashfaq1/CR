@@ -178,4 +178,153 @@ class AttendanceWagePayoutTest extends TestCase
         $response->assertSee('Total Paid to Date');
         $response->assertSee('Agreed Contract Value');
     }
+
+    public function test_user_can_directly_toggle_attendance_payment_status(): void
+    {
+        $owner = User::where('role', UserRole::Owner)->first();
+        $project = Project::create([
+            'name' => 'Single Status Toggle Project',
+            'owner_id' => $owner->id,
+            'status' => ProjectStatus::Active,
+            'start_date' => now()->toDateString(),
+        ]);
+        $contractor = Contractor::first();
+
+        $worker = Worker::create([
+            'project_id' => $project->id,
+            'contractor_id' => $contractor->id,
+            'name' => 'Single Status Worker',
+            'daily_wage' => 2000,
+            'status' => 'active',
+            'worker_type' => 'mason',
+        ]);
+
+        $attendance = Attendance::create([
+            'project_id' => $project->id,
+            'worker_id' => $worker->id,
+            'attendance_date' => now()->toDateString(),
+            'status' => AttendanceStatus::FullDay,
+            'wage_at_time' => 2000,
+            'payable_amount' => 2000,
+            'is_paid' => false,
+            'recorded_by' => $owner->id,
+        ]);
+
+        // Toggle to Paid
+        $response = $this->actingAs($owner)->patch(route('attendance.toggle-payment-status', $attendance), [
+            'status' => 'paid',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('active_tab', 'shiftsPane');
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('attendance', [
+            'id' => $attendance->id,
+            'is_paid' => true,
+        ]);
+
+        // Toggle back to Unpaid
+        $response2 = $this->actingAs($owner)->patch(route('attendance.toggle-payment-status', $attendance), [
+            'status' => 'unpaid',
+        ]);
+
+        $response2->assertRedirect();
+        $response2->assertSessionHas('active_tab', 'shiftsPane');
+
+        $this->assertDatabaseHas('attendance', [
+            'id' => $attendance->id,
+            'is_paid' => false,
+        ]);
+    }
+
+    public function test_user_can_bulk_update_attendance_payment_status(): void
+    {
+        $owner = User::where('role', UserRole::Owner)->first();
+        $project = Project::create([
+            'name' => 'Bulk Status Project',
+            'owner_id' => $owner->id,
+            'status' => ProjectStatus::Active,
+            'start_date' => now()->toDateString(),
+        ]);
+        $contractor = Contractor::first();
+
+        $worker = Worker::create([
+            'project_id' => $project->id,
+            'contractor_id' => $contractor->id,
+            'name' => 'Bulk Status Worker',
+            'daily_wage' => 2200,
+            'status' => 'active',
+            'worker_type' => 'mason',
+        ]);
+
+        $att1 = Attendance::create([
+            'project_id' => $project->id,
+            'worker_id' => $worker->id,
+            'attendance_date' => now()->subDay()->toDateString(),
+            'status' => AttendanceStatus::FullDay,
+            'wage_at_time' => 2200,
+            'payable_amount' => 2200,
+            'is_paid' => false,
+            'recorded_by' => $owner->id,
+        ]);
+
+        $att2 = Attendance::create([
+            'project_id' => $project->id,
+            'worker_id' => $worker->id,
+            'attendance_date' => now()->toDateString(),
+            'status' => AttendanceStatus::FullDay,
+            'wage_at_time' => 2200,
+            'payable_amount' => 2200,
+            'is_paid' => false,
+            'recorded_by' => $owner->id,
+        ]);
+
+        // Bulk Mark as Paid
+        $response = $this->actingAs($owner)->post(route('attendance.bulk-payment-status'), [
+            'attendance_ids' => [$att1->id, $att2->id],
+            'status' => 'paid',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('active_tab', 'shiftsPane');
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('attendance', ['id' => $att1->id, 'is_paid' => true]);
+        $this->assertDatabaseHas('attendance', ['id' => $att2->id, 'is_paid' => true]);
+
+        // Bulk Mark as Unpaid
+        $response2 = $this->actingAs($owner)->post(route('attendance.bulk-payment-status'), [
+            'attendance_ids' => [$att1->id, $att2->id],
+            'status' => 'unpaid',
+        ]);
+
+        $response2->assertRedirect();
+        $response2->assertSessionHas('active_tab', 'shiftsPane');
+
+        $this->assertDatabaseHas('attendance', ['id' => $att1->id, 'is_paid' => false]);
+        $this->assertDatabaseHas('attendance', ['id' => $att2->id, 'is_paid' => false]);
+    }
+
+    public function test_unauthorized_user_cannot_bulk_or_toggle_payment_status(): void
+    {
+        $nonOwnerUser = User::where('role', '!=', UserRole::Owner)
+            ->where('role', '!=', UserRole::Admin)
+            ->first();
+
+        $attendance = Attendance::first();
+
+        if ($nonOwnerUser && $attendance) {
+            $toggleResponse = $this->actingAs($nonOwnerUser)->patch(route('attendance.toggle-payment-status', $attendance), [
+                'status' => 'paid',
+            ]);
+            $toggleResponse->assertStatus(403);
+
+            $bulkResponse = $this->actingAs($nonOwnerUser)->post(route('attendance.bulk-payment-status'), [
+                'attendance_ids' => [$attendance->id],
+                'status' => 'paid',
+            ]);
+            $bulkResponse->assertStatus(403);
+        }
+    }
 }
