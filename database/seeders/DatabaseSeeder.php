@@ -12,7 +12,12 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             ExpenseCategorySeeder::class,
             AdminUserSeeder::class,
-            // DemoDataSeeder::class,
         ]);
+
+        if (app()->environment('local')) {
+            $this->call([
+                DemoDataSeeder::class,
+            ]);
+        }
     }
 }
