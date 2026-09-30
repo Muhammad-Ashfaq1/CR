@@ -121,9 +121,8 @@
         </table>
     </div>
     @if($logs->hasPages())
-        <div class="card-footer d-flex flex-wrap justify-content-between align-items-center">
-            <div class="small text-muted">Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} entries</div>
-            <div>{{ $logs->links() }}</div>
+        <div class="card-footer">
+            {{ $logs->links() }}
         </div>
     @endif
 </div>

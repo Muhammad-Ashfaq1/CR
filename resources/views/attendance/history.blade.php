@@ -374,13 +374,8 @@
             </div>
 
             @if($records->hasPages())
-                <div class="card-footer d-flex flex-wrap justify-content-between align-items-center">
-                    <div class="small text-muted">
-                        Showing {{ $records->firstItem() }} to {{ $records->lastItem() }} of {{ $records->total() }} records
-                    </div>
-                    <div>
-                        {{ $records->links() }}
-                    </div>
+                <div class="card-footer">
+                    {{ $records->links() }}
                 </div>
             @endif
         </div>
