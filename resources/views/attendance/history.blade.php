@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $canManagePayments = auth()->user()->isOwner() || auth()->user()->isAdmin();
+    $canManagePayments = auth()->user()->isOwner() || auth()->user()->isAdmin() || auth()->user()->isContractor();
 @endphp
 <div class="awt-glass-card awt-tone-primary mb-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -47,6 +47,10 @@
             <a href="{{ route('attendance.history', array_merge(request()->except(['preset', 'from_date', 'to_date', 'page']), ['preset' => 'this_month'])) }}"
                class="btn btn-sm {{ request('preset') === 'this_month' ? 'btn-primary' : 'btn-outline-secondary' }} rounded-pill px-3">
                 This Month
+            </a>
+            <a href="{{ route('attendance.history', array_merge(request()->except(['page']), ['payment_status' => 'unpaid'])) }}"
+               class="btn btn-sm {{ request('payment_status') === 'unpaid' ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning' }} rounded-pill px-3">
+                <i class="icon-base ti tabler-alert-circle me-1"></i> Unpaid Shifts Only ({{ $unpaidRecordsCount }})
             </a>
         </div>
         @if(request()->hasAny(['preset', 'from_date', 'to_date', 'project_id', 'worker_id', 'contractor_id', 'status', 'payment_status']))
@@ -155,16 +159,21 @@
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="awt-kpi-card p-3">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="awt-kpi-title">Unpaid Due Balance</span>
-                <div class="avatar avatar-sm bg-label-warning rounded-circle d-flex align-items-center justify-content-center">
-                    <i class="icon-base ti tabler-alert-circle"></i>
+        <a href="{{ route('attendance.history', array_merge(request()->except(['page']), ['payment_status' => 'unpaid'])) }}" class="text-decoration-none d-block h-100" title="Click to filter unsettled shifts only">
+            <div class="awt-kpi-card p-3 h-100 {{ request('payment_status') === 'unpaid' ? 'border border-warning shadow-sm' : '' }}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="awt-kpi-title">Unpaid Due Balance</span>
+                    <div class="avatar avatar-sm bg-label-warning rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="icon-base ti tabler-alert-circle"></i>
+                    </div>
+                </div>
+                <div class="awt-kpi-value text-warning mb-1">PKR {{ number_format($unpaidWages, 0) }}</div>
+                <div class="awt-kpi-footer text-muted d-flex align-items-center justify-content-between">
+                    <span>{{ $unpaidRecordsCount }} Unsettled Shifts</span>
+                    <span class="badge bg-label-warning small">View Unpaid &rarr;</span>
                 </div>
             </div>
-            <div class="awt-kpi-value text-warning mb-1">PKR {{ number_format($unpaidWages, 0) }}</div>
-            <div class="awt-kpi-footer text-muted">{{ $unpaidRecordsCount }} Unsettled Shifts</div>
-        </div>
+        </a>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="awt-kpi-card p-3">
@@ -230,6 +239,7 @@
                             <th class="text-end">Total Earned</th>
                             <th class="text-end">Unpaid (Due)</th>
                             <th class="text-center">Payout Status</th>
+                            <th class="text-end" style="min-width: 120px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -278,10 +288,26 @@
                                         </span>
                                     @endif
                                 </td>
+                                <td class="text-end text-nowrap">
+                                    @if((float) $item->unpaid_amount > 0 && $canManagePayments)
+                                        <button type="button" 
+                                                class="btn btn-xs btn-label-success d-inline-flex align-items-center gap-1 shadow-sm"
+                                                title="Mark all unpaid shifts for {{ $worker?->name }} as Paid"
+                                                onclick="confirmWorkerPayAll('{{ $item->worker_id }}', '{{ addslashes($worker?->name ?? 'Worker') }}', '{{ number_format($item->unpaid_amount, 0) }}')">
+                                            <i class="icon-base ti tabler-circle-check"></i> Mark Paid
+                                        </button>
+                                    @elseif($isFullyPaid)
+                                        <span class="badge bg-label-success d-inline-flex align-items-center gap-1">
+                                            <i class="icon-base ti tabler-check fs-6"></i> Cleared
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">&mdash;</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="p-0">
+                                <td colspan="10" class="p-0">
                                     <div class="awt-empty-state text-center py-5">
                                         <div class="awt-empty-state-icon text-muted mb-2">
                                             <i class="icon-base ti tabler-users fs-1"></i>
@@ -313,6 +339,9 @@
                         </button>
                         <button type="button" class="btn btn-xs btn-label-primary" id="btnSelectAllShiftsAction">
                             <i class="icon-base ti tabler-checkbox me-1"></i> Select Page ({{ $records->count() }})
+                        </button>
+                        <button type="button" class="btn btn-xs btn-label-warning" id="btnSelectOnlyUnpaidShifts">
+                            <i class="icon-base ti tabler-clock-check me-1"></i> Select Unpaid Only
                         </button>
                     </div>
                     <div class="d-flex align-items-center gap-2">
@@ -470,6 +499,13 @@
                     @csrf
                     <input type="hidden" name="status" id="bulkStatusInput" value="">
                     <div id="bulkAttendanceIdsContainer"></div>
+                </form>
+
+                <form id="workerMarkPaidForm" method="POST" class="d-none">
+                    @csrf
+                    <input type="hidden" name="from_date" value="{{ $fromDate }}">
+                    <input type="hidden" name="to_date" value="{{ $toDate }}">
+                    <input type="hidden" name="project_id" value="{{ request('project_id') }}">
                 </form>
             @endif
 
@@ -701,6 +737,25 @@ document.addEventListener('DOMContentLoaded', function () {
         return Promise.resolve(window.confirm(message));
     }
 
+    // Worker Pay All in Collection view
+    window.confirmWorkerPayAll = function (workerId, workerName, amountStr) {
+        askConfirmation({
+            title: 'Mark All Wages as Paid?',
+            message: 'Are you sure you want to mark all unsettled shifts (PKR ' + amountStr + ') as Paid for ' + workerName + '? This will clear the due balance for this worker.',
+            confirmText: 'Yes, Mark Paid',
+            tone: 'primary'
+        }).then(function (confirmed) {
+            if (confirmed) {
+                sessionStorage.setItem('attendance_active_tab', 'collectionPane');
+                var form = document.getElementById('workerMarkPaidForm');
+                if (form) {
+                    form.action = '{{ url('attendance/worker') }}/' + workerId + '/mark-paid';
+                    form.submit();
+                }
+            }
+        });
+    };
+
     // Direct Status Update function
     window.confirmDirectStatusUpdate = function (attendanceId, newStatus, workerName, dateStr) {
         var isPaid = newStatus === 'paid';
@@ -722,7 +777,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var form = document.getElementById('directStatusToggleForm');
                 var statusInput = document.getElementById('directStatusInput');
                 if (form && statusInput) {
-                    form.action = '/attendance/' + attendanceId + '/payment-status';
+                    form.action = '{{ url('attendance') }}/' + attendanceId + '/payment-status';
                     statusInput.value = newStatus;
                     form.submit();
                 }
@@ -821,6 +876,17 @@ document.addEventListener('DOMContentLoaded', function () {
         btnSelectAllAction.addEventListener('click', function () {
             rowCheckboxes.forEach(function (cb) {
                 cb.checked = true;
+            });
+            updateBulkToolbarState();
+        });
+    }
+
+    var btnSelectOnlyUnpaid = document.getElementById('btnSelectOnlyUnpaidShifts');
+    if (btnSelectOnlyUnpaid) {
+        btnSelectOnlyUnpaid.addEventListener('click', function () {
+            rowCheckboxes.forEach(function (cb) {
+                var isPaid = cb.getAttribute('data-is-paid') === '1';
+                cb.checked = !isPaid;
             });
             updateBulkToolbarState();
         });

@@ -306,25 +306,122 @@ class AttendanceWagePayoutTest extends TestCase
         $this->assertDatabaseHas('attendance', ['id' => $att2->id, 'is_paid' => false]);
     }
 
+    public function test_contractor_can_toggle_and_bulk_update_payment_status_for_own_workers(): void
+    {
+        $contractorUser = User::where('role', UserRole::Contractor)->first();
+        $contractor = $contractorUser->contractorProfile;
+        $project = Project::first();
+        $worker = Worker::create([
+            'project_id' => $project->id,
+            'contractor_id' => $contractor->id,
+            'name' => 'Contractor Test Worker Unique',
+            'daily_wage' => 2000,
+            'status' => 'active',
+            'worker_type' => 'mason',
+        ]);
+
+        $att = Attendance::create([
+            'project_id' => $project->id,
+            'worker_id' => $worker->id,
+            'attendance_date' => now()->toDateString(),
+            'status' => AttendanceStatus::FullDay,
+            'wage_at_time' => 2000,
+            'payable_amount' => 2000,
+            'is_paid' => false,
+            'recorded_by' => $contractorUser->id,
+        ]);
+
+        // Toggle as contractor for own worker
+        $toggleResponse = $this->actingAs($contractorUser)->patch(route('attendance.toggle-payment-status', $att), [
+            'status' => 'paid',
+        ]);
+        $toggleResponse->assertRedirect();
+        $this->assertDatabaseHas('attendance', ['id' => $att->id, 'is_paid' => true]);
+
+        // Bulk update as contractor for own worker
+        $bulkResponse = $this->actingAs($contractorUser)->post(route('attendance.bulk-payment-status'), [
+            'attendance_ids' => [$att->id],
+            'status' => 'unpaid',
+        ]);
+        $bulkResponse->assertRedirect();
+        $this->assertDatabaseHas('attendance', ['id' => $att->id, 'is_paid' => false]);
+    }
+
     public function test_unauthorized_user_cannot_bulk_or_toggle_payment_status(): void
     {
-        $nonOwnerUser = User::where('role', '!=', UserRole::Owner)
-            ->where('role', '!=', UserRole::Admin)
-            ->first();
+        // Create an unrelated contractor
+        $otherContractorUser = User::create([
+            'name' => 'Other Contractor User',
+            'email' => 'other.contractor@example.com',
+            'password' => bcrypt('password123'),
+            'role' => UserRole::Contractor,
+        ]);
+        $otherContractorProfile = Contractor::create([
+            'user_id' => $otherContractorUser->id,
+            'name' => 'Other Contractor Profile',
+            'phone' => '03001234567',
+        ]);
 
         $attendance = Attendance::first();
 
-        if ($nonOwnerUser && $attendance) {
-            $toggleResponse = $this->actingAs($nonOwnerUser)->patch(route('attendance.toggle-payment-status', $attendance), [
-                'status' => 'paid',
-            ]);
-            $toggleResponse->assertStatus(403);
+        // The attendance belongs to contractor 1, not otherContractorProfile
+        $toggleResponse = $this->actingAs($otherContractorUser)->patch(route('attendance.toggle-payment-status', $attendance), [
+            'status' => 'paid',
+        ]);
+        $toggleResponse->assertStatus(403);
 
-            $bulkResponse = $this->actingAs($nonOwnerUser)->post(route('attendance.bulk-payment-status'), [
-                'attendance_ids' => [$attendance->id],
-                'status' => 'paid',
-            ]);
-            $bulkResponse->assertStatus(403);
-        }
+        $bulkResponse = $this->actingAs($otherContractorUser)->post(route('attendance.bulk-payment-status'), [
+            'attendance_ids' => [$attendance->id],
+            'status' => 'paid',
+        ]);
+        $bulkResponse->assertRedirect();
+        $bulkResponse->assertSessionHas('error');
+    }
+
+    public function test_can_mark_all_unpaid_shifts_for_worker_as_paid(): void
+    {
+        $owner = User::where('role', UserRole::Owner)->first();
+        $project = Project::first();
+        $contractor = Contractor::first();
+        $worker = Worker::create([
+            'project_id' => $project->id,
+            'contractor_id' => $contractor->id,
+            'name' => 'Worker Pay Test Unique',
+            'daily_wage' => 2000,
+            'status' => 'active',
+            'worker_type' => 'mason',
+        ]);
+
+        // Create 2 unpaid attendance records for this worker
+        $att1 = Attendance::create([
+            'project_id' => $project->id,
+            'worker_id' => $worker->id,
+            'attendance_date' => now()->subDays(2)->toDateString(),
+            'status' => AttendanceStatus::FullDay,
+            'wage_at_time' => 2000,
+            'payable_amount' => 2000,
+            'is_paid' => false,
+            'recorded_by' => $owner->id,
+        ]);
+
+        $att2 = Attendance::create([
+            'project_id' => Project::first()->id,
+            'worker_id' => $worker->id,
+            'attendance_date' => now()->subDay()->toDateString(),
+            'status' => AttendanceStatus::FullDay,
+            'wage_at_time' => 2000,
+            'payable_amount' => 2000,
+            'is_paid' => false,
+            'recorded_by' => $owner->id,
+        ]);
+
+        $response = $this->actingAs($owner)->post(route('attendance.mark-worker-paid', $worker));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('active_tab', 'collectionPane');
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('attendance', ['id' => $att1->id, 'is_paid' => true]);
+        $this->assertDatabaseHas('attendance', ['id' => $att2->id, 'is_paid' => true]);
     }
 }

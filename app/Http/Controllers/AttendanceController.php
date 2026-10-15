@@ -277,12 +277,19 @@ class AttendanceController extends Controller
 
         $records = $query->latest('attendance_date')->paginate(20)->withQueryString();
 
+        $contractor = $user->isContractor() ? $user->contractorProfile : null;
+
         $projects = $user->isOwner()
             ? Project::where('owner_id', $user->id)->get()
-            : Project::all();
+            : ($contractor ? $contractor->projects : Project::all());
 
-        $contractors = Contractor::where('is_active', true)->get();
-        $workers = Worker::where('status', 'active')->get();
+        $contractors = $contractor
+            ? Contractor::where('id', $contractor->id)->get()
+            : Contractor::where('is_active', true)->get();
+
+        $workers = $contractor
+            ? Worker::where('contractor_id', $contractor->id)->where('status', 'active')->get()
+            : Worker::where('status', 'active')->get();
         $statuses = AttendanceStatus::cases();
 
         return view('attendance.history', compact(
@@ -505,12 +512,17 @@ class AttendanceController extends Controller
     public function togglePaymentStatus(Request $request, Attendance $attendance): RedirectResponse
     {
         $user = auth()->user();
-        if (! $user->isOwner() && ! $user->isAdmin()) {
+        if ($user->isContractor()) {
+            $contractor = $user->contractorProfile;
+            if (! $contractor || ! $attendance->worker || $attendance->worker->contractor_id !== $contractor->id) {
+                abort(403, 'Unauthorized access to this worker attendance.');
+            }
+        } elseif ($user->isOwner()) {
+            if ($attendance->project && $attendance->project->owner_id !== $user->id) {
+                abort(403, 'Unauthorized access to this project attendance.');
+            }
+        } elseif (! $user->isAdmin()) {
             abort(403, 'Unauthorized to modify wage payment status.');
-        }
-
-        if ($user->isOwner() && $attendance->project && $attendance->project->owner_id !== $user->id) {
-            abort(403, 'Unauthorized access to this project attendance.');
         }
 
         $targetStatus = $request->input('status');
@@ -556,9 +568,6 @@ class AttendanceController extends Controller
     public function bulkPaymentStatus(Request $request): RedirectResponse
     {
         $user = auth()->user();
-        if (! $user->isOwner() && ! $user->isAdmin()) {
-            abort(403, 'Unauthorized to modify wage payment status.');
-        }
 
         $validated = $request->validate([
             'attendance_ids' => ['required', 'array', 'min:1'],
@@ -568,9 +577,17 @@ class AttendanceController extends Controller
 
         $query = Attendance::whereIn('id', $validated['attendance_ids']);
 
-        if ($user->isOwner()) {
+        if ($user->isContractor()) {
+            $contractor = $user->contractorProfile;
+            if (! $contractor) {
+                abort(403, 'No contractor profile found.');
+            }
+            $query->whereHas('worker', fn ($q) => $q->where('contractor_id', $contractor->id));
+        } elseif ($user->isOwner()) {
             $ownerProjectIds = Project::where('owner_id', $user->id)->pluck('id');
             $query->whereIn('project_id', $ownerProjectIds);
+        } elseif (! $user->isAdmin()) {
+            abort(403, 'Unauthorized to modify wage payment status.');
         }
 
         $records = $query->with('worker')->get();
@@ -620,6 +637,77 @@ class AttendanceController extends Controller
         return redirect()->back()
             ->with('active_tab', 'shiftsPane')
             ->with('success', "Successfully marked {$count} attendance record(s) as {$statusLabel}.");
+    }
+
+    /**
+     * Mark all unpaid attendance records for a specific worker as Paid.
+     */
+    public function markWorkerPaid(Request $request, Worker $worker): RedirectResponse
+    {
+        $user = auth()->user();
+        if ($user->isContractor()) {
+            $contractor = $user->contractorProfile;
+            if (! $contractor || $worker->contractor_id !== $contractor->id) {
+                abort(403, 'Unauthorized access to this worker.');
+            }
+        } elseif ($user->isOwner()) {
+            if ($worker->project && $worker->project->owner_id !== $user->id) {
+                abort(403, 'Unauthorized access to this worker.');
+            }
+        } elseif (! $user->isAdmin()) {
+            abort(403, 'Unauthorized to modify wage payment status.');
+        }
+
+        $query = Attendance::where('worker_id', $worker->id)
+            ->where('is_paid', false)
+            ->where('payable_amount', '>', 0);
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('attendance_date', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('attendance_date', '<=', $request->to_date);
+        }
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        $unpaidShifts = $query->get();
+        $count = $unpaidShifts->count();
+        $totalAmount = (float) $unpaidShifts->sum('payable_amount');
+
+        if ($count === 0) {
+            return redirect()->back()
+                ->with('active_tab', 'collectionPane')
+                ->with('info', "No unpaid shifts found for {$worker->name}.");
+        }
+
+        DB::transaction(function () use ($unpaidShifts): void {
+            $batchRef = 'WORKER-'.now()->format('YmdHi');
+            foreach ($unpaidShifts as $shift) {
+                $shift->update([
+                    'is_paid' => true,
+                    'paid_at' => now(),
+                    'payment_method' => 'worker_batch_direct',
+                    'payment_reference' => $batchRef,
+                ]);
+            }
+        });
+
+        ActivityLogger::log([
+            'project_id' => $unpaidShifts->first()?->project_id,
+            'event' => 'worker_wages_marked_paid',
+            'description' => "Marked {$count} shifts totaling PKR ".number_format($totalAmount, 2)." as Paid for {$worker->name}",
+            'properties' => [
+                'worker_id' => $worker->id,
+                'count' => $count,
+                'total_amount' => $totalAmount,
+            ],
+        ], $worker);
+
+        return redirect()->back()
+            ->with('active_tab', 'collectionPane')
+            ->with('success', "Successfully cleared {$count} unpaid shift(s) (PKR ".number_format($totalAmount, 2).") for {$worker->name}.");
     }
 
     public function destroy(Attendance $attendance): RedirectResponse
