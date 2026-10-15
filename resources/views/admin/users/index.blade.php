@@ -173,11 +173,21 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required fw-semibold">Password</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <div class="form-password-toggle">
+                                <div class="input-group input-group-merge">
+                                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                                    <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required fw-semibold">Confirm Password</label>
-                            <input type="password" name="password_confirmation" class="form-control" required>
+                            <div class="form-password-toggle">
+                                <div class="input-group input-group-merge">
+                                    <input type="password" name="password_confirmation" class="form-control" placeholder="••••••••" required>
+                                    <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">
@@ -235,11 +245,21 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Reset Password (Leave blank to keep current)</label>
-                            <input type="password" name="password" class="form-control">
+                            <div class="form-password-toggle">
+                                <div class="input-group input-group-merge">
+                                    <input type="password" name="password" class="form-control" placeholder="••••••••">
+                                    <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Confirm Reset Password</label>
-                            <input type="password" name="password_confirmation" class="form-control">
+                            <div class="form-password-toggle">
+                                <div class="input-group input-group-merge">
+                                    <input type="password" name="password_confirmation" class="form-control" placeholder="••••••••">
+                                    <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">

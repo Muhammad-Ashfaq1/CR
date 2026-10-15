@@ -86,27 +86,36 @@
                     @csrf
                     @method('put')
 
-                    <div class="mb-3">
+                    <div class="mb-3 form-password-toggle">
                         <label for="update_password_current_password" class="form-label">Current Password</label>
-                        <input type="password" class="form-control @error('current_password', 'updatePassword') is-invalid @enderror" id="update_password_current_password" name="current_password" autocomplete="current-password" />
+                        <div class="input-group input-group-merge">
+                            <input type="password" class="form-control @error('current_password', 'updatePassword') is-invalid @enderror" id="update_password_current_password" name="current_password" placeholder="••••••••" autocomplete="current-password" />
+                            <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                        </div>
                         @error('current_password', 'updatePassword')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 form-password-toggle">
                         <label for="update_password_password" class="form-label">New Password</label>
-                        <input type="password" class="form-control @error('password', 'updatePassword') is-invalid @enderror" id="update_password_password" name="password" autocomplete="new-password" />
+                        <div class="input-group input-group-merge">
+                            <input type="password" class="form-control @error('password', 'updatePassword') is-invalid @enderror" id="update_password_password" name="password" placeholder="••••••••" autocomplete="new-password" />
+                            <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                        </div>
                         @error('password', 'updatePassword')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 form-password-toggle">
                         <label for="update_password_password_confirmation" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control @error('password_confirmation', 'updatePassword') is-invalid @enderror" id="update_password_password_confirmation" name="password_confirmation" autocomplete="new-password" />
+                        <div class="input-group input-group-merge">
+                            <input type="password" class="form-control @error('password_confirmation', 'updatePassword') is-invalid @enderror" id="update_password_password_confirmation" name="password_confirmation" placeholder="••••••••" autocomplete="new-password" />
+                            <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                        </div>
                         @error('password_confirmation', 'updatePassword')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 

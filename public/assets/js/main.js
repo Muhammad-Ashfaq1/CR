@@ -349,6 +349,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Toggle Password Visibility
   window.Helpers.initPasswordToggle();
+  document.querySelectorAll('.form-password-toggle i').forEach(function (i) {
+    i.setAttribute('data-pwd-bound', 'true');
+  });
+
+  // Forward clicks on input-group-text container to the toggle icon
+  document.addEventListener('click', function (e) {
+    var textSpan = e.target.closest('.form-password-toggle .input-group-text');
+    if (textSpan && !e.target.closest('i')) {
+      var icon = textSpan.querySelector('i');
+      if (icon) {
+        icon.click();
+      }
+    }
+  });
+
+  // Re-bind password toggles for any dynamically injected modals
+  document.addEventListener('shown.bs.modal', function (e) {
+    if (e.target) {
+      var newTogglers = e.target.querySelectorAll('.form-password-toggle i:not([data-pwd-bound])');
+      newTogglers.forEach(function (el) {
+        el.setAttribute('data-pwd-bound', 'true');
+        el.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          var formPasswordToggle = el.closest('.form-password-toggle');
+          if (!formPasswordToggle) return;
+          var formPasswordToggleIcon = formPasswordToggle.querySelector('i');
+          var formPasswordToggleInput = formPasswordToggle.querySelector('input');
+          if (!formPasswordToggleInput) return;
+          if (formPasswordToggleInput.getAttribute('type') === 'text') {
+            formPasswordToggleInput.setAttribute('type', 'password');
+            if (formPasswordToggleIcon) formPasswordToggleIcon.classList.replace('tabler-eye', 'tabler-eye-off');
+          } else if (formPasswordToggleInput.getAttribute('type') === 'password') {
+            formPasswordToggleInput.setAttribute('type', 'text');
+            if (formPasswordToggleIcon) formPasswordToggleIcon.classList.replace('tabler-eye-off', 'tabler-eye');
+          }
+        });
+      });
+    }
+  });
 
   // Speech To Text
   window.Helpers.initSpeechToText();

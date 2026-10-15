@@ -37,13 +37,23 @@
 
                         <div class="col-md-6">
                             <label class="form-label required">Password</label>
-                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
-                            @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <div class="form-password-toggle">
+                                <div class="input-group input-group-merge">
+                                    <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" placeholder="••••••••" required>
+                                    <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                                </div>
+                            </div>
+                            @error('password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label required">Confirm Password</label>
-                            <input type="password" name="password_confirmation" class="form-control" required>
+                            <div class="form-password-toggle">
+                                <div class="input-group input-group-merge">
+                                    <input type="password" name="password_confirmation" class="form-control" placeholder="••••••••" required>
+                                    <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6">
