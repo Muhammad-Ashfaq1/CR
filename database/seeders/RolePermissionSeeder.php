@@ -103,8 +103,6 @@ class RolePermissionSeeder extends Seeder
             'project.view',
             'contractor.view',
             'contractor-payment.view',
-            'expense.view',
-            'expense-category.view',
             'worker.view', 'worker.create', 'worker.update',
             'attendance.view', 'attendance.create', 'attendance.update',
         ]);

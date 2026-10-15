@@ -34,10 +34,10 @@
             <a href="{{ route('attendance.index', ['project_id' => $project->id]) }}" class="btn btn-warning text-dark fw-semibold">
                 <i class="icon-base ti tabler-calendar-check me-1"></i> Attendance
             </a>
-            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
-                <i class="icon-base ti tabler-receipt me-1"></i> Add Expense
-            </button>
             @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
+                    <i class="icon-base ti tabler-receipt me-1"></i> Add Expense
+                </button>
                 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPaymentModal">
                     <i class="icon-base ti tabler-cash me-1"></i> Pay Contractor
                 </button>
@@ -51,7 +51,7 @@
 
 {{-- Financial KPI Ribbon --}}
 <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-2">
+    <div class="col-sm-6 {{ (auth()->user()->isOwner() || auth()->user()->isAdmin()) ? 'col-xl-2' : 'col-xl-4' }}">
         <div class="awt-kpi-card p-3 h-100">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="awt-kpi-title">Contract Value</span>
@@ -63,7 +63,7 @@
             <div class="awt-kpi-footer text-muted">All commitments</div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-2">
+    <div class="col-sm-6 {{ (auth()->user()->isOwner() || auth()->user()->isAdmin()) ? 'col-xl-2' : 'col-xl-4' }}">
         <div class="awt-kpi-card p-3 h-100">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="awt-kpi-title">Paid to Date</span>
@@ -75,7 +75,7 @@
             <div class="awt-kpi-footer text-muted">Cleared vouchers</div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-2">
+    <div class="col-sm-6 {{ (auth()->user()->isOwner() || auth()->user()->isAdmin()) ? 'col-xl-2' : 'col-xl-4' }}">
         <div class="awt-kpi-card p-3 h-100">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="awt-kpi-title">Balance Due</span>
@@ -87,30 +87,32 @@
             <div class="awt-kpi-footer text-muted">Pending balance</div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="awt-kpi-card p-3 h-100">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="awt-kpi-title">Direct Materials</span>
-                <div class="avatar avatar-sm bg-label-warning rounded-circle d-flex align-items-center justify-content-center">
-                    <i class="icon-base ti tabler-receipt"></i>
+    @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
+        <div class="col-sm-6 col-xl-3">
+            <div class="awt-kpi-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="awt-kpi-title">Direct Materials</span>
+                    <div class="avatar avatar-sm bg-label-warning rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="icon-base ti tabler-receipt"></i>
+                    </div>
                 </div>
+                <div class="awt-kpi-value fs-6 fw-bold text-warning mb-1">PKR {{ number_format($totalDirectExpenses, 0) }}</div>
+                <div class="awt-kpi-footer text-muted">Bricks, cement, fuel</div>
             </div>
-            <div class="awt-kpi-value fs-6 fw-bold text-warning mb-1">PKR {{ number_format($totalDirectExpenses, 0) }}</div>
-            <div class="awt-kpi-footer text-muted">Bricks, cement, fuel</div>
         </div>
-    </div>
-    <div class="col-sm-12 col-xl-3">
-        <div class="awt-kpi-card p-3 h-100">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="awt-kpi-title">Total Outlay</span>
-                <div class="avatar avatar-sm bg-label-info rounded-circle d-flex align-items-center justify-content-center">
-                    <i class="icon-base ti tabler-calculator"></i>
+        <div class="col-sm-12 col-xl-3">
+            <div class="awt-kpi-card p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="awt-kpi-title">Total Outlay</span>
+                    <div class="avatar avatar-sm bg-label-info rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="icon-base ti tabler-calculator"></i>
+                    </div>
                 </div>
+                <div class="awt-kpi-value fs-5 fw-bold text-primary mb-1">PKR {{ number_format($totalProjectOutlay, 0) }}</div>
+                <div class="awt-kpi-footer text-muted">Paid + Direct Expenses</div>
             </div>
-            <div class="awt-kpi-value fs-5 fw-bold text-primary mb-1">PKR {{ number_format($totalProjectOutlay, 0) }}</div>
-            <div class="awt-kpi-footer text-muted">Paid + Direct Expenses</div>
         </div>
-    </div>
+    @endif
 </div>
 
 <div class="row g-4 mb-4">
@@ -193,78 +195,80 @@
             </div>
         </div>
 
-        {{-- Direct Expenses Breakdown Card --}}
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="icon-base ti tabler-receipt me-2 text-primary"></i> Direct Expenses by Category</h5>
-                <a href="{{ route('expenses.index', ['project_id' => $project->id]) }}" class="btn btn-sm btn-outline-primary">All Expenses</a>
-            </div>
-            <div class="card-body">
-                <div class="row g-3 mb-3">
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 rounded bg-light border">
-                            <div class="small text-muted">Materials</div>
-                            <div class="fw-bold fs-6 text-heading">PKR {{ number_format($materialExpenses, 0) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 rounded bg-light border">
-                            <div class="small text-muted">Labor / Wages</div>
-                            <div class="fw-bold fs-6 text-heading">PKR {{ number_format($laborExpenses, 0) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 rounded bg-light border">
-                            <div class="small text-muted">Machinery & Rent</div>
-                            <div class="fw-bold fs-6 text-heading">PKR {{ number_format($equipmentExpenses, 0) }}</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 rounded bg-light border">
-                            <div class="small text-muted">Utilities & Fuel</div>
-                            <div class="fw-bold fs-6 text-heading">PKR {{ number_format($utilitiesExpenses + $otherExpenses, 0) }}</div>
-                        </div>
-                    </div>
+        @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
+            {{-- Direct Expenses Breakdown Card --}}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="icon-base ti tabler-receipt me-2 text-primary"></i> Direct Expenses by Category</h5>
+                    <a href="{{ route('expenses.index', ['project_id' => $project->id]) }}" class="btn btn-sm btn-outline-primary">All Expenses</a>
                 </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded bg-light border">
+                                <div class="small text-muted">Materials</div>
+                                <div class="fw-bold fs-6 text-heading">PKR {{ number_format($materialExpenses, 0) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded bg-light border">
+                                <div class="small text-muted">Labor / Wages</div>
+                                <div class="fw-bold fs-6 text-heading">PKR {{ number_format($laborExpenses, 0) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded bg-light border">
+                                <div class="small text-muted">Machinery & Rent</div>
+                                <div class="fw-bold fs-6 text-heading">PKR {{ number_format($equipmentExpenses, 0) }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 rounded bg-light border">
+                                <div class="small text-muted">Utilities & Fuel</div>
+                                <div class="fw-bold fs-6 text-heading">PKR {{ number_format($utilitiesExpenses + $otherExpenses, 0) }}</div>
+                            </div>
+                        </div>
+                    </div>
 
-                <h6 class="fw-semibold mb-2 mt-4">Recent Site Expenses</h6>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Category</th>
-                                <th>Vendor / Detail</th>
-                                <th>Method</th>
-                                <th class="text-end">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentExpenses as $exp)
+                    <h6 class="fw-semibold mb-2 mt-4">Recent Site Expenses</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <td>{{ $exp->expense_date->format('d M Y') }}</td>
-                                    <td>
-                                        <span class="badge" style="background-color: {{ $exp->category?->color }}20; color: {{ $exp->category?->color }};">
-                                            {{ $exp->category?->name ?? 'Expense' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold text-heading">{{ $exp->vendor ?? '—' }}</div>
-                                        <div class="small text-muted">{{ Str::limit($exp->description, 40) }}</div>
-                                    </td>
-                                    <td><span class="badge bg-label-secondary">{{ $exp->payment_method ?? 'Cash' }}</span></td>
-                                    <td class="text-end fw-semibold text-heading">PKR {{ number_format($exp->amount, 0) }}</td>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Vendor / Detail</th>
+                                    <th>Method</th>
+                                    <th class="text-end">Amount</th>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center py-3 text-muted">No expenses recorded yet.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @forelse($recentExpenses as $exp)
+                                    <tr>
+                                        <td>{{ $exp->expense_date->format('d M Y') }}</td>
+                                        <td>
+                                            <span class="badge" style="background-color: {{ $exp->category?->color }}20; color: {{ $exp->category?->color }};">
+                                                {{ $exp->category?->name ?? 'Expense' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-heading">{{ $exp->vendor ?? '—' }}</div>
+                                            <div class="small text-muted">{{ Str::limit($exp->description, 40) }}</div>
+                                        </td>
+                                        <td><span class="badge bg-label-secondary">{{ $exp->payment_method ?? 'Cash' }}</span></td>
+                                        <td class="text-end fw-semibold text-heading">PKR {{ number_format($exp->amount, 0) }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center py-3 text-muted">No expenses recorded yet.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 
     {{-- Right Sidebar: Workforce & Recent Payments --}}
@@ -386,66 +390,68 @@
     </div>
 </div>
 
-{{-- Add Expense Modal --}}
-<div class="modal fade" id="createExpenseModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title text-white"><i class="icon-base ti tabler-receipt me-2"></i> Record Direct Site Expense</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('expenses.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" name="project_id" value="{{ $project->id }}">
-                <div class="modal-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label required fw-semibold">Expense Category</label>
-                            <select name="expense_category_id" class="form-select" required>
-                                <option value="">Select Category...</option>
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->name }} ({{ ucfirst($cat->type) }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required fw-semibold">Amount (PKR)</label>
-                            <input type="number" step="0.01" name="amount" class="form-control fs-5 fw-bold text-primary" placeholder="e.g. 85000" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required fw-semibold">Expense Date</label>
-                            <input type="date" name="expense_date" class="form-control" value="{{ date('Y-m-d') }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Vendor / Supplier / Store</label>
-                            <input type="text" name="vendor" class="form-control" placeholder="e.g. Lucky Cement Agency">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Payment Method</label>
-                            <select name="payment_method" class="form-select">
-                                @foreach($paymentMethods as $pm)
-                                    <option value="{{ $pm }}">{{ $pm }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Upload Receipt Image (Optional)</label>
-                            <input type="file" name="receipt" class="form-control" accept="image/*,.pdf">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Itemized Description / Bill Details</label>
-                            <textarea name="description" class="form-control" rows="2" placeholder="e.g. 100 Bags OPC Cement delivered to site"></textarea>
+@if(auth()->user()->isOwner() || auth()->user()->isAdmin())
+    {{-- Add Expense Modal --}}
+    <div class="modal fade" id="createExpenseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title text-white"><i class="icon-base ti tabler-receipt me-2"></i> Record Direct Site Expense</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('expenses.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="project_id" value="{{ $project->id }}">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label required fw-semibold">Expense Category</label>
+                                <select name="expense_category_id" class="form-select" required>
+                                    <option value="">Select Category...</option>
+                                    @foreach($categories as $cat)
+                                        <option value="{{ $cat->id }}">{{ $cat->name }} ({{ ucfirst($cat->type) }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required fw-semibold">Amount (PKR)</label>
+                                <input type="number" step="0.01" name="amount" class="form-control fs-5 fw-bold text-primary" placeholder="e.g. 85000" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required fw-semibold">Expense Date</label>
+                                <input type="date" name="expense_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Vendor / Supplier / Store</label>
+                                <input type="text" name="vendor" class="form-control" placeholder="e.g. Lucky Cement Agency">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Payment Method</label>
+                                <select name="payment_method" class="form-select">
+                                    @foreach($paymentMethods as $pm)
+                                        <option value="{{ $pm }}">{{ $pm }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Upload Receipt Image (Optional)</label>
+                                <input type="file" name="receipt" class="form-control" accept="image/*,.pdf">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Itemized Description / Bill Details</label>
+                                <textarea name="description" class="form-control" rows="2" placeholder="e.g. 100 Bags OPC Cement delivered to site"></textarea>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-check me-1"></i> Save Expense</button>
-                </div>
-            </form>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-check me-1"></i> Save Expense</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+@endif
 
 {{-- Record Payment Modal --}}
 <div class="modal fade" id="createPaymentModal" tabindex="-1" aria-hidden="true">

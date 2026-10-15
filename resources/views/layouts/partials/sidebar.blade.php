@@ -96,14 +96,16 @@
             <span class="menu-header-text" data-i18n="Finance">Finance</span>
         </li>
 
-        <li class="menu-item {{ $isActive('expenses.*') ? 'active' : '' }}">
-            <a href="{{ route('expenses.index') }}" class="menu-link">
-                <i class="menu-icon icon-base ti tabler-receipt" aria-hidden="true"></i>
-                <div data-i18n="Direct Expenses">Expenses</div>
-            </a>
-        </li>
-
         @if($user?->isOwner() || $user?->isAdmin())
+            <li class="menu-item {{ $isActive('expenses.*') ? 'active' : '' }}">
+                <a href="{{ route('expenses.index') }}" class="menu-link">
+                    <i class="menu-icon icon-base ti tabler-receipt" aria-hidden="true"></i>
+                    <div data-i18n="Direct Expenses">Expenses</div>
+                </a>
+            </li>
+        @endif
+
+        @if($user?->isOwner() || $user?->isAdmin() || $user?->isContractor())
             <li class="menu-item {{ $isActive('contractor-payments.*') ? 'active' : '' }}">
                 <a href="{{ route('contractor-payments.index') }}" class="menu-link">
                     <i class="menu-icon icon-base ti tabler-cash" aria-hidden="true"></i>

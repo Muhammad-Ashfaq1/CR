@@ -15,6 +15,8 @@ class ExpenseController extends Controller
 {
     public function index(Request $request): View
     {
+        $this->authorizeExpenseAccess();
+
         $user = auth()->user();
         $query = Expense::query()->with(['project', 'category', 'recordedBy']);
 
@@ -72,6 +74,8 @@ class ExpenseController extends Controller
 
     public function create(Request $request): RedirectResponse
     {
+        $this->authorizeExpenseAccess();
+
         $params = ['action' => 'create'];
         if ($request->filled('project_id')) {
             $params['project_id'] = $request->project_id;
@@ -82,6 +86,8 @@ class ExpenseController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorizeExpenseAccess();
+
         $validated = $request->validate([
             'project_id' => ['required', 'exists:projects,id'],
             'expense_category_id' => ['required', 'exists:expense_categories,id'],
@@ -132,6 +138,8 @@ class ExpenseController extends Controller
 
     public function show(Expense $expense): View
     {
+        $this->authorizeExpenseAccess();
+
         $expense->load(['project', 'category', 'recordedBy']);
 
         return view('expenses.show', compact('expense'));
@@ -139,11 +147,15 @@ class ExpenseController extends Controller
 
     public function edit(Expense $expense): RedirectResponse
     {
+        $this->authorizeExpenseAccess();
+
         return redirect()->route('expenses.index', ['edit' => $expense->id]);
     }
 
     public function update(Request $request, Expense $expense): RedirectResponse
     {
+        $this->authorizeExpenseAccess();
+
         $validated = $request->validate([
             'project_id' => ['required', 'exists:projects,id'],
             'expense_category_id' => ['required', 'exists:expense_categories,id'],
@@ -189,6 +201,8 @@ class ExpenseController extends Controller
 
     public function destroy(Expense $expense): RedirectResponse
     {
+        $this->authorizeExpenseAccess();
+
         $amount = $expense->amount;
         $projectId = $expense->project_id;
 
@@ -206,5 +220,13 @@ class ExpenseController extends Controller
 
         return redirect()->route('expenses.index')
             ->with('success', 'Expense of PKR '.number_format($amount, 2).' deleted successfully.');
+    }
+
+    private function authorizeExpenseAccess(): void
+    {
+        $user = auth()->user();
+        if ($user->isContractor()) {
+            abort(403, 'Contractors are not authorized to view or manage project expenses.');
+        }
     }
 }
