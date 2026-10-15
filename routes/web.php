@@ -90,7 +90,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('contractors', ContractorController::class);
 
     // Contractor Payments
-    Route::resource('contractor-payments', ContractorPaymentController::class)->except(['edit', 'update']);
+    Route::resource('contractor-payments', ContractorPaymentController::class);
 
     // Workers
     Route::resource('workers', WorkerController::class);

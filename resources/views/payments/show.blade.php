@@ -34,6 +34,11 @@
             <a href="{{ route('contractor-payments.index') }}" class="btn btn-outline-secondary">
                 <i class="icon-base ti tabler-arrow-left me-1"></i> All Payments
             </a>
+            @if(auth()->user()->isOwner() && (int) $payment->recorded_by === (int) auth()->id() && !$payment->is_voided)
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editPaymentModal">
+                    <i class="icon-base ti tabler-edit me-1"></i> Edit Voucher
+                </button>
+            @endif
             @if(auth()->user()->isOwner() || auth()->user()->isAdmin())
                 @if(!$payment->is_voided)
                     <form action="{{ route('contractor-payments.destroy', $payment) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure you want to void this payment voucher? This cannot be undone.')">
@@ -331,5 +336,90 @@
     }
 }
 </style>
+
+{{-- Edit Payment Modal --}}
+@if(auth()->user()->isOwner() && (int) $payment->recorded_by === (int) auth()->id() && !$payment->is_voided)
+<div class="modal fade" id="editPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title text-dark"><i class="icon-base ti tabler-edit me-2"></i> Edit Payment Voucher #{{ str_pad($payment->id, 5, '0', STR_PAD_LEFT) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('contractor-payments.update', $payment) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required fw-semibold">Select Project</label>
+                            <select name="project_id" class="form-select" required>
+                                <option value="">Choose Project...</option>
+                                @foreach($projects as $p)
+                                    <option value="{{ $p->id }}" {{ (string) $payment->project_id === (string) $p->id ? 'selected' : '' }}>
+                                        {{ $p->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required fw-semibold">Select Contractor</label>
+                            <select name="contractor_id" class="form-select" required>
+                                <option value="">Choose Contractor...</option>
+                                @foreach($contractors as $c)
+                                    <option value="{{ $c->id }}" {{ (string) $payment->contractor_id === (string) $c->id ? 'selected' : '' }}>
+                                        {{ $c->name }} ({{ $c->company_name ?? 'Individual' }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required fw-semibold">Payment Amount (PKR)</label>
+                            <input type="number" step="0.01" name="amount" class="form-control fs-5 fw-bold text-success" value="{{ $payment->amount }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required fw-semibold">Payment Date</label>
+                            <input type="date" name="payment_date" class="form-control" value="{{ $payment->payment_date->format('Y-m-d') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required fw-semibold">Payment Type</label>
+                            <select name="payment_type" class="form-select" required>
+                                @foreach($paymentTypes as $type)
+                                    <option value="{{ $type->value }}" {{ $payment->payment_type->value === $type->value ? 'selected' : '' }}>
+                                        {{ $type->label() }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Reference / Cheque / Tx ID</label>
+                            <input type="text" name="reference" class="form-control" value="{{ $payment->reference }}" placeholder="e.g. Cheque #49281 or Online Ref">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Notes / Payment Description</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="e.g. Paid for ground floor slab completion...">{{ $payment->notes }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning"><i class="icon-base ti tabler-check me-1"></i> Update Voucher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+@if(request('action') === 'edit')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const m = document.getElementById('editPaymentModal');
+        if (m) new bootstrap.Modal(m).show();
+    });
+</script>
+@endif
+@endpush
+@endif
 @endsection
 

@@ -138,12 +138,90 @@ class ContractorPaymentController extends Controller
 
         $remainingBalance = max(0, $contractAmount - $totalPaidToDate);
 
+        $user = auth()->user();
+        $projects = $user && $user->isOwner()
+            ? Project::where('owner_id', $user->id)->get()
+            : Project::all();
+        $contractors = Contractor::where('is_active', true)->get();
+        $paymentTypes = PaymentType::cases();
+
         return view('payments.show', [
             'payment' => $contractorPayment,
             'contractAmount' => $contractAmount,
             'totalPaidToDate' => $totalPaidToDate,
             'remainingBalance' => $remainingBalance,
+            'projects' => $projects,
+            'contractors' => $contractors,
+            'paymentTypes' => $paymentTypes,
         ]);
+    }
+
+    public function edit(ContractorPayment $contractorPayment): View
+    {
+        $this->authorizePaymentEdit($contractorPayment);
+
+        $user = auth()->user();
+        $projects = Project::where('owner_id', $user->id)->get();
+        $contractors = Contractor::where('is_active', true)->get();
+        $paymentTypes = PaymentType::cases();
+
+        return view('payments.edit', [
+            'payment' => $contractorPayment,
+            'projects' => $projects,
+            'contractors' => $contractors,
+            'paymentTypes' => $paymentTypes,
+        ]);
+    }
+
+    public function update(Request $request, ContractorPayment $contractorPayment): RedirectResponse
+    {
+        $this->authorizePaymentEdit($contractorPayment);
+
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'project_id' => ['required', 'exists:projects,id'],
+            'contractor_id' => ['required', 'exists:contractors,id'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'payment_date' => ['required', 'date'],
+            'payment_type' => ['required', Rule::enum(PaymentType::class)],
+            'reference' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $project = Project::findOrFail($validated['project_id']);
+        if ((int) $project->owner_id !== (int) $user->id) {
+            abort(403, 'You can only assign payments to projects you own.');
+        }
+
+        $contractor = Contractor::findOrFail($validated['contractor_id']);
+        $oldAmount = $contractorPayment->amount;
+
+        $contractorPayment->update([
+            'project_id' => $validated['project_id'],
+            'contractor_id' => $validated['contractor_id'],
+            'amount' => $validated['amount'],
+            'payment_date' => $validated['payment_date'],
+            'payment_type' => $validated['payment_type'],
+            'reference' => $validated['reference'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        ActivityLogger::log([
+            'project_id' => $contractorPayment->project_id,
+            'event' => 'contractor_payment_updated',
+            'description' => 'Updated payment voucher #'.str_pad($contractorPayment->id, 5, '0', STR_PAD_LEFT).' of PKR '.number_format($contractorPayment->amount)." for {$contractor->name} on project '{$project->name}' ({$contractorPayment->payment_type->label()})",
+            'properties' => [
+                'payment_id' => $contractorPayment->id,
+                'contractor_id' => $contractor->id,
+                'old_amount' => $oldAmount,
+                'new_amount' => $contractorPayment->amount,
+                'payment_type' => $contractorPayment->payment_type->value,
+            ],
+        ], $contractorPayment);
+
+        return redirect()->route('contractor-payments.show', $contractorPayment)
+            ->with('success', 'Payment voucher #'.str_pad($contractorPayment->id, 5, '0', STR_PAD_LEFT).' updated successfully.');
     }
 
     public function destroy(ContractorPayment $contractorPayment): RedirectResponse
@@ -159,5 +237,18 @@ class ContractorPaymentController extends Controller
 
         return redirect()->route('contractor-payments.index')
             ->with('success', 'Payment voucher #'.str_pad($contractorPayment->id, 5, '0', STR_PAD_LEFT).' marked as voided.');
+    }
+
+    private function authorizePaymentEdit(ContractorPayment $contractorPayment): void
+    {
+        $user = auth()->user();
+
+        if ($contractorPayment->is_voided) {
+            abort(403, 'Voided payment vouchers cannot be edited.');
+        }
+
+        if (! $user || ! $user->isOwner() || (int) $contractorPayment->recorded_by !== (int) $user->id) {
+            abort(403, 'Only the project owner who recorded this payment is authorized to edit it.');
+        }
     }
 }

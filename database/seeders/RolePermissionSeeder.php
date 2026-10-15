@@ -36,6 +36,7 @@ class RolePermissionSeeder extends Seeder
             // Contractor Payments
             'contractor-payment.view',
             'contractor-payment.create',
+            'contractor-payment.update',
             'contractor-payment.void',
 
             // Expenses
@@ -88,7 +89,7 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view',
             'project.view', 'project.create', 'project.update', 'project.manage-users',
             'contractor.view', 'contractor.create', 'contractor.update', 'contractor.assign',
-            'contractor-payment.view', 'contractor-payment.create', 'contractor-payment.void',
+            'contractor-payment.view', 'contractor-payment.create', 'contractor-payment.update', 'contractor-payment.void',
             'expense.view', 'expense.create', 'expense.update', 'expense.delete',
             'expense-category.view',
             'worker.view',
