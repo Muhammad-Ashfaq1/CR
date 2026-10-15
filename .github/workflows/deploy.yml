@@ -3,8 +3,8 @@ name: Deploy Laravel Application
 on:
   push:
     branches:
-      - main123
-      - develop123
+      - main
+      - develop
 
 jobs:
   deploy:
